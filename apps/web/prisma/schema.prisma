@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id         Int       @id(map: "admin_pk") @default(autoincrement())
+  username   String    @unique(map: "unique_id") @db.VarChar(20)
+  password   String    @db.VarChar(128)
+  level      Int       @default(0)
+  created_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model auctionItem {
+  id                   BigInt               @id(map: "auction_item_pk") @default(autoincrement())
+  medical_device_id    BigInt
+  auction_code         String               @db.VarChar(10)
+  status               Int?                 @default(0) @db.SmallInt
+  start_timestamp      DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  expired_count        Int?                 @default(0) @db.SmallInt
+  created_at           DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at           DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  medical_device       medicalDevice        @relation(fields: [medical_device_id], references: [id])
+  auction_item_history auctionItemHistory[]
+
+  @@index([auction_code, status, start_timestamp, expired_count, updated_at], map: "auction_items_index")
+  @@map("auction_item")
+}
+
+model auctionItemHistory {
+  id              BigInt      @id(map: "action_item_history_pk") @default(autoincrement())
+  auction_item_id BigInt      @default(autoincrement())
+  user_id         BigInt
+  value           Int?
+  created_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  auction_item    auctionItem @relation(fields: [auction_item_id], references: [id])
+
+  @@index([auction_item_id, user_id, value], map: "action_item_history_auction_id_user_id_value_index")
+  @@map("auction_item_history")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model company {
+  id                Int       @id(map: "company_pk") @default(autoincrement())
+  name              String?   @db.VarChar(40)
+  business_no       String?   @unique(map: "unique_no") @db.VarChar(15)
+  business_tel      String?   @db.VarChar(16)
+  license_img       String?   @db.VarChar(200)
+  owner_id          Int?
+  related_members   Json?     @default("[]") @db.Json
+  institute_members Json?     @default("[]") @db.Json
+  created_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  company_type      Int?      @default(0)
+  business_mobile   String?   @db.VarChar(15)
+  secret_info       Json?     @default("{\"bankAccount\": \"\", \"bankCode\": \"\", \"ownerName\": \"\", \"businessEmail\": \"\", \"businessNo\": \"\", \"businessTel\": \"\", \"businessMobile\": \"\"}") @db.Json
+  zipcode           String?   @db.VarChar(15)
+  address           String?   @db.VarChar(100)
+  adddress_detail   String?   @db.VarChar(50)
+  profile           profile[]
+
+  @@index([company_type], map: "company_company_type_index")
+  @@index([id], map: "company_id_index")
+  @@index([name, business_no, business_tel], map: "company_name_business_no_business_tel_index")
+  @@index([owner_id], map: "company_owner_id_index")
+}
+
+model deviceType {
+  id            Int         @id(map: "device_type_pk") @default(autoincrement()) @db.SmallInt
+  code          String?     @default("BB") @db.VarChar(2)
+  name          String      @db.VarChar(30)
+  description   String?     @db.VarChar(100)
+  img           String?     @db.VarChar(200)
+  department_id Int?        @db.SmallInt
+  department    department? @relation(fields: [department_id], references: [id])
+
+  @@unique([department_id, code], map: "device_type_pk_2")
+  @@index([id, code, name, department_id], map: "device_type_id_code_name_department_id_index")
+  @@map("device_type")
+}
+
+model department {
+  id           Int          @id(map: "department_pk") @db.SmallInt
+  code         String?      @unique(map: "unique_key") @default("AA") @db.VarChar(2)
+  name         String?      @db.VarChar(30)
+  img          String?      @db.VarChar(200)
+  description  String?      @db.VarChar(100)
+  device_types deviceType[]
+
+  @@index([id, code, name], map: "department_id_code_name_index")
+}
+
+model manufacturer {
+  id           Int     @id(map: "manufacturer_pk") @default(autoincrement())
+  name         String? @db.VarChar(50)
+  device_types Json?   @default("[]") @db.Json
+  img          String? @db.VarChar(200)
+  description  String? @db.VarChar(100)
+
+  @@index([id, name], map: "manufacturer_id_name_index")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model medicalDevice {
+  id               BigInt        @id(map: "medical_device_pk") @default(autoincrement())
+  company_id       Int?
+  department       Int?          @default(0) @db.SmallInt
+  device_type      Int?          @default(0) @db.SmallInt
+  manufacturer_id  Int?
+  manufacture_date DateTime?     @db.Date
+  images           Json?         @default("[]") @db.Json
+  description      String?       @db.VarChar(200)
+  created_at       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  auction_item     auctionItem[]
+
+  @@index([company_id], map: "medical_device_company_id_index")
+  @@index([department, device_type, manufacturer_id, manufacture_date], map: "medical_device_department_device_type_manufacturer_id_manufactu")
+  @@map("medical_device")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notificationInfo {
+  id                BigInt    @default(autoincrement())
+  user_id           BigInt
+  device_type       Int       @default(0)
+  device_os         Int       @default(0)
+  device_token      String    @db.VarChar(150)
+  permission_status Int?
+  noti_notice       Int?      @default(1) @db.SmallInt
+  noti_event        Int?      @default(0) @db.SmallInt
+  noti_sms          Int?      @default(0) @db.SmallInt
+  noti_email        Int?      @default(0) @db.SmallInt
+  noti_auction      Int?      @default(0) @db.SmallInt
+  noti_favorite     Int?      @default(0) @db.SmallInt
+  noti_set          Json?     @default("{}") @db.Json
+  created_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+
+  @@id([user_id, device_type, device_os, device_token], map: "notification_info_pk")
+  @@index([user_id, permission_status, noti_notice, noti_event, noti_sms, noti_email, noti_auction, noti_favorite], map: "notification_info_index")
+  @@map("notification_info")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model profile {
+  id           Int       @id(map: "profile_pk") @default(autoincrement())
+  company_id   Int?
+  profile_type Int?
+  created_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  name         String?   @db.VarChar(40)
+  mobile       String?   @db.VarChar(16)
+  email        String?   @db.VarChar(100)
+  company      company?  @relation(fields: [company_id], references: [id])
+  user         user?     @relation("UserProfile")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user {
+  id           BigInt    @id(map: "user_pk") @default(autoincrement())
+  device_token String    @db.VarChar(120)
+  profile_id   Int?      @unique
+  status       Int       @default(0)
+  created_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  profile      profile?  @relation("UserProfile", fields: [profile_id], references: [id])
+
+  @@index([device_token], map: "user_device_token_index")
+  @@index([id], map: "user_id_index")
+  @@index([profile_id], map: "user_profile_id_index")
+}
