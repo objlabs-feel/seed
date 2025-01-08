@@ -28,7 +28,7 @@ interface SearchFilters {
 export default function UserManagement() {
   const router = useRouter()
   const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [page, setPage] = useState(1)
@@ -47,7 +47,7 @@ export default function UserManagement() {
     
     if (node) {
       observer.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && hasMore) {
+        if (entries[0].isIntersecting && hasMore && !loading) {
           setPage(prev => prev + 1)
         }
       })
@@ -56,6 +56,9 @@ export default function UserManagement() {
   }, [loading, hasMore])
 
   const fetchUsers = async (pageNum: number, isNewSearch = false) => {
+    if (loading) return; // 중복 호출 방지
+    console.log('Fetching users...');
+    setLoading(true)
     try {
       const queryParams = new URLSearchParams({
         page: pageNum.toString(),
@@ -65,8 +68,11 @@ export default function UserManagement() {
         ...(filters.email && { email: filters.email }),
         ...(filters.mobile && { mobile: filters.mobile })
       })
-
+  
       const response = await fetch(`/api/v1/users?${queryParams}`)
+      if (!response.ok) {
+        throw new Error('Network response was not ok')
+      }
       const data = await response.json()
       
       if (data.users) {
@@ -74,9 +80,11 @@ export default function UserManagement() {
         setHasMore(data.hasMore)
       }
     } catch (err) {
+      console.error('Error fetching users:', err);
       setError('이용자 목록을 불러오는데 실패했습니다.')
     } finally {
-      setLoading(false)
+      console.log('Fetch complete');
+      setLoading(false) // 로딩 상태 업데이트
     }
   }
 
@@ -88,8 +96,9 @@ export default function UserManagement() {
   }
 
   useEffect(() => {
+    console.log('useEffect triggered');
     fetchUsers(page)
-  }, [page])
+  }, [page]) // 의존성 배열에 page만 포함
 
   const getStatusText = (status: number) => {
     switch (status) {
@@ -159,6 +168,7 @@ export default function UserManagement() {
           <table className="w-full">
             <thead className="bg-gray-50">
               <tr>
+                <th className="p-4 text-left font-medium text-gray-500">ID</th>
                 <th className="p-4 text-left font-medium text-gray-500">이름</th>
                 <th className="p-4 text-left font-medium text-gray-500">이메일</th>
                 <th className="p-4 text-left font-medium text-gray-500">전화번호</th>
@@ -174,6 +184,7 @@ export default function UserManagement() {
                   ref={index === users.length - 1 ? lastItemRef : null}
                   className="hover:bg-gray-50"
                 >
+                  <td className="p-4">{user.id}</td>
                   <td className="p-4">{user.profile?.name}</td>
                   <td className="p-4">{user.profile?.email}</td>
                   <td className="p-4">{user.profile?.mobile}</td>

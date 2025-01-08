@@ -27,7 +27,12 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(user)
+    // BigInt를 문자열로 변환
+    const serializedUser = JSON.stringify(user, (key, value) =>
+        typeof value === 'bigint' ? value.toString() : value
+    )
+  
+    return NextResponse.json(JSON.parse(serializedUser))
   } catch (error) {
     console.error('이용자 정보 조회 중 오류:', error)
     return NextResponse.json(
@@ -47,11 +52,20 @@ export async function PUT(
     const { user: userData, profile: profileData } = await request.json()
 
     const result = await prisma.$transaction(async (tx) => {
+
       // 프로필 정보 수정
-      await tx.profile.update({
-        where: { id: (await tx.user.findUnique({ where: { id } }))?.profile_id },
-        data: profileData
-      })
+      if (profileData.id) {
+        await tx.profile.update({
+          where: { id: profileData.id },
+          data: profileData
+        })
+      } else {
+        const newProfile = await tx.profile.create({
+          data: profileData
+        })
+        profileData.id = newProfile.id
+        userData.profile_id = newProfile.id
+      }
 
       // 이용자 정보 수정
       const updatedUser = await tx.user.update({
@@ -66,7 +80,14 @@ export async function PUT(
         }
       })
 
-      return updatedUser
+       // BigInt를 문자열로 변환
+      const responseUser = {
+          ...updatedUser,
+          id: updatedUser.id.toString(), // BigInt 필드를 문자열로 변환
+          profile_id: updatedUser.profile_id ? updatedUser.profile_id.toString() : null
+      }
+
+      return responseUser
     })
 
     return NextResponse.json(result)

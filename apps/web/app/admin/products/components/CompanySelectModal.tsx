@@ -56,7 +56,8 @@ export default function CompanySelectModal({ isOpen, onClose, onSelect }: Compan
     try {
       const response = await fetch(`/api/v1/companies/search?type=${searchType}&term=${searchTerm}`)
       const data = await response.json()
-      setCompanies(data)
+      console.log(data)
+      setCompanies(data.companies)
     } catch (err) {
       console.error('업체 검색 중 오류:', err)
     } finally {

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import CompanySelectModal from '../../../products/components/CompanySelectModal'
+import CompanySelectModal from '../../products/components/CompanySelectModal'
 
 interface FormData {
   user: {

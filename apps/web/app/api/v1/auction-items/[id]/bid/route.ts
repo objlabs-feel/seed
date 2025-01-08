@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { convertBigIntToString } from '@/lib/utils'
 
 export async function POST(
   request: Request,
@@ -17,7 +18,7 @@ export async function POST(
       }
     })
 
-    return NextResponse.json(history)
+    return NextResponse.json(convertBigIntToString(history))
   } catch (error) {
     console.error('입찰 처리 중 오류:', error)
     return NextResponse.json(

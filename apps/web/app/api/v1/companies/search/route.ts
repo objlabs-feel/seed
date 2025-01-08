@@ -41,10 +41,7 @@ export async function GET(request: Request) {
       prisma.company.findMany({
         where,
         include: {
-          profiles: {
-            where: {
-              profile_type: 0
-            },
+          profile: {            
             take: 1
           }
         },

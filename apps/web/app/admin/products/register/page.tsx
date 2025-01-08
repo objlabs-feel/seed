@@ -174,7 +174,6 @@ export default function ProductRegister() {
                   start_timestamp: e.target.value
                 })}
                 className="w-full p-2 border rounded"
-                required
               />
             </div>
           </div>
@@ -277,8 +276,7 @@ export default function ProductRegister() {
                     manufacture_date: e.target.value
                   }
                 })}
-                className="w-full p-2 border rounded"
-                required
+                className="w-full p-2 border rounded"                
               />
             </div>
             <div>
@@ -294,7 +292,6 @@ export default function ProductRegister() {
                 })}
                 className="w-full p-2 border rounded"
                 rows={4}
-                required
               />
             </div>
             {/* 이미지 업로드 기능은 별도로 구현 필요 */}

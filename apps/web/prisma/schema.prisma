@@ -19,7 +19,7 @@ model admin {
 model auctionItem {
   id                   BigInt               @id(map: "auction_item_pk") @default(autoincrement())
   medical_device_id    BigInt
-  auction_code         String               @db.VarChar(10)
+  auction_code         String               @db.VarChar(12)
   status               Int?                 @default(0) @db.SmallInt
   start_timestamp      DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   expired_count        Int?                 @default(0) @db.SmallInt

@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import UserSelectModal from './UserSelectModal'
 
 declare global {
   interface Window {
@@ -37,6 +38,10 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
     adddress_detail: initialData?.adddress_detail || ''
   })
   const [loading, setLoading] = useState(false)
+  const [ownerId, setOwnerId] = useState<number | null>(null)
+  const [searchTerm, setSearchTerm] = useState('')
+  const [searchResults, setSearchResults] = useState<any[]>([])
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     // Daum 우편번호 스크립트 동적 로드
@@ -92,8 +97,21 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
     }
   }
 
+  // 사용자 선택 함수
+  const handleSelectUser = (selectedUser: User) => {
+    console.log(selectedUser)
+    setOwnerId(selectedUser.id)
+    setIsModalOpen(false) // 모달 닫기
+  }
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex justify-start gap-2 pt-4">
+        <label className="block text-sm font-medium mb-1">소유자ID:</label>
+        <input type="text" value={ownerId || ''} readOnly />
+        <button className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-blue-300"
+         type="button" onClick={() => setIsModalOpen(true)}>소유자 검색</button>
+      </div>
       <div>
         <label className="block text-sm font-medium mb-1">업체명</label>
         <input
@@ -180,6 +198,13 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
           />
         </div>
       </div>
+
+      {/* BidModal 사용 */}
+      <UserSelectModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSelect={handleSelectUser}
+      />
 
       <div className="flex justify-end gap-2 pt-4">
         <button

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { convertBigIntToString } from '@/lib/utils'
 
 // 경매 상품 수정
 export async function PUT(
@@ -24,7 +25,7 @@ export async function PUT(
       const auctionItem = await tx.auctionItem.findUnique({
         where: { id },
         include: {
-          medicalDevice: true
+          medical_device: true
         }
       })
 
@@ -35,7 +36,7 @@ export async function PUT(
       // 2. medical_device 수정
       if (deviceData) {
         await tx.medicalDevice.update({
-          where: { id: auctionItem.medicalDevice.id },
+          where: { id: auctionItem.medical_device.id },
           data: {
             company_id: deviceData.company_id,
             department: deviceData.department,
@@ -58,14 +59,14 @@ export async function PUT(
           expired_count: expiredCount
         },
         include: {
-          medicalDevice: true
+          medical_device: true
         }
       })
 
       return updatedAuctionItem
     })
 
-    return NextResponse.json(result)
+    return NextResponse.json(convertBigIntToString(result))
   } catch (error) {
     console.error('경매 상품 수정 중 오류:', error)
     return NextResponse.json(
@@ -86,7 +87,8 @@ export async function GET(
     const auctionItem = await prisma.auctionItem.findUnique({
       where: { id },
       include: {
-        medicalDevice: true
+        medical_device: true,
+        auction_item_history: true
       }
     })
 
@@ -97,7 +99,7 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(auctionItem)
+    return NextResponse.json(convertBigIntToString(auctionItem))
   } catch (error) {
     console.error('경매 상품 조회 중 오류:', error)
     return NextResponse.json(

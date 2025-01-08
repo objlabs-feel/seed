@@ -1,6 +1,13 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 
+function replacer(key: string, value: any) {
+  if (typeof value === 'bigint') {
+    return value.toString();
+  }
+  return value;
+}
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)
@@ -53,8 +60,15 @@ export async function GET(request: Request) {
       prisma.user.count({ where })
     ])
 
+    // BigInt를 문자열로 변환
+    const responseUsers = users.map(user => ({
+        ...user,
+        id: user.id.toString(), // BigInt 필드를 문자열로 변환
+        profile_id: user.profile_id ? user.profile_id.toString() : null
+    }))
+
     return NextResponse.json({
-      users,
+      users: responseUsers,
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -94,7 +108,7 @@ export async function POST(request: Request) {
         id: newUser.id.toString(), // BigInt 필드를 문자열로 변환
         profile_id: newUser.profile_id ? newUser.profile_id.toString() : null
     }
-    
+
     return NextResponse.json(responseUser, { status: 201 })
   } catch (error) {
     console.error('이용자 생성 중 오류:', error)

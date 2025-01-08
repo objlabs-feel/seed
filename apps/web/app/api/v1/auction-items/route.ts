@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { convertBigIntToString } from '@/lib/utils'
 
 // 경매 상품 목록 조회
 export async function GET(request: Request) {
@@ -19,12 +20,12 @@ export async function GET(request: Request) {
       ...(auction_code && { auction_code }),
       ...(status !== undefined && { status }),
       ...(user_id && {
-        auctionItemHistory: {
+        auction_item_history: {
           some: { user_id }
         }
       }),
       ...(profile_id && {
-        medicalDevice: {
+        medical_device: {
           company: {
             profile: {
               id: profile_id
@@ -41,8 +42,8 @@ export async function GET(request: Request) {
       prisma.auctionItem.findMany({
         where,
         include: {
-          medicalDevice: true,
-          auctionItemHistory: {
+          medical_device: true,
+          auction_item_history: {
             orderBy: {
               value: 'desc'
             },
@@ -59,7 +60,7 @@ export async function GET(request: Request) {
     ])
 
     return NextResponse.json({
-      items,
+      items: convertBigIntToString(items),
       total,
       page,
       totalPages: Math.ceil(total / limit),
@@ -122,7 +123,7 @@ export async function POST(request: Request) {
           department: parseInt(body.medical_device.department),
           device_type: parseInt(body.medical_device.device_type),
           manufacturer_id: parseInt(body.medical_device.manufacturer_id),
-          manufacture_date: new Date(body.medical_device.manufacture_date),
+          manufacture_date: body.medical_device.manufacture_date ? new Date(body.medical_device.manufacture_date) : null,
           images: body.medical_device.images,
           description: body.medical_device.description
         }
@@ -133,18 +134,20 @@ export async function POST(request: Request) {
           medical_device_id: device.id,
           auction_code,
           status: 0,
-          start_timestamp: new Date(body.start_timestamp),
           expired_count: 0
         },
         include: {
-          medicalDevice: true
+          medical_device: true
         }
       })
 
       return auctionItem
     })
 
-    return NextResponse.json(result)
+    // BigInt 값을 문자열로 변환
+    const responseData = convertBigIntToString(result)
+
+    return NextResponse.json(responseData)
   } catch (error) {
     console.error('경매 상품 생성 중 오류:', error)
     return NextResponse.json(

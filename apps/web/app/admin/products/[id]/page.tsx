@@ -22,11 +22,23 @@ interface AuctionItem {
   start_timestamp: string
   expired_count: number
   medical_device: MedicalDevice
+  auction_item_history: AuctionItemHistory[]
+}
+
+interface AuctionItemHistory {
+  id: number; // 이력의 고유 ID
+  auctionItemId: number; // 관련된 경매 항목의 ID
+  changeDate: Date; // 변경이 발생한 날짜
+  changedBy: string; // 변경을 수행한 사용자
+  changeType: string; // 변경 유형 (예: 'created', 'updated', 'deleted')
+  description: string; // 변경에 대한 설명
+  // 추가적인 속성들...
 }
 
 export default function ProductDetail({ params }: { params: { id: string } }) {
   const router = useRouter()
   const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null)
+  const [highestBidder, setHighestBidder] = useState<AuctionItemHistory | null>(null);
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isBidModalOpen, setIsBidModalOpen] = useState(false)
@@ -40,6 +52,11 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
       const response = await fetch(`/api/v1/auction-items/${params.id}`)
       const data = await response.json()
       setAuctionItem(data)
+
+      const highestBid = data.auction_item_history.reduce((prev: AuctionItemHistory, current: AuctionItemHistory) => {
+        return prev.value > current.value ? prev : current;
+      });
+      setHighestBidder(highestBid);
     } catch (err) {
       setError('경매 상품 정보를 불러오는데 실패했습니다.')
     } finally {
@@ -166,9 +183,9 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         <div>
           <h3 className="font-semibold mb-4">의료기기 정보</h3>
           <div className="space-y-2">
-            <p>설명: {auctionItem.medical_device.description}</p>
-            <p>제조일: {new Date(auctionItem.medical_device.manufacture_date).toLocaleDateString()}</p>
-            {auctionItem.medical_device.images.length > 0 && (
+            <p>설명: {auctionItem.medical_device?.description}</p>
+            <p>제조일: {auctionItem.medical_device?.manufacture_date ? new Date(auctionItem.medical_device.manufacture_date).toLocaleDateString() : ''}</p>
+            {auctionItem.medical_device?.images.length > 0 && (
               <div>
                 <p className="mb-2">이미지:</p>
                 <div className="grid grid-cols-3 gap-2">
@@ -184,6 +201,22 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
               </div>
             )}
           </div>
+        </div>
+      </div>
+
+      <div className="mt-6">
+        <h2 className="font-semibold mb-4">최고 입찰자</h2>
+        {highestBidder && (
+          <p>이용자ID : {highestBidder.user_id} 입찰가 : {highestBidder.value}</p>
+        )}
+      </div>
+
+      <div className="mt-6">        
+        <h3 className="font-semibold mb-4">입찰 내역</h3>
+        <div className="space-y-2">
+          {auctionItem.auction_item_history.map((history) => (
+            <p key={history.id}>이용자ID : {history.user_id} 입찰가 : {history.value}</p>
+          ))}
         </div>
       </div>
 
