@@ -53,10 +53,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
       const data = await response.json()
       setAuctionItem(data)
 
-      const highestBid = data.auction_item_history.reduce((prev: AuctionItemHistory, current: AuctionItemHistory) => {
-        return prev.value > current.value ? prev : current;
-      });
-      setHighestBidder(highestBid);
+      if (data.auction_item_history.length > 0) {
+        const highestBid = data.auction_item_history.reduce((prev: AuctionItemHistory, current: AuctionItemHistory) => {
+          return prev.value > current.value ? prev : current;
+        });
+        setHighestBidder(highestBid);
+      }
     } catch (err) {
       setError('경매 상품 정보를 불러오는데 실패했습니다.')
     } finally {
