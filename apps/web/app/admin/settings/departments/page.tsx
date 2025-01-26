@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 interface Department {
   id: number
@@ -11,35 +11,35 @@ interface Department {
 }
 
 export default function DepartmentManagement() {
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showForm, setShowForm] = useState(false)
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
     description: ''
-  })
+  });
 
   useEffect(() => {
-    fetchDepartments()
-  }, [])
+    fetchDepartments();
+  }, []);
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('/api/v1/departments')
-      const data = await response.json()
-      setDepartments(data)
+      const response = await fetch('/api/v1/departments');
+      const data = await response.json();
+      setDepartments(data);
     } catch (err) {
-      setError('진료과 목록을 불러오는데 실패했습니다.')
+      setError('진료과 목록을 불러오는데 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const response = await fetch('/api/v1/departments' + (editingDepartment ? `/${editingDepartment.id}` : ''), {
         method: editingDepartment ? 'PUT' : 'POST',
@@ -47,47 +47,47 @@ export default function DepartmentManagement() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        fetchDepartments()
-        setShowForm(false)
-        setEditingDepartment(null)
-        setFormData({ code: '', name: '', description: '' })
+        fetchDepartments();
+        setShowForm(false);
+        setEditingDepartment(null);
+        setFormData({ code: '', name: '', description: '' });
       }
     } catch (err) {
-      alert('저장 중 오류가 발생했습니다.')
+      alert('저장 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleEdit = (department: Department) => {
-    setEditingDepartment(department)
+    setEditingDepartment(department);
     setFormData({
       code: department.code || '',
       name: department.name || '',
       description: department.description || ''
-    })
-    setShowForm(true)
-  }
+    });
+    setShowForm(true);
+  };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
       const response = await fetch(`/api/v1/departments/${id}`, {
         method: 'DELETE'
-      })
+      });
 
       if (response.ok) {
-        fetchDepartments()
+        fetchDepartments();
       }
     } catch (err) {
-      alert('삭제 중 오류가 발생했습니다.')
+      alert('삭제 중 오류가 발생했습니다.');
     }
-  }
+  };
 
-  if (loading) return <div>로딩 중...</div>
-  if (error) return <div className="text-red-500">{error}</div>
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -95,9 +95,9 @@ export default function DepartmentManagement() {
         <h2 className="text-lg font-semibold">진료과 관리</h2>
         <button
           onClick={() => {
-            setShowForm(true)
-            setEditingDepartment(null)
-            setFormData({ code: '', name: '', description: '' })
+            setShowForm(true);
+            setEditingDepartment(null);
+            setFormData({ code: '', name: '', description: '' });
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
@@ -194,5 +194,5 @@ export default function DepartmentManagement() {
         </tbody>
       </table>
     </div>
-  )
-} 
+  );
+}

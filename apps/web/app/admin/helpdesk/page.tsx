@@ -28,5 +28,5 @@ export default function HelpdeskManagement() {
         </table>
       </div>
     </div>
-  )
-} 
+  );
+}

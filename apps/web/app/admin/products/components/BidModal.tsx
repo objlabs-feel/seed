@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
+import { useState } from 'react';
 
 interface User {
   id: number
@@ -16,36 +16,36 @@ interface BidModalProps {
 }
 
 export default function BidModal({ isOpen, onClose, onSubmit }: BidModalProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [value, setValue] = useState('')
-  const [users, setUsers] = useState<User[]>([])
-  const [selectedUser, setSelectedUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [value, setValue] = useState('');
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const searchUsers = async () => {
-    if (!searchTerm) return
+    if (!searchTerm) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/v1/user/search?term=${searchTerm}`)
-      const data = await response.json()
-      setUsers(data)
+      const response = await fetch(`/api/v1/user/search?term=${searchTerm}`);
+      const data = await response.json();
+      setUsers(data);
     } catch (err) {
-      console.error('사용자 검색 중 오류:', err)
+      console.error('사용자 검색 중 오류:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!selectedUser || !value) return
+    e.preventDefault();
+    if (!selectedUser || !value) return;
 
-    onSubmit(selectedUser.id, Number(value))
-    onClose()
-  }
+    onSubmit(selectedUser.id, Number(value));
+    onClose();
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -123,5 +123,5 @@ export default function BidModal({ isOpen, onClose, onSubmit }: BidModalProps) {
         </form>
       </div>
     </div>
-  )
-} 
+  );
+}

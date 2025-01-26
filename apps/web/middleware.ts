@@ -1,50 +1,77 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
-import { jwtVerify } from 'jose'
+import { verifyToken } from './lib/auth';
 
-// 토큰 검증 함수
-async function verifyToken(token: string) {
-  try {
-    const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret'))
-    return payload
-  } catch (error) {
-    if (error.code === 'ERR_JWT_EXPIRED') {
-      console.error('JWT expired:', error)
-      return 'expired'
-    }
-    console.error('JWT verification failed:', error)
-    return null
-  }
-}
+// 인증이 필요하지 않은 경로 목록
+const PUBLIC_PATHS = [
+  '/api/v1/auth/checkin',
+  '/api/v1/auth/verify',
+  '/admin/login',
+  '/admin/api/v1/departments/seed',
+  '/admin/api/v1/device-types/seed'
+];
+
+// 관리자 API 경로
+const ADMIN_API_PATH = '/admin/api/v1';
+
+// 일반 사용자 API 경로
+const USER_API_PATH = '/api/v1';
 
 export async function middleware(request: NextRequest) {
-  // admin 경로에 대해서만 처리
-  if (!request.nextUrl.pathname.startsWith('/admin')) {
-    return NextResponse.next()
+  const { pathname } = request.nextUrl;
+
+  // 공개 경로는 인증 없이 통과
+  if (PUBLIC_PATHS.some(path => pathname.startsWith(path))) {
+    return NextResponse.next();
   }
 
-  // 로그인 페이지는 제외
-  if (request.nextUrl.pathname === '/admin/login') {
-    return NextResponse.next()
+  // 관리자 API 처리
+  if (pathname.startsWith(ADMIN_API_PATH)) {
+    const token = request.cookies.get('admin_token')?.value;
+    
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Admin authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const verificationResult = await verifyToken(token, true);
+    if (verificationResult === 'expired' || verificationResult === null) {
+      return NextResponse.json(
+        { error: 'Admin token invalid or expired' },
+        { status: 401 }
+      );
+    }
   }
 
-  const token = request.cookies.get('admin_token')?.value
+  // 일반 사용자 API 처리
+  if (pathname.startsWith(USER_API_PATH)) {
+    const authHeader = request.headers.get('Authorization');
+    const token = authHeader?.replace('Bearer ', '');
 
-  if (!token) {
-    // 토큰이 없는 경우 로그인 페이지로 리다이렉트
-    return NextResponse.redirect(new URL('/admin/login', request.url))
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    const verificationResult = await verifyToken(token);
+    if (verificationResult === 'expired' || verificationResult === null) {
+      return NextResponse.json(
+        { error: 'Token invalid or expired' },
+        { status: 401 }
+      );
+    }
   }
 
-  const verificationResult = await verifyToken(token)
-
-  if (verificationResult === 'expired' || verificationResult === null) {
-    // 토큰이 만료되었거나 검증에 실패한 경우 로그인 페이지로 리다이렉트
-    return NextResponse.redirect(new URL('/admin/login', request.url))
-  }
-
-  return NextResponse.next()
+  return NextResponse.next();
 }
 
 export const config = {
-  matcher: '/admin/:path*'
+  matcher: [
+    '/api/v1/:path*',
+    '/admin/api/v1/:path*'
+  ]
 } 

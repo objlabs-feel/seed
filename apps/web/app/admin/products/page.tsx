@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef, useCallback } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface MedicalDevice {
   id: number
@@ -42,35 +42,35 @@ interface SearchFilters {
 }
 
 export default function ProductList() {
-  const router = useRouter()
-  const [auctionItems, setAuctionItems] = useState<AuctionItem[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
+  const router = useRouter();
+  const [auctionItems, setAuctionItems] = useState<AuctionItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<SearchFilters>({
     auction_code: '',
     status: null,
     user_id: '',
     profile_id: '',
     device_id: ''
-  })
-  
+  });
+
   // 무한 스크롤을 위한 observer
-  const observer = useRef<IntersectionObserver>()
+  const observer = useRef<IntersectionObserver>();
   const lastItemRef = useCallback((node: HTMLElement | null) => {
-    if (loading) return
-    if (observer.current) observer.current.disconnect()
-    
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
     if (node) {
       observer.current = new IntersectionObserver(entries => {
         if (entries[0]?.isIntersecting && hasMore) {
-          setPage(prev => prev + 1)
+          setPage(prev => prev + 1);
         }
-      })
-      observer.current.observe(node)
+      });
+      observer.current.observe(node);
     }
-  }, [loading, hasMore])
+  }, [loading, hasMore]);
 
   const fetchAuctionItems = async (pageNum: number, isNewSearch = false) => {
     try {
@@ -82,42 +82,42 @@ export default function ProductList() {
         ...(filters.user_id && { user_id: filters.user_id }),
         ...(filters.profile_id && { profile_id: filters.profile_id }),
         ...(filters.device_id && { device_id: filters.device_id })
-      })
+      });
 
-      const response = await fetch(`/api/v1/auction-items?${queryParams}`)
-      const data = await response.json()
-      
+      const response = await fetch(`/api/v1/auction-items?${queryParams}`);
+      const data = await response.json();
+
       if (data.items) {
-        setAuctionItems(prev => isNewSearch ? data.items : [...prev, ...data.items])
-        setHasMore(data.hasMore)
+        setAuctionItems(prev => isNewSearch ? data.items : [...prev, ...data.items]);
+        setHasMore(data.hasMore);
       }
     } catch (err) {
-      setError('경매 상품 목록을 불러오는데 실패했습니다.')
+      setError('경매 상품 목록을 불러오는데 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 필터 변경시 호출
   const handleFilterChange = (newFilters: SearchFilters) => {
-    setFilters(newFilters)
-    setPage(1)
-    setAuctionItems([])
-    fetchAuctionItems(1, true)
-  }
+    setFilters(newFilters);
+    setPage(1);
+    setAuctionItems([]);
+    fetchAuctionItems(1, true);
+  };
 
   useEffect(() => {
-    fetchAuctionItems(page)
-  }, [page])
+    fetchAuctionItems(page);
+  }, [page]);
 
   const getStatusText = (status: number) => {
     switch (status) {
-      case 0: return '진행중'
-      case 1: return '낙찰완료'
-      case 2: return '취소'
-      default: return '알수없음'
+    case 0: return '진행중';
+    case 1: return '낙찰완료';
+    case 2: return '취소';
+    default: return '알수없음';
     }
-  }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -131,7 +131,7 @@ export default function ProductList() {
             경매상품 등록
           </button>
         </div>
-        
+
         {/* 검색 필터 */}
         <div className="mb-4 grid grid-cols-2 md:grid-cols-4 gap-4">
           <input
@@ -166,7 +166,7 @@ export default function ProductList() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {auctionItems.map((item, index) => (
-                <tr 
+                <tr
                   key={item.id}
                   ref={index === auctionItems.length - 1 ? lastItemRef : null}
                   className="hover:bg-gray-50"
@@ -177,7 +177,7 @@ export default function ProductList() {
                     {new Date(item.start_timestamp).toLocaleString()}
                   </td>
                   <td className="p-4">
-                    {item.auction_item_history[0]?.value 
+                    {item.auction_item_history[0]?.value
                       ? `${item.auction_item_history[0].value.toLocaleString()}원`
                       : '입찰 없음'
                     }
@@ -185,8 +185,8 @@ export default function ProductList() {
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-sm ${
                       item.status === 0 ? 'bg-blue-100 text-blue-800' :
-                      item.status === 1 ? 'bg-green-100 text-green-800' :
-                      'bg-red-100 text-red-800'
+                        item.status === 1 ? 'bg-green-100 text-green-800' :
+                          'bg-red-100 text-red-800'
                     }`}>
                       {getStatusText(item.status)}
                     </span>
@@ -208,5 +208,5 @@ export default function ProductList() {
         {error && <div className="text-red-500 text-center py-4">{error}</div>}
       </div>
     </div>
-  )
-} 
+  );
+}

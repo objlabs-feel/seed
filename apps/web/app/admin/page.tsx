@@ -8,5 +8,5 @@ export default function AdminDashboard() {
       </div>
       {/* 추가 대시보드 카드들 */}
     </div>
-  )
+  );
 }

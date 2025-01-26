@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import ManufacturerRegisterForm from './ManufacturerRegisterForm'
+import { useState } from 'react';
+import ManufacturerRegisterForm from './ManufacturerRegisterForm';
 
 interface Manufacturer {
   id: number
@@ -18,32 +18,32 @@ interface ManufacturerSelectModalProps {
 }
 
 export default function ManufacturerSelectModal({ isOpen, onClose, onSelect }: ManufacturerSelectModalProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
-  const [loading, setLoading] = useState(false)
-  const [showRegisterForm, setShowRegisterForm] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
 
   const handleSearch = async () => {
-    if (!searchTerm) return
+    if (!searchTerm) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/v1/manufacturers?search=${searchTerm}`)
-      const data = await response.json()
-      setManufacturers(data)
+      const response = await fetch(`/api/v1/manufacturers?search=${searchTerm}`);
+      const data = await response.json();
+      setManufacturers(data);
     } catch (err) {
-      console.error('제조사 검색 중 오류:', err)
+      console.error('제조사 검색 중 오류:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleRegisterSuccess = (newManufacturer: Manufacturer) => {
-    setShowRegisterForm(false)
-    onSelect(newManufacturer)
-  }
+    setShowRegisterForm(false);
+    onSelect(newManufacturer);
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -59,7 +59,7 @@ export default function ManufacturerSelectModal({ isOpen, onClose, onSelect }: M
                 신규 등록
               </button>
             </div>
-            
+
             <div className="mb-4 flex gap-2">
               <input
                 type="text"
@@ -126,5 +126,5 @@ export default function ManufacturerSelectModal({ isOpen, onClose, onSelect }: M
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

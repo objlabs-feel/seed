@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Department {
   id: number
@@ -16,9 +16,9 @@ interface DeviceType {
 }
 
 export default function ProductEdit({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     auction_code: '',
     start_timestamp: '',
@@ -31,9 +31,9 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
       manufacture_date: '',
       images: [] as string[]
     }
-  })
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
+  });
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -41,8 +41,8 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
       fetch('/api/v1/device-types').then(res => res.json()),
       fetch(`/api/v1/auction-items/${params.id}`).then(res => res.json())
     ]).then(([deptData, deviceData, productData]) => {
-      setDepartments(deptData)
-      setDeviceTypes(deviceData)
+      setDepartments(deptData);
+      setDeviceTypes(deviceData);
       setFormData({
         auction_code: productData.auction_code,
         start_timestamp: productData.start_timestamp,
@@ -55,17 +55,17 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
           manufacture_date: productData.medicalDevice.manufacture_date?.substring(0, 10) || '',
           images: productData.medicalDevice.images
         }
-      })
-      setLoading(false)
+      });
+      setLoading(false);
     }).catch(err => {
-      setError('상품 정보를 불러오는데 실패했습니다.')
-      setLoading(false)
-    })
-  }, [params.id])
+      setError('상품 정보를 불러오는데 실패했습니다.');
+      setLoading(false);
+    });
+  }, [params.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     try {
       const response = await fetch(`/api/v1/auction-items/${params.id}`, {
         method: 'PUT',
@@ -73,21 +73,21 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        alert('수정이 완료되었습니다.')
-        router.push(`/admin/products/${params.id}`)
+        alert('수정이 완료되었습니다.');
+        router.push(`/admin/products/${params.id}`);
       } else {
-        throw new Error('수정 중 오류가 발생했습니다.')
+        throw new Error('수정 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('수정 중 오류가 발생했습니다.')
+      alert('수정 중 오류가 발생했습니다.');
     }
-  }
+  };
 
-  if (loading) return <div>로딩 중...</div>
-  if (error) return <div className="text-red-500">{error}</div>
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -202,5 +202,5 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

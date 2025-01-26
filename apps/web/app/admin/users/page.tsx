@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface Profile {
   id: number
@@ -26,39 +26,39 @@ interface SearchFilters {
 }
 
 export default function UserManagement() {
-  const router = useRouter()
-  const [users, setUsers] = useState<User[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
+  const router = useRouter();
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
   const [filters, setFilters] = useState<SearchFilters>({
     status: null,
     profile_name: '',
     email: '',
     mobile: ''
-  })
+  });
 
   // 무한 스크롤을 위한 observer
-  const observer = useRef<IntersectionObserver>()
+  const observer = useRef<IntersectionObserver>();
   const lastItemRef = useCallback((node: HTMLElement | null) => {
-    if (loading) return
-    if (observer.current) observer.current.disconnect()
-    
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
     if (node) {
       observer.current = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting && hasMore && !loading) {
-          setPage(prev => prev + 1)
+          setPage(prev => prev + 1);
         }
-      })
-      observer.current.observe(node)
+      });
+      observer.current.observe(node);
     }
-  }, [loading, hasMore])
+  }, [loading, hasMore]);
 
   const fetchUsers = async (pageNum: number, isNewSearch = false) => {
     if (loading) return; // 중복 호출 방지
     console.log('Fetching users...');
-    setLoading(true)
+    setLoading(true);
     try {
       const queryParams = new URLSearchParams({
         page: pageNum.toString(),
@@ -67,57 +67,57 @@ export default function UserManagement() {
         ...(filters.profile_name && { profile_name: filters.profile_name }),
         ...(filters.email && { email: filters.email }),
         ...(filters.mobile && { mobile: filters.mobile })
-      })
-  
-      const response = await fetch(`/api/v1/users?${queryParams}`)
+      });
+
+      const response = await fetch(`/api/v1/users?${queryParams}`);
       if (!response.ok) {
-        throw new Error('Network response was not ok')
+        throw new Error('Network response was not ok');
       }
-      const data = await response.json()
-      
+      const data = await response.json();
+
       if (data.users) {
-        setUsers(prev => isNewSearch ? data.users : [...prev, ...data.users])
-        setHasMore(data.hasMore)
+        setUsers(prev => isNewSearch ? data.users : [...prev, ...data.users]);
+        setHasMore(data.hasMore);
       }
     } catch (err) {
       console.error('Error fetching users:', err);
-      setError('이용자 목록을 불러오는데 실패했습니다.')
+      setError('이용자 목록을 불러오는데 실패했습니다.');
     } finally {
       console.log('Fetch complete');
-      setLoading(false) // 로딩 상태 업데이트
+      setLoading(false); // 로딩 상태 업데이트
     }
-  }
+  };
 
   const handleFilterChange = (newFilters: SearchFilters) => {
-    setFilters(newFilters)
-    setPage(1)
-    setUsers([])
-    fetchUsers(1, true)
-  }
+    setFilters(newFilters);
+    setPage(1);
+    setUsers([]);
+    fetchUsers(1, true);
+  };
 
   useEffect(() => {
     console.log('useEffect triggered');
-    fetchUsers(page)
-  }, [page]) // 의존성 배열에 page만 포함
+    fetchUsers(page);
+  }, [page]); // 의존성 배열에 page만 포함
 
   const getStatusText = (status: number) => {
     switch (status) {
-      case 0: return '정상'
-      case 1: return '정지'
-      case 2: return '탈퇴'
-      default: return '알수없음'
+    case 0: return '정상';
+    case 1: return '정지';
+    case 2: return '탈퇴';
+    default: return '알수없음';
     }
-  }
+  };
 
   const getProfileTypeText = (profile_type: number) => {
     switch (profile_type) {
-      case 0: return '병원장'
-      case 1: return '기업'
-      case 2: return '관계자'
-      case 3: return '기관'
-      default: return '알수없음'
+    case 0: return '병원장';
+    case 1: return '기업';
+    case 2: return '관계자';
+    case 3: return '기관';
+    default: return '알수없음';
     }
-  }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -179,7 +179,7 @@ export default function UserManagement() {
             </thead>
             <tbody className="divide-y divide-gray-200">
               {users.map((user, index) => (
-                <tr 
+                <tr
                   key={user.id}
                   ref={index === users.length - 1 ? lastItemRef : null}
                   className="hover:bg-gray-50"
@@ -194,8 +194,8 @@ export default function UserManagement() {
                   <td className="p-4">
                     <span className={`px-2 py-1 rounded text-sm ${
                       user.status === 0 ? 'bg-green-100 text-green-800' :
-                      user.status === 1 ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
+                        user.status === 1 ? 'bg-red-100 text-red-800' :
+                          'bg-gray-100 text-gray-800'
                     }`}>
                       {getStatusText(user.status)}
                     </span>
@@ -217,5 +217,5 @@ export default function UserManagement() {
         {error && <div className="text-red-500 text-center py-4">{error}</div>}
       </div>
     </div>
-  )
-} 
+  );
+}

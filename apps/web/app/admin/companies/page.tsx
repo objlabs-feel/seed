@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useEffect, useState, useRef, useCallback } from 'react'
-import { useRouter } from 'next/navigation'
-import CompanyRegisterForm from '../products/components/CompanyRegisterForm'
+import { useEffect, useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import CompanyRegisterForm from '../products/components/CompanyRegisterForm';
 
 interface Company {
   id: number
@@ -29,35 +29,35 @@ interface SearchFilters {
 }
 
 export default function CompanyManagement() {
-  const router = useRouter()
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [hasMore, setHasMore] = useState(true)
-  const [page, setPage] = useState(1)
-  const [showRegisterForm, setShowRegisterForm] = useState(false)
+  const router = useRouter();
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(1);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
   const [filters, setFilters] = useState<SearchFilters>({
     name: '',
     business_no: '',
     company_type: null,
     profile_name: ''
-  })
+  });
 
   // 무한 스크롤을 위한 observer
-  const observer = useRef<IntersectionObserver>()
+  const observer = useRef<IntersectionObserver>();
   const lastItemRef = useCallback((node: HTMLElement | null) => {
-    if (loading) return
-    if (observer.current) observer.current.disconnect()
-    
+    if (loading) return;
+    if (observer.current) observer.current.disconnect();
+
     if (node) {
       observer.current = new IntersectionObserver(entries => {
         if (entries[0].isIntersecting && hasMore) {
-          setPage(prev => prev + 1)
+          setPage(prev => prev + 1);
         }
-      })
-      observer.current.observe(node)
+      });
+      observer.current.observe(node);
     }
-  }, [loading, hasMore])
+  }, [loading, hasMore]);
 
   const fetchCompanies = async (pageNum: number, isNewSearch = false) => {
     try {
@@ -68,37 +68,37 @@ export default function CompanyManagement() {
         ...(filters.business_no && { business_no: filters.business_no }),
         ...(filters.company_type !== null && { company_type: filters.company_type.toString() }),
         ...(filters.profile_name && { profile_name: filters.profile_name })
-      })
+      });
 
-      const response = await fetch(`/api/v1/companies/search?${queryParams}`)
-      const data = await response.json()
-      
+      const response = await fetch(`/api/v1/companies/search?${queryParams}`);
+      const data = await response.json();
+
       if (data.companies) {
-        setCompanies(prev => isNewSearch ? data.companies : [...prev, ...data.companies])
-        setHasMore(data.hasMore)
+        setCompanies(prev => isNewSearch ? data.companies : [...prev, ...data.companies]);
+        setHasMore(data.hasMore);
       }
     } catch (err) {
-      setError('업체 목록을 불러오는데 실패했습니다.')
+      setError('업체 목록을 불러오는데 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleFilterChange = (newFilters: SearchFilters) => {
-    setFilters(newFilters)
-    setPage(1)
-    setCompanies([])
-    fetchCompanies(1, true)
-  }
+    setFilters(newFilters);
+    setPage(1);
+    setCompanies([]);
+    fetchCompanies(1, true);
+  };
 
   const handleRegisterSuccess = (newCompany: Company) => {
-    setShowRegisterForm(false)
-    setCompanies(prev => [newCompany, ...prev])
-  }
+    setShowRegisterForm(false);
+    setCompanies(prev => [newCompany, ...prev]);
+  };
 
   useEffect(() => {
-    fetchCompanies(page)
-  }, [page])
+    fetchCompanies(page);
+  }, [page]);
 
   return (
     <div className="bg-white rounded-lg shadow">
@@ -137,9 +137,9 @@ export default function CompanyManagement() {
               />
               <select
                 className="p-2 border rounded"
-                onChange={e => handleFilterChange({ 
-                  ...filters, 
-                  company_type: e.target.value ? parseInt(e.target.value) : null 
+                onChange={e => handleFilterChange({
+                  ...filters,
+                  company_type: e.target.value ? parseInt(e.target.value) : null
                 })}
               >
                 <option value="">업체 구분</option>
@@ -164,7 +164,7 @@ export default function CompanyManagement() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {companies.map((company, index) => (
-                    <tr 
+                    <tr
                       key={company.id}
                       ref={index === companies.length - 1 ? lastItemRef : null}
                       className="hover:bg-gray-50"
@@ -204,5 +204,5 @@ export default function CompanyManagement() {
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

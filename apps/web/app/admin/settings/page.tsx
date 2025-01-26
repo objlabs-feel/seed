@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
+import { useRouter } from 'next/navigation';
 
 export default function Settings() {
-  const router = useRouter()
+  const router = useRouter();
 
   const menuItems = [
     {
@@ -21,7 +21,7 @@ export default function Settings() {
       description: '의료 장비 제조사 정보를 관리합니다.',
       path: '/admin/settings/manufacturers'
     }
-  ]
+  ];
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -39,5 +39,5 @@ export default function Settings() {
         ))}
       </div>
     </div>
-  )
-} 
+  );
+}

@@ -24,5 +24,5 @@ export default function TermsManagement() {
         </table>
       </div>
     </div>
-  )
-} 
+  );
+}

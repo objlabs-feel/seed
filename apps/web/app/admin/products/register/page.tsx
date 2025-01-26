@@ -1,9 +1,9 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import CompanySelectModal from '../components/CompanySelectModal'
-import ManufacturerSelectModal from '../components/ManufacturerSelectModal'
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import CompanySelectModal from '../components/CompanySelectModal';
+import ManufacturerSelectModal from '../components/ManufacturerSelectModal';
 
 interface FormData {
   start_timestamp: string
@@ -48,8 +48,8 @@ interface Manufacturer {
 }
 
 export default function ProductRegister() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     start_timestamp: '',
     medical_device: {
@@ -61,14 +61,14 @@ export default function ProductRegister() {
       description: '',
       images: []
     }
-  })
-  const [departments, setDepartments] = useState<Department[]>([])
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
-  const [todayCount, setTodayCount] = useState(0)
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null)
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false)
-  const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null)
-  const [isManufacturerModalOpen, setIsManufacturerModalOpen] = useState(false)
+  });
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [todayCount, setTodayCount] = useState(0);
+  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null);
+  const [isManufacturerModalOpen, setIsManufacturerModalOpen] = useState(false);
 
   useEffect(() => {
     // 부서, 기기 유형 정보 로드
@@ -76,16 +76,16 @@ export default function ProductRegister() {
       fetch('/api/v1/departments').then(res => res.json()),
       fetch('/api/v1/device-types').then(res => res.json())
     ]).then(([deptData, deviceData]) => {
-      setDepartments(deptData)
-      setDeviceTypes(deviceData)
-    })
+      setDepartments(deptData);
+      setDeviceTypes(deviceData);
+    });
 
     // 오늘 생성된 경매 건수 조회
-    const today = new Date().toISOString().split('T')[0]
+    const today = new Date().toISOString().split('T')[0];
     fetch(`/api/v1/auction-items/count?date=${today}`)
       .then(res => res.json())
-      .then(data => setTodayCount(data.count))
-  }, [])
+      .then(data => setTodayCount(data.count));
+  }, []);
 
   const handleDepartmentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -94,8 +94,8 @@ export default function ProductRegister() {
         ...prev.medical_device,
         department: e.target.value
       }
-    }))
-  }
+    }));
+  };
 
   const handleDeviceTypeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setFormData(prev => ({
@@ -104,36 +104,36 @@ export default function ProductRegister() {
         ...prev.medical_device,
         device_type: e.target.value
       }
-    }))
-  }
+    }));
+  };
 
   const handleCompanySelect = (company: Company) => {
-    setSelectedCompany(company)
+    setSelectedCompany(company);
     setFormData(prev => ({
       ...prev,
       medical_device: {
         ...prev.medical_device,
         company_id: company.id.toString()
       }
-    }))
-    setIsCompanyModalOpen(false)
-  }
+    }));
+    setIsCompanyModalOpen(false);
+  };
 
   const handleManufacturerSelect = (manufacturer: Manufacturer) => {
-    setSelectedManufacturer(manufacturer)
+    setSelectedManufacturer(manufacturer);
     setFormData(prev => ({
       ...prev,
       medical_device: {
         ...prev.medical_device,
         manufacturer_id: manufacturer.id.toString()
       }
-    }))
-    setIsManufacturerModalOpen(false)
-  }
+    }));
+    setIsManufacturerModalOpen(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch('/api/v1/auction-items', {
@@ -142,20 +142,20 @@ export default function ProductRegister() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        alert('경매 상품이 등록되었습니다.')
-        router.push('/admin/products')
+        alert('경매 상품이 등록되었습니다.');
+        router.push('/admin/products');
       } else {
-        throw new Error('등록 중 오류가 발생했습니다.')
+        throw new Error('등록 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('경매 상품 등록 중 오류가 발생했습니다.')
+      alert('경매 상품 등록 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -276,7 +276,7 @@ export default function ProductRegister() {
                     manufacture_date: e.target.value
                   }
                 })}
-                className="w-full p-2 border rounded"                
+                className="w-full p-2 border rounded"
               />
             </div>
             <div>
@@ -327,5 +327,5 @@ export default function ProductRegister() {
         onSelect={handleManufacturerSelect}
       />
     </div>
-  )
-} 
+  );
+}

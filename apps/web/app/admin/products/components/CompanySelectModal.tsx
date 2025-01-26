@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import CompanyRegisterForm from './CompanyRegisterForm'
+import { useState } from 'react';
+import CompanyRegisterForm from './CompanyRegisterForm';
 
 interface Company {
   id: number
@@ -43,34 +43,34 @@ interface CompanySelectModalProps {
 }
 
 export default function CompanySelectModal({ isOpen, onClose, onSelect }: CompanySelectModalProps) {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchType, setSearchType] = useState('name')
-  const [companies, setCompanies] = useState<Company[]>([])
-  const [loading, setLoading] = useState(false)
-  const [showRegisterForm, setShowRegisterForm] = useState(false)
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('name');
+  const [companies, setCompanies] = useState<Company[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
 
   const handleSearch = async () => {
-    if (!searchTerm) return
+    if (!searchTerm) return;
 
-    setLoading(true)
+    setLoading(true);
     try {
-      const response = await fetch(`/api/v1/companies/search?type=${searchType}&term=${searchTerm}`)
-      const data = await response.json()
-      console.log(data)
-      setCompanies(data.companies)
+      const response = await fetch(`/api/v1/companies/search?type=${searchType}&term=${searchTerm}`);
+      const data = await response.json();
+      console.log(data);
+      setCompanies(data.companies);
     } catch (err) {
-      console.error('업체 검색 중 오류:', err)
+      console.error('업체 검색 중 오류:', err);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleRegisterSuccess = (newCompany: Company) => {
-    setShowRegisterForm(false)
-    onSelect(newCompany)
-  }
+    setShowRegisterForm(false);
+    onSelect(newCompany);
+  };
 
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
@@ -86,7 +86,7 @@ export default function CompanySelectModal({ isOpen, onClose, onSelect }: Compan
                 신규 등록
               </button>
             </div>
-            
+
             <div className="mb-4 flex gap-2">
               <select
                 value={searchType}
@@ -174,5 +174,5 @@ export default function CompanySelectModal({ isOpen, onClose, onSelect }: Compan
         )}
       </div>
     </div>
-  )
-} 
+  );
+}

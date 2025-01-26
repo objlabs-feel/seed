@@ -1,16 +1,16 @@
-'use client'
+'use client';
 
-import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function AdminLogin() {
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const router = useRouter()
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
+    event.preventDefault();
 
     try {
       const response = await fetch('/api/v1/admin/auth', {
@@ -19,21 +19,21 @@ export default function AdminLogin() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ username, password }),
-      })
+      });
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (data.success) {
         // 토큰을 쿠키에 저장
-        document.cookie = `admin_token=${data.token}; path=/`
-        router.push('/admin')
+        document.cookie = `admin_token=${data.token}; path=/`;
+        router.push('/admin');
       } else {
-        setError(data.error || '로그인에 실패했습니다.')
+        setError(data.error || '로그인에 실패했습니다.');
       }
     } catch (error) {
-      setError('로그인 처리 중 오류가 발생했습니다.')
+      setError('로그인 처리 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   return (
     <div className="flex items-center justify-center h-screen">
@@ -70,5 +70,5 @@ export default function AdminLogin() {
         </div>
       </form>
     </div>
-  )
-} 
+  );
+}

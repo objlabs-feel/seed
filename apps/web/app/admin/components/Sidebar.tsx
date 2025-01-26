@@ -1,4 +1,4 @@
-import Link from 'next/link'
+import Link from 'next/link';
 
 export default function Sidebar() {
   return (
@@ -9,7 +9,7 @@ export default function Sidebar() {
         </Link>
         <Link href="/admin/products" className="flex items-center px-6 py-2 hover:bg-gray-100">
           경매상품 관리
-        </Link>        
+        </Link>
         {/* 이용자 관리 */}
         <Link href="/admin/users" className="flex items-center px-6 py-2 hover:bg-gray-100">
           이용자 관리
@@ -35,5 +35,5 @@ export default function Sidebar() {
         </Link>
       </nav>
     </aside>
-  )
-} 
+  );
+}

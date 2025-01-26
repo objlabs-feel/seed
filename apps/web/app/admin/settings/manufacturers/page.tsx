@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 interface DeviceType {
   id: number
@@ -17,45 +17,45 @@ interface Manufacturer {
 }
 
 export default function ManufacturerManagement() {
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([])
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showForm, setShowForm] = useState(false)
-  const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null)
+  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     device_types: [] as number[],
     description: '',
     department_id: null as number | null,
-  })
+  });
 
   useEffect(() => {
     const init = async () => {
       try {
-        setLoading(true)
+        setLoading(true);
         const [manufacturersRes, deviceTypesRes] = await Promise.all([
           fetch('/api/v1/manufacturers'),
           fetch('/api/v1/device-types')
-        ])
+        ]);
 
-        const manufacturersData = await manufacturersRes.json()
-        const deviceTypesData = await deviceTypesRes.json()
+        const manufacturersData = await manufacturersRes.json();
+        const deviceTypesData = await deviceTypesRes.json();
 
-        setManufacturers(manufacturersData)
-        setDeviceTypes(deviceTypesData)
+        setManufacturers(manufacturersData);
+        setDeviceTypes(deviceTypesData);
       } catch (err) {
-        setError('데이터를 불러오는데 실패했습니다.')
+        setError('데이터를 불러오는데 실패했습니다.');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    init()
-  }, [])
+    init();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const response = await fetch('/api/v1/manufacturers' + (editingManufacturer ? `/${editingManufacturer.id}` : ''), {
         method: editingManufacturer ? 'PUT' : 'POST',
@@ -63,69 +63,69 @@ export default function ManufacturerManagement() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        fetchManufacturers()
-        setShowForm(false)
-        setEditingManufacturer(null)
-        setFormData({ name: '', device_types: [], description: '', department_id: null })
+        fetchManufacturers();
+        setShowForm(false);
+        setEditingManufacturer(null);
+        setFormData({ name: '', device_types: [], description: '', department_id: null });
       }
     } catch (err) {
-      alert('저장 중 오류가 발생했습니다.')
+      alert('저장 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleEdit = (manufacturer: Manufacturer) => {
-    setEditingManufacturer(manufacturer)
+    setEditingManufacturer(manufacturer);
     setFormData({
       name: manufacturer.name || '',
       device_types: JSON.parse(manufacturer.device_types || '[]'),  // JSON 문자열을 배열로 파싱
       description: manufacturer.description || '',
       department_id: null,
-    })
-    setShowForm(true)
-  }
+    });
+    setShowForm(true);
+  };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
       const response = await fetch(`/api/v1/manufacturers/${id}`, {
         method: 'DELETE'
-      })
+      });
 
       if (response.ok) {
-        fetchManufacturers()
+        fetchManufacturers();
       }
     } catch (err) {
-      alert('삭제 중 오류가 발생했습니다.')
+      alert('삭제 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleDeviceTypeChange = (deviceTypeId: number) => {
     setFormData(prev => {
       const newDeviceTypes = prev.device_types.includes(deviceTypeId)
         ? prev.device_types.filter(id => id !== deviceTypeId)
-        : [...prev.device_types, deviceTypeId]
-      return { ...prev, device_types: newDeviceTypes }
-    })
-  }
+        : [...prev.device_types, deviceTypeId];
+      return { ...prev, device_types: newDeviceTypes };
+    });
+  };
 
   const getDeviceTypeNames = (deviceTypeIds: string) => {
     try {
-      const ids = JSON.parse(deviceTypeIds || '[]') as number[]
+      const ids = JSON.parse(deviceTypeIds || '[]') as number[];
       return ids
         .map(id => deviceTypes.find(dt => dt.id === id)?.name)
         .filter(Boolean)
-        .join(', ')
+        .join(', ');
     } catch {
-      return ''
+      return '';
     }
-  }
+  };
 
-  if (loading) return <div>로딩 중...</div>
-  if (error) return <div className="text-red-500">{error}</div>
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -133,9 +133,9 @@ export default function ManufacturerManagement() {
         <h2 className="text-lg font-semibold">제조사 관리</h2>
         <button
           onClick={() => {
-            setShowForm(true)
-            setEditingManufacturer(null)
-            setFormData({ name: '', device_types: [], description: '', department_id: null })
+            setShowForm(true);
+            setEditingManufacturer(null);
+            setFormData({ name: '', device_types: [], description: '', department_id: null });
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
@@ -259,5 +259,5 @@ export default function ManufacturerManagement() {
         </tbody>
       </table>
     </div>
-  )
-} 
+  );
+}

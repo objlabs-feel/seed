@@ -20,6 +20,7 @@ model auctionItem {
   id                   BigInt               @id(map: "auction_item_pk") @default(autoincrement())
   medical_device_id    BigInt
   auction_code         String               @db.VarChar(12)
+  quantity             Int?                 @default(0) @db.SmallInt
   status               Int?                 @default(0) @db.SmallInt
   start_timestamp      DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   expired_count        Int?                 @default(0) @db.SmallInt
@@ -52,7 +53,7 @@ model company {
   business_no       String?   @unique(map: "unique_no") @db.VarChar(15)
   business_tel      String?   @db.VarChar(16)
   license_img       String?   @db.VarChar(200)
-  owner_id          Int?
+  owner_id          BigInt?
   related_members   Json?     @default("[]") @db.Json
   institute_members Json?     @default("[]") @db.Json
   created_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
@@ -63,7 +64,9 @@ model company {
   zipcode           String?   @db.VarChar(15)
   address           String?   @db.VarChar(100)
   adddress_detail   String?   @db.VarChar(50)
+  area              String?   @db.VarChar(10)
   profile           profile[]
+  medical_devices   medicalDevice[]
 
   @@index([company_type], map: "company_company_type_index")
   @@index([id], map: "company_id_index")
@@ -79,6 +82,7 @@ model deviceType {
   img           String?     @db.VarChar(200)
   department_id Int?        @db.SmallInt
   department    department? @relation(fields: [department_id], references: [id])
+  medical_devices medicalDevice[]
 
   @@unique([department_id, code], map: "device_type_pk_2")
   @@index([id, code, name, department_id], map: "device_type_id_code_name_department_id_index")
@@ -92,6 +96,7 @@ model department {
   img          String?      @db.VarChar(200)
   description  String?      @db.VarChar(100)
   device_types deviceType[]
+  medical_devices medicalDevice[]
 
   @@index([id, code, name], map: "department_id_code_name_index")
 }
@@ -102,6 +107,7 @@ model manufacturer {
   device_types Json?   @default("[]") @db.Json
   img          String? @db.VarChar(200)
   description  String? @db.VarChar(100)
+  medical_devices medicalDevice[]
 
   @@index([id, name], map: "manufacturer_id_name_index")
 }
@@ -110,18 +116,25 @@ model manufacturer {
 model medicalDevice {
   id               BigInt        @id(map: "medical_device_pk") @default(autoincrement())
   company_id       Int?
-  department       Int?          @default(0) @db.SmallInt
-  device_type      Int?          @default(0) @db.SmallInt
+  department_id    Int?          @default(0) @db.SmallInt
+  device_type_id   Int?          @default(0) @db.SmallInt
   manufacturer_id  Int?
   manufacture_date DateTime?     @db.Date
+  manufacture_year Int?
   images           Json?         @default("[]") @db.Json
   description      String?       @db.VarChar(200)
   created_at       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   updated_at       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  
+  // Optional 관계로 변경하고 양방향 관계 추가
+  company          company?      @relation(fields: [company_id], references: [id])
+  department       department?   @relation(fields: [department_id], references: [id])
+  deviceType       deviceType?   @relation(fields: [device_type_id], references: [id])
+  manufacturer     manufacturer? @relation(fields: [manufacturer_id], references: [id])
   auction_item     auctionItem[]
 
   @@index([company_id], map: "medical_device_company_id_index")
-  @@index([department, device_type, manufacturer_id, manufacture_date], map: "medical_device_department_device_type_manufacturer_id_manufactu")
+  @@index([department_id, device_type_id, manufacturer_id, manufacture_date], map: "medical_device_department_device_type_manufacturer_id_manufactu")
   @@map("medical_device")
 }
 

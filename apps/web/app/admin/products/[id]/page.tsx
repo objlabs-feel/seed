@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
-import BidModal from '../components/BidModal'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import BidModal from '../components/BidModal';
 
 interface MedicalDevice {
   id: number
@@ -36,22 +36,22 @@ interface AuctionItemHistory {
 }
 
 export default function ProductDetail({ params }: { params: { id: string } }) {
-  const router = useRouter()
-  const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null)
+  const router = useRouter();
+  const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
   const [highestBidder, setHighestBidder] = useState<AuctionItemHistory | null>(null);
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isBidModalOpen, setIsBidModalOpen] = useState(false)
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isBidModalOpen, setIsBidModalOpen] = useState(false);
 
   useEffect(() => {
-    fetchAuctionItem()
-  }, [params.id])
+    fetchAuctionItem();
+  }, [params.id]);
 
   const fetchAuctionItem = async () => {
     try {
-      const response = await fetch(`/api/v1/auction-items/${params.id}`)
-      const data = await response.json()
-      setAuctionItem(data)
+      const response = await fetch(`/api/v1/auction-items/${params.id}`);
+      const data = await response.json();
+      setAuctionItem(data);
 
       if (data.auction_item_history.length > 0) {
         const highestBid = data.auction_item_history.reduce((prev: AuctionItemHistory, current: AuctionItemHistory) => {
@@ -60,11 +60,11 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         setHighestBidder(highestBid);
       }
     } catch (err) {
-      setError('경매 상품 정보를 불러오는데 실패했습니다.')
+      setError('경매 상품 정보를 불러오는데 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleBid = async (userId: number, value: number) => {
     try {
@@ -77,21 +77,21 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
           user_id: userId,
           value
         }),
-      })
+      });
 
       if (response.ok) {
-        alert('입찰이 완료되었습니다.')
+        alert('입찰이 완료되었습니다.');
       } else {
-        throw new Error('입찰 처리 중 오류가 발생했습니다.')
+        throw new Error('입찰 처리 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('입찰 처리 중 오류가 발생했습니다.')
+      alert('입찰 처리 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleComplete = async () => {
-    if (!confirm('해당 경매를 낙찰 처리하시겠습니까?')) return
-    
+    if (!confirm('해당 경매를 낙찰 처리하시겠습니까?')) return;
+
     try {
       const response = await fetch(`/api/v1/auction-items/${params.id}`, {
         method: 'PUT',
@@ -101,20 +101,20 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           status: 1, // 낙찰완료 상태
         }),
-      })
-      
+      });
+
       if (response.ok) {
-        alert('낙찰 처리되었습니다.')
-        fetchAuctionItem() // 상태 갱신
+        alert('낙찰 처리되었습니다.');
+        fetchAuctionItem(); // 상태 갱신
       }
     } catch (err) {
-      alert('낙찰 처리 중 오류가 발생했습니다.')
+      alert('낙찰 처리 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleCancel = async () => {
-    if (!confirm('경매를 취소하시겠습니까?')) return
-    
+    if (!confirm('경매를 취소하시겠습니까?')) return;
+
     try {
       const response = await fetch(`/api/v1/auction-items/${params.id}`, {
         method: 'PUT',
@@ -124,20 +124,20 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         body: JSON.stringify({
           status: 2, // 취소 상태
         }),
-      })
-      
+      });
+
       if (response.ok) {
-        alert('경매가 취소되었습니다.')
-        fetchAuctionItem() // 상태 갱신
+        alert('경매가 취소되었습니다.');
+        fetchAuctionItem(); // 상태 갱신
       }
     } catch (err) {
-      alert('경매 취소 중 오류가 발생했습니다.')
+      alert('경매 취소 중 오류가 발생했습니다.');
     }
-  }
+  };
 
-  if (loading) return <div>로딩 중...</div>
-  if (error) return <div className="text-red-500">{error}</div>
-  if (!auctionItem) return <div>상품을 찾을 수 없습니다.</div>
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
+  if (!auctionItem) return <div>상품을 찾을 수 없습니다.</div>;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -213,7 +213,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         )}
       </div>
 
-      <div className="mt-6">        
+      <div className="mt-6">
         <h3 className="font-semibold mb-4">입찰 내역</h3>
         <div className="space-y-2">
           {auctionItem.auction_item_history.map((history) => (
@@ -228,14 +228,14 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         onSubmit={handleBid}
       />
     </div>
-  )
+  );
 }
 
 function getStatusText(status: number) {
   switch (status) {
-    case 0: return '진행중'
-    case 1: return '낙찰완료'
-    case 2: return '취소'
-    default: return '알수없음'
+  case 0: return '진행중';
+  case 1: return '낙찰완료';
+  case 2: return '취소';
+  default: return '알수없음';
   }
-} 
+}

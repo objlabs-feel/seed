@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 interface Department {
   id: number
@@ -18,48 +18,48 @@ interface DeviceType {
 }
 
 export default function DeviceTypeManagement() {
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [showForm, setShowForm] = useState(false)
-  const [editingDeviceType, setEditingDeviceType] = useState<DeviceType | null>(null)
-  const [departments, setDepartments] = useState<Department[]>([])
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showForm, setShowForm] = useState(false);
+  const [editingDeviceType, setEditingDeviceType] = useState<DeviceType | null>(null);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
     description: '',
     department_id: '' as string
-  })
+  });
 
   useEffect(() => {
-    fetchDeviceTypes()
-    fetchDepartments()
-  }, [])
+    fetchDeviceTypes();
+    fetchDepartments();
+  }, []);
 
   const fetchDeviceTypes = async () => {
     try {
-      const response = await fetch('/api/v1/device-types')
-      const data = await response.json()
-      setDeviceTypes(data)
+      const response = await fetch('/api/v1/device-types');
+      const data = await response.json();
+      setDeviceTypes(data);
     } catch (err) {
-      setError('장비 종류 목록을 불러오는데 실패했습니다.')
+      setError('장비 종류 목록을 불러오는데 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('/api/v1/departments')
-      const data = await response.json()
-      setDepartments(data)
+      const response = await fetch('/api/v1/departments');
+      const data = await response.json();
+      setDepartments(data);
     } catch (err) {
-      console.error('진료과 목록을 불러오는데 실패했습니다.')
+      console.error('진료과 목록을 불러오는데 실패했습니다.');
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     try {
       const response = await fetch('/api/v1/device-types' + (editingDeviceType ? `/${editingDeviceType.id}` : ''), {
         method: editingDeviceType ? 'PUT' : 'POST',
@@ -67,65 +67,65 @@ export default function DeviceTypeManagement() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        fetchDeviceTypes()
-        setShowForm(false)
-        setEditingDeviceType(null)
-        setFormData({ code: '', name: '', description: '', department_id: '' })
+        fetchDeviceTypes();
+        setShowForm(false);
+        setEditingDeviceType(null);
+        setFormData({ code: '', name: '', description: '', department_id: '' });
       }
     } catch (err) {
-      alert('저장 중 오류가 발생했습니다.')
+      alert('저장 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleEdit = (deviceType: DeviceType) => {
-    setEditingDeviceType(deviceType)
+    setEditingDeviceType(deviceType);
     setFormData({
       code: deviceType.code || '',
       name: deviceType.name || '',
       description: deviceType.description || '',
       department_id: deviceType.department_id?.toString() || ''
-    })
-    setShowForm(true)
-  }
+    });
+    setShowForm(true);
+  };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
       const response = await fetch(`/api/v1/device-types/${id}`, {
         method: 'DELETE'
-      })
+      });
 
       if (response.ok) {
-        fetchDeviceTypes()
+        fetchDeviceTypes();
       }
     } catch (err) {
-      alert('삭제 중 오류가 발생했습니다.')
+      alert('삭제 중 오류가 발생했습니다.');
     }
-  }
+  };
 
   const handleSeedData = async () => {
     try {
       const response = await fetch('/api/v1/device-types/seed', {
         method: 'POST'
-      })
-      const data = await response.json()
+      });
+      const data = await response.json();
       if (data.success) {
-        alert(data.message)
-        fetchDeviceTypes()
+        alert(data.message);
+        fetchDeviceTypes();
       } else {
-        throw new Error(data.error)
+        throw new Error(data.error);
       }
     } catch (err) {
-      alert('샘플 데이터 등록에 실패했습니다.')
+      alert('샘플 데이터 등록에 실패했습니다.');
     }
-  }
+  };
 
-  if (loading) return <div>로딩 중...</div>
-  if (error) return <div className="text-red-500">{error}</div>
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div className="text-red-500">{error}</div>;
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -133,9 +133,9 @@ export default function DeviceTypeManagement() {
         <h2 className="text-lg font-semibold">장비 종류 관리</h2>
         <button
           onClick={() => {
-            setShowForm(true)
-            setEditingDeviceType(null)
-            setFormData({ code: '', name: '', description: '', department_id: '' })
+            setShowForm(true);
+            setEditingDeviceType(null);
+            setFormData({ code: '', name: '', description: '', department_id: '' });
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
@@ -247,5 +247,5 @@ export default function DeviceTypeManagement() {
         </tbody>
       </table>
     </div>
-  )
-} 
+  );
+}

@@ -1,6 +1,6 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react';
 
 interface DeviceType {
   id: number
@@ -20,31 +20,31 @@ interface ManufacturerRegisterFormProps {
 }
 
 export default function ManufacturerRegisterForm({ onSubmit, onCancel }: ManufacturerRegisterFormProps) {
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
   const [formData, setFormData] = useState<ManufacturerFormData>({
     name: '',
     device_types: [],
     description: ''
-  })
-  const [loading, setLoading] = useState(false)
+  });
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchDeviceTypes()
-  }, [])
+    fetchDeviceTypes();
+  }, []);
 
   const fetchDeviceTypes = async () => {
     try {
-      const response = await fetch('/api/v1/device-types')
-      const data = await response.json()
-      setDeviceTypes(data)
+      const response = await fetch('/api/v1/device-types');
+      const data = await response.json();
+      setDeviceTypes(data);
     } catch (err) {
-      console.error('장비 종류 목록을 불러오는데 실패했습니다.')
+      console.error('장비 종류 목록을 불러오는데 실패했습니다.');
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch('/api/v1/manufacturers', {
@@ -53,29 +53,29 @@ export default function ManufacturerRegisterForm({ onSubmit, onCancel }: Manufac
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        const newManufacturer = await response.json()
-        onSubmit(newManufacturer)
+        const newManufacturer = await response.json();
+        onSubmit(newManufacturer);
       } else {
-        throw new Error('제조사 등록 중 오류가 발생했습니다.')
+        throw new Error('제조사 등록 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('제조사 등록에 실패했습니다.')
+      alert('제조사 등록에 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleDeviceTypeChange = (deviceTypeId: number) => {
     setFormData(prev => {
       const newDeviceTypes = prev.device_types.includes(deviceTypeId)
         ? prev.device_types.filter(id => id !== deviceTypeId)
-        : [...prev.device_types, deviceTypeId]
-      return { ...prev, device_types: newDeviceTypes }
-    })
-  }
+        : [...prev.device_types, deviceTypeId];
+      return { ...prev, device_types: newDeviceTypes };
+    });
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -137,5 +137,5 @@ export default function ManufacturerRegisterForm({ onSubmit, onCancel }: Manufac
         </button>
       </div>
     </form>
-  )
-} 
+  );
+}

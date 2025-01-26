@@ -1,8 +1,8 @@
-'use client'
+'use client';
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import CompanySelectModal from '../../products/components/CompanySelectModal'
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import CompanySelectModal from '../../products/components/CompanySelectModal';
 
 interface FormData {
   user: {
@@ -19,10 +19,10 @@ interface FormData {
 }
 
 export default function UserRegister() {
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false)
-  const [selectedCompany, setSelectedCompany] = useState<any>(null)
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [formData, setFormData] = useState<FormData>({
     user: {
       device_token: '',
@@ -34,11 +34,11 @@ export default function UserRegister() {
       mobile: '',
       profile_type: 0
     }
-  })
+  });
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch('/api/v1/users', {
@@ -47,32 +47,32 @@ export default function UserRegister() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        alert('이용자가 등록되었습니다.')
-        router.push('/admin/users')
+        alert('이용자가 등록되었습니다.');
+        router.push('/admin/users');
       } else {
-        throw new Error('등록 중 오류가 발생했습니다.')
+        throw new Error('등록 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('이용자 등록 중 오류가 발생했습니다.')
+      alert('이용자 등록 중 오류가 발생했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleCompanySelect = (company: any) => {
-    setSelectedCompany(company)
+    setSelectedCompany(company);
     setFormData(prev => ({
       ...prev,
       profile: {
         ...prev.profile,
         company_id: company.id
       }
-    }))
-    setIsCompanyModalOpen(false)
-  }
+    }));
+    setIsCompanyModalOpen(false);
+  };
 
   return (
     <div className="bg-white rounded-lg shadow p-6">
@@ -215,5 +215,5 @@ export default function UserRegister() {
         onSelect={handleCompanySelect}
       />
     </div>
-  )
-} 
+  );
+}

@@ -1,7 +1,7 @@
-'use client'
+'use client';
 
-import React, { useState, useEffect } from 'react'
-import UserSelectModal from './UserSelectModal'
+import React, { useState, useEffect } from 'react';
+import UserSelectModal from './UserSelectModal';
 
 declare global {
   interface Window {
@@ -36,24 +36,24 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
     zipcode: initialData?.zipcode || '',
     address: initialData?.address || '',
     adddress_detail: initialData?.adddress_detail || ''
-  })
-  const [loading, setLoading] = useState(false)
-  const [ownerId, setOwnerId] = useState<number | null>(null)
-  const [searchTerm, setSearchTerm] = useState('')
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  });
+  const [loading, setLoading] = useState(false);
+  const [ownerId, setOwnerId] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     // Daum 우편번호 스크립트 동적 로드
-    const script = document.createElement('script')
-    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js'
-    script.async = true
-    document.head.appendChild(script)
+    const script = document.createElement('script');
+    script.src = '//t1.daumcdn.net/mapjsapi/bundle/postcode/prod/postcode.v2.js';
+    script.async = true;
+    document.head.appendChild(script);
 
     return () => {
-      document.head.removeChild(script)
-    }
-  }, [])
+      document.head.removeChild(script);
+    };
+  }, []);
 
   const handleOpenPostcode = () => {
     new window.daum.Postcode({
@@ -64,16 +64,16 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
           zipcode: data.zonecode,
           address: data.address,
           // 참고항목이 있을 경우 괄호와 함께 추가
-          adddress_detail: data.buildingName ? 
+          adddress_detail: data.buildingName ?
             `(${data.buildingName})` : ''
-        }))
+        }));
       }
-    }).open()
-  }
+    }).open();
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
+    e.preventDefault();
+    setLoading(true);
 
     try {
       const response = await fetch('/api/v1/companies', {
@@ -82,27 +82,27 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(formData),
-      })
+      });
 
       if (response.ok) {
-        const newCompany = await response.json()
-        onSubmit(newCompany)
+        const newCompany = await response.json();
+        onSubmit(newCompany);
       } else {
-        throw new Error('업체 등록 중 오류가 발생했습니다.')
+        throw new Error('업체 등록 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('업체 등록에 실패했습니다.')
+      alert('업체 등록에 실패했습니다.');
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   // 사용자 선택 함수
   const handleSelectUser = (selectedUser: User) => {
-    console.log(selectedUser)
-    setOwnerId(selectedUser.id)
-    setIsModalOpen(false) // 모달 닫기
-  }
+    console.log(selectedUser);
+    setOwnerId(selectedUser.id);
+    setIsModalOpen(false); // 모달 닫기
+  };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -110,7 +110,7 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
         <label className="block text-sm font-medium mb-1">소유자ID:</label>
         <input type="text" value={ownerId || ''} readOnly />
         <button className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-blue-300"
-         type="button" onClick={() => setIsModalOpen(true)}>소유자 검색</button>
+          type="button" onClick={() => setIsModalOpen(true)}>소유자 검색</button>
       </div>
       <div>
         <label className="block text-sm font-medium mb-1">업체명</label>
@@ -223,5 +223,5 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
         </button>
       </div>
     </form>
-  )
-} 
+  );
+}
