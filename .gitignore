@@ -38,4 +38,4 @@ yarn-error.log*
 *.pem
 package-lock.json
 
-.vscode/
+.vscode
