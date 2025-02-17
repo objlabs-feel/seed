@@ -1,29 +1,15 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface Department {
-  id: number
-  code: string
-  name: string
-}
-
-interface DeviceType {
-  id: number
-  code: string
-  name: string
-  description: string | null
-  img: string | null
-  department_id: number | null
-}
+import { IDeviceType, IDepartment } from '@repo/shared/models';
 
 export default function DeviceTypeManagement() {
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingDeviceType, setEditingDeviceType] = useState<DeviceType | null>(null);
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [editingDeviceType, setEditingDeviceType] = useState<IDeviceType | null>(null);
+  const [departments, setDepartments] = useState<IDepartment[]>([]);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -80,7 +66,7 @@ export default function DeviceTypeManagement() {
     }
   };
 
-  const handleEdit = (deviceType: DeviceType) => {
+  const handleEdit = (deviceType: IDeviceType) => {
     setEditingDeviceType(deviceType);
     setFormData({
       code: deviceType.code || '',

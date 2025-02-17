@@ -3,40 +3,47 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 
 interface NavigationButtonsProps {
   currentStep: number;
+  totalSteps: number;
   onPrevious: () => void;
+  prevText: string;
   onNext: () => void;
-  onSubmit: () => void;
+  nextText: string;
+  onSubmit: () => void;  
+  submitText: string;
+  canReverse: boolean;
 }
 
 const NavigationButtons = ({ 
   currentStep, 
-  onPrevious, 
-  onNext, 
-  onSubmit 
+  totalSteps,
+  onPrevious, prevText,
+  onNext, nextText,
+  onSubmit, submitText,
+  canReverse
 }: NavigationButtonsProps) => {
   return (
     <View style={styles.container}>
-      {currentStep > 1 && (
+      {canReverse && currentStep > 1 && (
         <TouchableOpacity 
           style={styles.button} 
           onPress={onPrevious}
         >
-          <Text style={styles.buttonText}>이전</Text>
+          <Text style={styles.buttonText}>{prevText}</Text>
         </TouchableOpacity>
       )}
-      {currentStep < 3 ? (
+      {currentStep < totalSteps ? (
         <TouchableOpacity 
           style={[styles.button, styles.primaryButton]}
           onPress={onNext}
         >
-          <Text style={styles.buttonText}>다음</Text>
+          <Text style={styles.buttonText}>{nextText}</Text>
         </TouchableOpacity>
       ) : (
         <TouchableOpacity 
           style={[styles.button, styles.submitButton]}
           onPress={onSubmit}
         >
-          <Text style={styles.buttonText}>등록하기</Text>
+          <Text style={styles.buttonText}>{submitText}</Text>
         </TouchableOpacity>
       )}
     </View>

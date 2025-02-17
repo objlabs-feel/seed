@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 
-const DEFAULT_IMAGE = require('../../assets/default.jpg');  // 기본 이미지 추가
+const DEFAULT_IMAGE = require('../../assets/default.jpg');
 
 interface AuctionItemCardProps {
   thumbnail: string;
@@ -9,6 +9,7 @@ interface AuctionItemCardProps {
   auction_code: string;
   remainingTime: string;
   area: string;
+  status?: number;
   onPress: () => void;
 }
 
@@ -18,14 +19,33 @@ const AuctionItemCard: React.FC<AuctionItemCardProps> = ({
   auction_code,
   remainingTime,
   area,
-  onPress
+  status = 0,
+  onPress,
 }) => {
-  // remainingTime을 문자열로 변환
-  const formattedTime = typeof remainingTime === 'object' 
-    ? JSON.stringify(remainingTime) 
-    : remainingTime;
+  const getFormattedTime = () => {
+    if (remainingTime) {
+      const timeout = new Date(remainingTime);
+      const now = new Date();
+      const diff = timeout.getTime() - now.getTime();
+      
+      if (diff <= 0) return '만료됨';
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      
+      return days > 0 ? `${days}일 ${hours}시간` : `${hours}시간`;
+    }
+    return remainingTime || '시간 정보 없음';
+  };
 
-  console.log('thumbnail:', thumbnail);
+  const getStatusStyle = () => {
+    switch (status) {
+      case 0: return styles.statusPending;
+      case 1: return styles.statusActive;
+      case 2: return styles.statusCompleted;
+      default: return {};
+    }
+  };
 
   return (
     <TouchableOpacity onPress={onPress} style={styles.container}>
@@ -33,9 +53,7 @@ const AuctionItemCard: React.FC<AuctionItemCardProps> = ({
         <Image 
           source={thumbnail ? { 
             uri: thumbnail,
-            // 캐시 정책 추가
             cache: 'reload',
-            // 헤더 추가
             headers: {
               Pragma: 'no-cache'
             }
@@ -43,15 +61,18 @@ const AuctionItemCard: React.FC<AuctionItemCardProps> = ({
           style={styles.image}
           resizeMode="cover"
           defaultSource={DEFAULT_IMAGE}
-          // 에러 핸들링 추가
           onError={(e) => {
             console.error('Image loading error:', e.nativeEvent.error);
           }}
         />
       </View>
       <View style={styles.infoContainer}>
-        <Text style={styles.type}>{equipmentType || '장비 유형 없음'} | {auction_code || '경매 고유번호 없음'}</Text>
-        <Text style={styles.time}>{area || '지역 정보 없음'} | {formattedTime || '시간 정보 없음'}</Text>
+        <Text style={styles.type}>
+          {equipmentType || '장비 유형 없음'} | {auction_code}
+        </Text>
+        <Text style={[styles.time, getStatusStyle()]}>
+          {area || '지역 정보 없음'} | {getFormattedTime()}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -88,6 +109,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#666',
   },
+  statusPending: {
+    color: '#ffc107',
+  },
+  statusActive: {
+    color: '#28a745',
+  },
+  statusCompleted: {
+    color: '#6c757d',
+  },
 });
 
-export default AuctionItemCard; 
+export default AuctionItemCard;

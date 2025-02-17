@@ -8,7 +8,8 @@ const PUBLIC_PATHS = [
   '/api/v1/auth/verify',
   '/admin/login',
   '/admin/api/v1/departments/seed',
-  '/admin/api/v1/device-types/seed'
+  '/admin/api/v1/device-types/seed',
+  '/admin/api/v1/admin'
 ];
 
 // 관리자 API 경로

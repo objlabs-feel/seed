@@ -1,21 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface Department {
-  id: number
-  code: string
-  name: string
-  description: string | null
-  img: string | null
-}
+import { IDepartment } from '@repo/shared/models';
 
 export default function DepartmentManagement() {
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<IDepartment[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<IDepartment | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -60,7 +53,7 @@ export default function DepartmentManagement() {
     }
   };
 
-  const handleEdit = (department: Department) => {
+  const handleEdit = (department: IDepartment) => {
     setEditingDepartment(department);
     setFormData({
       code: department.code || '',

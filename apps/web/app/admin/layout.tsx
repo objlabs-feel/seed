@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Sidebar from './components/Sidebar';
 import Header from './components/Header';
@@ -10,36 +10,80 @@ export default function AdminLayout({
 }: {
   children: React.ReactNode
 }) {
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    // // 쿠키에서 로그인 상태 확인
-    // const isLoggedIn = document.cookie.includes('admin_token')
-    // // const isLoggedIn = true
+    const checkAuth = async () => {
+      try {
+        // 로그인 페이지는 검증 스킵
+        if (pathname === '/admin/login') {
+          setIsLoading(false);
+          return;
+        }
 
-    // // 로그인 페이지가 아니고, 로그인되지 않은 경우
-    // if (!isLoggedIn && pathname !== '/admin/login') {
-    //   router.push('/admin/login')
-    // }
-    // // 로그인 되어있는데 로그인 페이지에 접근하는 경우
-    // else if (isLoggedIn && pathname === '/admin/login') {
-    //   router.push('/admin')
-    // }
+        const response = await fetch('/admin/api/v1/admin/verify', {
+          method: 'GET',
+          credentials: 'include'  // 쿠키 포함
+        });
+
+        if (!response.ok) {
+          throw new Error('인증 실패');
+        }
+
+        setIsLoading(false);
+      } catch (error) {
+        // 로그인 페이지가 아닌 경우에만 리다이렉트
+        if (pathname !== '/admin/login') {
+          router.push('/admin/login');
+        }
+      }
+    };
+
+    checkAuth();
   }, [pathname]);
 
-  //   // 로그인 페이지일 경우 사이드바와 헤더를 표시하지 않음
-  //   if (pathname === '/admin/login') {
-  //     return <>{children}</>
-  //   }
+  // 로그인 페이지일 경우 레이아웃 없이 컨텐츠만 표시
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
+  // 로딩 중일 때 표시할 내용
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="text-gray-500">로딩 중...</div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex h-screen bg-gray-100">
-      <Sidebar />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-y-auto p-4">
-          {children}
+    <div className="min-h-screen bg-gray-100 flex">
+      {/* 모바일 사이드바 오버레이 */}
+      <div className={`
+        fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity z-20
+        lg:hidden
+        ${sidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
+      `} onClick={() => setSidebarOpen(false)} />
+
+      {/* 사이드바 */}
+      <div className={`
+        fixed inset-y-0 left-0 z-30 w-64 bg-white transform transition-transform duration-300 ease-in-out
+        lg:static lg:translate-x-0
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+      `}>
+        <Sidebar onClose={() => setSidebarOpen(false)} />
+      </div>
+
+      {/* 메인 콘텐츠 */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <Header onMenuClick={() => setSidebarOpen(true)} />
+        <main className="flex-1 p-4 overflow-x-auto">
+          <div className="container mx-auto">
+            {children}
+          </div>
         </main>
       </div>
     </div>

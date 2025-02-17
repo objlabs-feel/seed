@@ -120,8 +120,8 @@ export async function POST(request: Request) {
       const device = await tx.medicalDevice.create({
         data: {
           company_id: parseInt(body.medical_device.company_id),
-          department: parseInt(body.medical_device.department),
-          device_type: parseInt(body.medical_device.device_type),
+          department_id: parseInt(body.medical_device.department_id),
+          device_type_id: parseInt(body.medical_device.device_type_id),
           manufacturer_id: parseInt(body.medical_device.manufacturer_id),
           manufacture_date: body.medical_device.manufacture_date ? new Date(body.medical_device.manufacture_date) : null,
           images: body.medical_device.images,

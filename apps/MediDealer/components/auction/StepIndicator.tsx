@@ -1,23 +1,23 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 
-const StepIndicator = ({ currentStep }) => {
+const StepIndicator = ({ currentStep, totalSteps }: { currentStep: number, totalSteps: number }) => {
   return (
     <View style={styles.stepContainer}>
-      {[1, 2, 3].map((step) => (
+      {[...Array(totalSteps)].map((_, step) => (
         <View key={step} style={styles.stepWrapper}>
           <View style={[
             styles.stepCircle,
-            currentStep >= step && styles.activeStep
+            currentStep >= step + 1 && styles.activeStep
           ]}>
             <Text style={[
               styles.stepText,
-              currentStep >= step && styles.activeStepText
-            ]}>{step}</Text>
+              currentStep >= step + 1 && styles.activeStepText
+            ]}>{step + 1}</Text>
           </View>
-          {step < 3 && <View style={[
+          {step < totalSteps - 1 && <View style={[
             styles.stepLine,
-            currentStep > step && styles.activeStepLine
+            currentStep > step + 1 && styles.activeStepLine
           ]} />}
         </View>
       ))}

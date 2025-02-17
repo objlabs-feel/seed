@@ -28,7 +28,7 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json(
         { error: 'Invalid user credentials' },
-        { status: 401 }
+        { status: 400 }
       );
     }
 

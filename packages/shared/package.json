@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./models": "./models"
+    ".": "./src/index.ts",
+    "./models": "./src/models/index.ts"
   },
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
   "scripts": {
     "lint": "eslint . --max-warnings 0"
   },

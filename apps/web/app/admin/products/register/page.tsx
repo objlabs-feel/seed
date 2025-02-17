@@ -4,47 +4,19 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CompanySelectModal from '../components/CompanySelectModal';
 import ManufacturerSelectModal from '../components/ManufacturerSelectModal';
+import { IDepartment, IDeviceType, ICompany, IManufacturer } from '@repo/shared/models';
 
 interface FormData {
   start_timestamp: string
   medical_device: {
     company_id: string
-    department: string
-    device_type: string
+    department_id: string
+    device_type_id: string
     manufacturer_id: string
     manufacture_date: string
     description: string
     images: string[]
   }
-}
-
-interface Department {
-  id: number
-  code: string
-  name: string
-}
-
-interface DeviceType {
-  id: number
-  code: string
-  name: string
-}
-
-interface Company {
-  id: number
-  name: string
-  business_no: string
-  business_tel: string
-  business_mobile: string
-  company_type: number
-}
-
-interface Manufacturer {
-  id: number
-  name: string
-  device_types: any[]
-  img: string | null
-  description: string | null
 }
 
 export default function ProductRegister() {
@@ -54,20 +26,20 @@ export default function ProductRegister() {
     start_timestamp: '',
     medical_device: {
       company_id: '',
-      department: '',
-      device_type: '',
+      department_id: '',
+      device_type_id: '',
       manufacturer_id: '',
       manufacture_date: '',
       description: '',
       images: []
     }
   });
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [departments, setDepartments] = useState<IDepartment[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
   const [todayCount, setTodayCount] = useState(0);
-  const [selectedCompany, setSelectedCompany] = useState<Company | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<ICompany | null>(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
-  const [selectedManufacturer, setSelectedManufacturer] = useState<Manufacturer | null>(null);
+  const [selectedManufacturer, setSelectedManufacturer] = useState<IManufacturer | null>(null);
   const [isManufacturerModalOpen, setIsManufacturerModalOpen] = useState(false);
 
   useEffect(() => {
@@ -107,7 +79,7 @@ export default function ProductRegister() {
     }));
   };
 
-  const handleCompanySelect = (company: Company) => {
+  const handleCompanySelect = (company: ICompany) => {
     setSelectedCompany(company);
     setFormData(prev => ({
       ...prev,
@@ -119,7 +91,7 @@ export default function ProductRegister() {
     setIsCompanyModalOpen(false);
   };
 
-  const handleManufacturerSelect = (manufacturer: Manufacturer) => {
+  const handleManufacturerSelect = (manufacturer: IManufacturer) => {
     setSelectedManufacturer(manufacturer);
     setFormData(prev => ({
       ...prev,
@@ -209,7 +181,7 @@ export default function ProductRegister() {
             <div>
               <label className="block text-sm font-medium mb-1">진료과</label>
               <select
-                value={formData.medical_device.department}
+                value={formData.medical_device.department_id}
                 onChange={handleDepartmentChange}
                 className="w-full p-2 border rounded"
                 required
@@ -225,7 +197,7 @@ export default function ProductRegister() {
             <div>
               <label className="block text-sm font-medium mb-1">기기 유형</label>
               <select
-                value={formData.medical_device.device_type}
+                value={formData.medical_device.device_type_id}
                 onChange={handleDeviceTypeChange}
                 className="w-full p-2 border rounded"
                 required

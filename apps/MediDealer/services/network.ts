@@ -36,8 +36,8 @@ axios.interceptors.request.use(
 apiClient.interceptors.response.use(
     (response: AxiosResponse) => response,
     (error: any) => {
-    // 에러 처리
-    return Promise.reject(error);
+        // 에러 처리
+        return Promise.reject(error);
     }
 );
 

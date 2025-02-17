@@ -3,42 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BidModal from '../components/BidModal';
-
-interface MedicalDevice {
-  id: number
-  description: string
-  company_id: number
-  department: number
-  device_type: number
-  manufacturer_id: number
-  manufacture_date: string
-  images: string[]
-}
-
-interface AuctionItem {
-  id: number
-  auction_code: string
-  status: number
-  start_timestamp: string
-  expired_count: number
-  medical_device: MedicalDevice
-  auction_item_history: AuctionItemHistory[]
-}
-
-interface AuctionItemHistory {
-  id: number; // 이력의 고유 ID
-  auctionItemId: number; // 관련된 경매 항목의 ID
-  changeDate: Date; // 변경이 발생한 날짜
-  changedBy: string; // 변경을 수행한 사용자
-  changeType: string; // 변경 유형 (예: 'created', 'updated', 'deleted')
-  description: string; // 변경에 대한 설명
-  // 추가적인 속성들...
-}
+import { IAuctionItem, IAuctionHistory } from '@repo/shared/models';
 
 export default function ProductDetail({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [auctionItem, setAuctionItem] = useState<AuctionItem | null>(null);
-  const [highestBidder, setHighestBidder] = useState<AuctionItemHistory | null>(null);
+  const [auctionItem, setAuctionItem] = useState<IAuctionItem | null>(null);
+  const [highestBidder, setHighestBidder] = useState<IAuctionHistory | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
@@ -49,12 +19,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
   const fetchAuctionItem = async () => {
     try {
-      const response = await fetch(`/api/v1/auction-items/${params.id}`);
+      const response = await fetch(`/admin/api/v1/auction-items/${params.id}`);
       const data = await response.json();
       setAuctionItem(data);
 
       if (data.auction_item_history.length > 0) {
-        const highestBid = data.auction_item_history.reduce((prev: AuctionItemHistory, current: AuctionItemHistory) => {
+        const highestBid = data.auction_item_history.reduce((prev: IAuctionHistory, current: IAuctionHistory) => {
           return prev.value > current.value ? prev : current;
         });
         setHighestBidder(highestBid);
@@ -68,7 +38,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
   const handleBid = async (userId: number, value: number) => {
     try {
-      const response = await fetch(`/api/v1/auction-items/${params.id}/bid`, {
+      const response = await fetch(`/admin/api/v1/auction-items/${params.id}/bid`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -112,6 +82,26 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
     }
   };
 
+  const handleConfirm = async () => {
+    if (!confirm('입금확인 사항을 확정하시겠습니까?')) return;
+
+    try {
+      const response = await fetch(`/admin/api/v1/auction-items/${params.id}/confirm`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        alert('경매가 확정되었습니다.');
+        fetchAuctionItem(); // 상태 갱신
+      }
+    } catch (err) {
+      alert('경매 확정 중 오류가 발생했습니다.');
+    }
+  };
+
   const handleCancel = async () => {
     if (!confirm('경매를 취소하시겠습니까?')) return;
 
@@ -144,6 +134,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">경매 상품 상세정보</h2>
         <div className="space-x-2">
+          <button
+            onClick={handleConfirm}
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          >
+            입금확인
+          </button>
           <button
             onClick={() => setIsBidModalOpen(true)}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"

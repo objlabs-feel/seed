@@ -2,18 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-
-interface Department {
-  id: number
-  code: string
-  name: string
-}
-
-interface DeviceType {
-  id: number
-  code: string
-  name: string
-}
+import { IDepartment, IDeviceType } from '@repo/shared/models';
 
 export default function ProductEdit({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -25,15 +14,15 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
     medical_device: {
       description: '',
       company_id: '',
-      department: '',
-      device_type: '',
+      department_id: '',
+      device_type_id: '',
       manufacturer_id: '',
       manufacture_date: '',
       images: [] as string[]
     }
   });
-  const [departments, setDepartments] = useState<Department[]>([]);
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [departments, setDepartments] = useState<IDepartment[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -49,8 +38,8 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
         medical_device: {
           description: productData.medicalDevice.description,
           company_id: productData.medicalDevice.company_id,
-          department: productData.medicalDevice.department,
-          device_type: productData.medicalDevice.device_type,
+          department_id: productData.medicalDevice.department_id,
+          device_type_id: productData.medicalDevice.device_type_id,
           manufacturer_id: productData.medicalDevice.manufacturer_id,
           manufacture_date: productData.medicalDevice.manufacture_date?.substring(0, 10) || '',
           images: productData.medicalDevice.images

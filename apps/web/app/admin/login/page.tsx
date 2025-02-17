@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('');
@@ -13,7 +14,7 @@ export default function AdminLogin() {
     event.preventDefault();
 
     try {
-      const response = await fetch('/api/v1/admin/auth', {
+      const response = await fetch('/admin/api/v1/admin/auth', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,39 +37,66 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="flex items-center justify-center h-screen">
-      <form onSubmit={handleLogin} className="p-6 bg-white rounded-lg shadow">
-        <h2 className="text-lg font-semibold mb-4">관리자 로그인</h2>
-        {error && <p className="text-red-500 mb-4">{error}</p>}
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium mb-1">사용자명</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium mb-1">비밀번호</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="w-full px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            로그인
-          </button>
+    <div className="min-h-screen bg-gray-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+        <div className="text-center">
+          <Image
+            src="/logo.png"  // 로고 이미지 필요
+            alt="메디딜러 로고"
+            width={120}
+            height={120}
+            className="mx-auto"
+          />
+          <h2 className="mt-6 text-3xl font-bold text-gray-900">
+            관리자 로그인
+          </h2>
         </div>
-      </form>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+          <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+            <form onSubmit={handleLogin} className="space-y-6">
+              {error && (
+                <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded">
+                  {error}
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  아이디
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">
+                  비밀번호
+                </label>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  required
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              >
+                로그인
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

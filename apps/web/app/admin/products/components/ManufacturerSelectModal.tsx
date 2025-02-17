@@ -2,24 +2,17 @@
 
 import { useState } from 'react';
 import ManufacturerRegisterForm from './ManufacturerRegisterForm';
-
-interface Manufacturer {
-  id: number
-  name: string
-  device_types: string
-  img: string | null
-  description: string | null
-}
+import { IManufacturer } from '@repo/shared/models';
 
 interface ManufacturerSelectModalProps {
   isOpen: boolean
   onClose: () => void
-  onSelect: (manufacturer: Manufacturer) => void
+  onSelect: (manufacturer: IManufacturer) => void
 }
 
 export default function ManufacturerSelectModal({ isOpen, onClose, onSelect }: ManufacturerSelectModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
+  const [manufacturers, setManufacturers] = useState<IManufacturer[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
 
@@ -38,7 +31,7 @@ export default function ManufacturerSelectModal({ isOpen, onClose, onSelect }: M
     }
   };
 
-  const handleRegisterSuccess = (newManufacturer: Manufacturer) => {
+  const handleRegisterSuccess = (newManufacturer: IManufacturer) => {
     setShowRegisterForm(false);
     onSelect(newManufacturer);
   };

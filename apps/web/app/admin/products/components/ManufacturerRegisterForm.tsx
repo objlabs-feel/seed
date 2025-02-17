@@ -1,13 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface DeviceType {
-  id: number
-  code: string
-  name: string
-}
-
+import { IDeviceType } from '@repo/shared/models';
 interface ManufacturerFormData {
   name: string
   device_types: number[]
@@ -20,7 +14,7 @@ interface ManufacturerRegisterFormProps {
 }
 
 export default function ManufacturerRegisterForm({ onSubmit, onCancel }: ManufacturerRegisterFormProps) {
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
   const [formData, setFormData] = useState<ManufacturerFormData>({
     name: '',
     device_types: [],

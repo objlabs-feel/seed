@@ -1,0 +1,11 @@
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+
+[*.{js,ts,jsx,tsx}]
+single_quote = true
+trailing_comma = all
+tab_width = 2
+use_tabs = false

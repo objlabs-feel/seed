@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -12,30 +12,9 @@ import {
 } from 'react-native';
 import AuctionItemCard from '../components/auction/AuctionItemCard';
 import { searchAuction } from '../services/medidealer/api';
+import { AuctionItem } from '@repo/shared/models';
 
-// 임시 데이터 타입
-interface AuctionItem {
-  id: string;
-  auction_code: string;
-  medical_device: {
-    id: string;
-    name: string;
-    images: string[];
-    deviceType: {
-      name: string;
-    };
-    department: {
-      name: string;
-    };
-    company: {
-      name: string;
-      area: string;
-    };
-  };
-  start_timestamp: string;
-}
-
-const AuctionSearchScreen = ({ navigation }) => {
+const AuctionSearchScreen = ({ navigation }: { navigation: any }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<AuctionItem[]>([]);
@@ -79,6 +58,10 @@ const AuctionSearchScreen = ({ navigation }) => {
       </TouchableOpacity>
     );
   };
+
+  useEffect(() => {
+    handleSearch();
+  }, []);
 
   return (
     <SafeAreaView style={styles.container}>

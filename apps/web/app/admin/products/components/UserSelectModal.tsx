@@ -1,23 +1,16 @@
 import React, { useState } from 'react';
-
-interface User {
-  user_id: number;
-  profile_id: number;
-  name: string;
-  email: string;
-  // 필요한 다른 필드들...
-}
+import { IUser } from '@repo/shared/models';
 
 interface UserSelectModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelect: (user: User) => void;
+  onSelect: (user: IUser) => void;
 }
 
 export default function UserSelectModal({ isOpen, onClose, onSelect }: UserSelectModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchCondition, setSearchCondition] = useState('name'); // 기본 검색 조건
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<IUser[]>([]);
   const [loading, setLoading] = useState(false);
 
   const searchUsers = async () => {

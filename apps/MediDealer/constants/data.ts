@@ -19,16 +19,16 @@ export const initConstants = async () => {
 
 // locations는 정적 데이터이므로 그대로 유지
 export const locations = [
-  { id: 'seoul', name: '서울' },
-  { id: 'gyeonggi', name: '경기' },
-  { id: 'incheon', name: '인천' },
-  { id: 'busan', name: '부산' },
-  { id: 'daegu', name: '대구' },
-  { id: 'gwangju', name: '광주' },
-  { id: 'daejeon', name: '대전' },
-  { id: 'ulsan', name: '울산' },
-  { id: 'gwangyang', name: '광양' },
-  { id: 'jeonju', name: '전주' },
-  { id: 'jeju', name: '제주' },
+  { id: '서울', name: '서울' },
+  { id: '경기', name: '경기' },
+  { id: '인천', name: '인천' },
+  { id: '강원', name: '강원' },
+  { id: '충남', name: '충남' },
+  { id: '충북', name: '충북' },
+  { id: '전남', name: '전남' },
+  { id: '전북', name: '전북' },
+  { id: '경남', name: '경남' },
+  { id: '경북', name: '경북' },
+  { id: '제주', name: '제주' },
   // ... 추가 지역
 ];

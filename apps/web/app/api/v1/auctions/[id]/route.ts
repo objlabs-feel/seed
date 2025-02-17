@@ -40,8 +40,8 @@ export async function PUT(
           where: { id: auctionItem.medical_device.id },
           data: {
             company_id: deviceData.company_id,
-            department: deviceData.department,
-            device_type: deviceData.device_type,
+            department_id: deviceData.department_id,
+            device_type_id: deviceData.device_type_id,
             manufacturer_id: deviceData.manufacturer_id,
             manufacture_date: deviceData.manufacture_date,
             images: deviceData.images,
@@ -113,6 +113,8 @@ export async function GET(
         { status: 404 }
       );
     }
+
+    console.log(auctionItem);
 
     return NextResponse.json(convertBigIntToString(auctionItem));
   } catch (error) {

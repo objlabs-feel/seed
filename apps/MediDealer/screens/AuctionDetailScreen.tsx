@@ -17,66 +17,20 @@ import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { bidAuction, getAuctionDetail, getAuctionHistory } from '../services/medidealer/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { IAuctionItem, IAuctionHistory } from '@repo/shared/models';
 
 const { width } = Dimensions.get('window');
 
 const DEFAULT_IMAGE = require('../assets/default.jpg'); // 기본 이미지 추가
 
-interface AuctionDetailParams {
+interface AuctionItemParams {
   id: string | number;
   // 다른 필요한 파라미터들 추가
 }
 
-interface AuctionDetailProps {
+interface AuctionItemProps {
   navigation: StackNavigationProp<any>;
-  route: RouteProp<{ params: AuctionDetailParams }, 'params'>;
-}
-
-// AuctionHistory 타입 정의
-interface AuctionHistory {
-  id: string | number;
-  auction_item_id: string | number;
-  user_id: string | number;
-  value: number;
-  created_at: string;
-}
-
-interface AuctionDetail {
-  id: string | number;
-  medical_device_id: string | number;
-  auction_code: string;
-  quantity: number;
-  status: number;
-  start_timestamp: string;
-  expired_count: number;
-  created_at: string;
-  updated_at: string;
-  medical_device: {
-    id: string | number;
-    company_id: number;
-    department_id: number;
-    device_type_id: number;
-    manufacturer_id: number | null;
-    manufacture_date: string | null;
-    manufacture_year: number | null;
-    images: string[];
-    description: string | null;
-    created_at: string;
-    updated_at: string;
-    department: {
-      name: string;
-    };
-    deviceType: {
-      name: string;
-    };
-    manufacturer: {
-      name: string;
-    } | null;
-    company: {
-      name: string;
-    };
-  };
-  auction_item_history: AuctionHistory[];
+  route: RouteProp<{ params: AuctionItemParams }, 'params'>;
 }
 
 const PreviewSection = ({ title, content }: { title: string, content: string }) => (
@@ -86,15 +40,16 @@ const PreviewSection = ({ title, content }: { title: string, content: string }) 
   </View>
 );
 
-const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }) => {
+const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [auctionDetail, setAuctionDetail] = useState<AuctionDetail | null>(null);
+  const [auctionItem, setAuctionItem] = useState<IAuctionItem | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { id } = route.params;
   const [highestBid, setHighestBid] = useState(0);
-  const [auctionHistory, setAuctionHistory] = useState<AuctionHistory[]>([]);
+  const [auctionHistory, setAuctionHistory] = useState<IAuctionHistory[]>([]);
   const [isBidModalVisible, setIsBidModalVisible] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
+  const [canAccept, setCanAccept] = useState(false);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -113,11 +68,11 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
   }, []);
 
   useEffect(() => {
-    const fetchAuctionDetail = async () => {
+    const fetchAuctionItem = async () => {
       try {
         const data = await getAuctionDetail(id as string);
         console.log('Auction detail data:', data);  // 데이터 구조 확인
-        setAuctionDetail(data);
+        setAuctionItem(data);
         setAuctionHistory(data.auction_item_history);
         // updateHighestBid();
       } catch (error) {
@@ -127,11 +82,19 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
       }
     };
 
-    fetchAuctionDetail();
+    fetchAuctionItem();
   }, [id]);
 
   useEffect(() => {
     updateHighestBid();
+    console.log('AuctionItem?.accept_id', auctionItem?.accept_id);
+    if (auctionItem?.accept_id && auctionItem?.accept_id !== 0) {      
+      const acceptBid = auctionHistory.filter(bid => bid.id === auctionItem?.accept_id && bid.user_id === currentUserId);
+      if (acceptBid && acceptBid.length > 0) {
+        console.log('낙찰 처리');
+        setCanAccept(true);
+      }
+    }
   }, [auctionHistory]);
 
   // 최고가 찾는 함수 추가
@@ -149,13 +112,13 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
   };
 
   useLayoutEffect(() => {
-    if (auctionDetail?.medical_device?.deviceType?.name) {
+    if (auctionItem?.medical_device?.deviceType?.name) {
       navigation.setOptions({
-        title: auctionDetail.medical_device.deviceType.name,
+        title: auctionItem.medical_device.deviceType.name,
         headerBackTitle: '뒤로',
       });
     }
-  }, [navigation, auctionDetail]);
+  }, [navigation, auctionItem]);
 
   if (isLoading) {
     return (
@@ -165,7 +128,7 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
     );
   }
 
-  if (!auctionDetail?.medical_device) {
+  if (!auctionItem?.medical_device) {
     return (
       <View style={styles.errorContainer}>
         <Text>경매 정보를 불러올 수 없습니다.</Text>
@@ -173,9 +136,9 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
     );
   }
 
-  const { medical_device } = auctionDetail;
+  const { medical_device } = auctionItem;
 
-  const isOwner = currentUserId === auctionDetail?.medical_device.company.owner_id;
+  const isOwner = currentUserId === auctionItem?.medical_device.company.owner_id;
 //   const isOwner = true;
 
   return (
@@ -187,6 +150,7 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
           pagingEnabled 
           showsHorizontalScrollIndicator={false}
           style={styles.imageSlider}
+          contentContainerStyle={{ width: width }}
         >
           {medical_device.images && medical_device.images.length > 0 ? (
             medical_device.images.map((image, index) => (
@@ -217,8 +181,8 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
         <View style={styles.infoContainer}>
           {/* 판매자 정보 */}
           <View style={styles.sellerInfo}>
-            <Text style={styles.sectionTitle}>경매고유번호: {auctionDetail.auction_code} | 남은 경매시간: 00:00</Text>
-            <Text style={styles.sellerTitle}>판매자 정보: {auctionDetail.medical_device.company.name} | {auctionDetail.medical_device.company.area}</Text>            
+            <Text style={styles.sectionTitle}>경매고유번호: {auctionItem.auction_code} | 남은 경매시간: 00:00</Text>
+            <Text style={styles.sellerTitle}>판매자 정보: {auctionItem.medical_device.company.area}</Text>            
           </View>
 
           {/* 장비 정보 */}
@@ -278,12 +242,23 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
 
       {!isOwner && (
         <View style={styles.bottomButtonContainer}>
-          <TouchableOpacity 
-            style={styles.bidButton}
-            onPress={() => setIsBidModalVisible(true)}
-          >
-            <Text style={styles.bidButtonText}>입찰하기</Text>
-          </TouchableOpacity>
+          {canAccept ? (
+            <TouchableOpacity 
+              style={styles.bidNextButton}
+              onPress={() => navigation.navigate('AuctionBidAccept', { 
+                auctionId: auctionItem.id 
+              })}
+            >
+              <Text style={styles.bidButtonText}>인도절차 진행하기</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity 
+              style={styles.bidButton}
+              onPress={() => setIsBidModalVisible(true)}
+            >
+              <Text style={styles.bidButtonText}>입찰하기</Text>
+            </TouchableOpacity>
+          )}
         </View>
       )}
 
@@ -297,9 +272,10 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
                 !highestBid && styles.disabledButton
               ]}
               disabled={!highestBid}
-              onPress={() => {
-                // 낙찰 처리 로직
-                console.log('낙찰 처리');
+              onPress={() => {                
+                navigation.navigate('AuctionSelectBid', { 
+                  auctionId: auctionItem.id 
+                });
               }}
             >
               <Text style={[
@@ -340,6 +316,20 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
               keyboardType="numeric"
               autoFocus={true}
             />
+            <View style={styles.feeContainer}>              
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>부가세:</Text>
+                <Text style={styles.feeAmount}>{parseInt(bidAmount ? bidAmount : '0') * 0.1} 원</Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>수수료:</Text>
+                <Text style={styles.feeAmount}>{parseInt(bidAmount ? bidAmount : '0') * 0.08} 원</Text>
+              </View>
+              <View style={styles.feeRow}>
+                <Text style={styles.feeLabel}>예상 총금액:</Text>
+                <Text style={styles.feeAmount}>{parseInt(bidAmount ? bidAmount : '0') + parseInt(bidAmount ? bidAmount : '0') * 0.08 + parseInt(bidAmount ? bidAmount : '0' ) * 0.1} 원</Text>
+              </View>
+            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.cancelButton]}
@@ -356,7 +346,7 @@ const AuctionDetailScreen: React.FC<AuctionDetailProps> = ({ route, navigation }
                   // 입찰 처리 로직
                   console.log('입찰가격:', bidAmount);
                   if (parseInt(bidAmount) > 0) {
-                    bidAuction(id, parseInt(bidAmount));
+                    bidAuction(id as string, parseInt(bidAmount));
                     setIsBidModalVisible(false);
                     setBidAmount('');
                   } else {
@@ -481,6 +471,12 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
   },
+  bidNextButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
   bidButtonText: {
     color: 'white',
     fontSize: 16,
@@ -589,6 +585,25 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingVertical: 10,
   },
+  feeContainer: {
+    width: '100%',
+    marginVertical: 10,
+  },
+  feeRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 5,
+  },
+  feeLabel: {
+    fontSize: 16,
+    textAlign: 'left',
+  },
+  feeAmount: {
+    fontSize: 16,
+    fontWeight: '500',
+    textAlign: 'right',
+  },
 });
 
-export default AuctionDetailScreen; 
+export default AuctionItemScreen; 

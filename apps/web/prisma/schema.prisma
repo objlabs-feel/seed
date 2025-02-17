@@ -22,8 +22,16 @@ model auctionItem {
   auction_code         String               @db.VarChar(12)
   quantity             Int?                 @default(0) @db.SmallInt
   status               Int?                 @default(0) @db.SmallInt
+  accept_id            BigInt?
+  seller_steps         Int?                 @default(1) @db.SmallInt
+  buyer_steps          Int?                 @default(1) @db.SmallInt
+  seller_timeout       DateTime?            
+  buyer_timeout        DateTime?            
   start_timestamp      DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   expired_count        Int?                 @default(0) @db.SmallInt
+  auction_timeout      DateTime?            
+  visit_date           DateTime?            
+  visit_time           String?              @db.VarChar(5)
   created_at           DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   updated_at           DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   medical_device       medicalDevice        @relation(fields: [medical_device_id], references: [id])
@@ -63,7 +71,7 @@ model company {
   secret_info       Json?     @default("{\"bankAccount\": \"\", \"bankCode\": \"\", \"ownerName\": \"\", \"businessEmail\": \"\", \"businessNo\": \"\", \"businessTel\": \"\", \"businessMobile\": \"\"}") @db.Json
   zipcode           String?   @db.VarChar(15)
   address           String?   @db.VarChar(100)
-  adddress_detail   String?   @db.VarChar(50)
+  address_detail    String?   @db.VarChar(50)
   area              String?   @db.VarChar(10)
   profile           profile[]
   medical_devices   medicalDevice[]

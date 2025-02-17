@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UserSelectModal from './UserSelectModal';
-
+import { ICompany, IUser } from '@repo/shared/models';
 declare global {
   interface Window {
     daum: any
@@ -17,12 +17,12 @@ interface CompanyFormData {
   company_type: number
   zipcode: string
   address: string
-  adddress_detail: string
+  address_detail: string
 }
 
 interface CompanyRegisterFormProps {
-  initialData?: Company  // 수정 모드일 때 초기값
-  onSubmit: (company: any) => void
+  initialData?: ICompany  // 수정 모드일 때 초기값
+  onSubmit: (company: ICompany) => void
   onCancel: () => void
 }
 
@@ -35,7 +35,7 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
     company_type: initialData?.company_type || 0,
     zipcode: initialData?.zipcode || '',
     address: initialData?.address || '',
-    adddress_detail: initialData?.adddress_detail || ''
+    address_detail: initialData?.address_detail || ''
   });
   const [loading, setLoading] = useState(false);
   const [ownerId, setOwnerId] = useState<number | null>(null);
@@ -64,7 +64,7 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
           zipcode: data.zonecode,
           address: data.address,
           // 참고항목이 있을 경우 괄호와 함께 추가
-          adddress_detail: data.buildingName ?
+          address_detail: data.buildingName ?
             `(${data.buildingName})` : ''
         }));
       }
@@ -98,9 +98,9 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
   };
 
   // 사용자 선택 함수
-  const handleSelectUser = (selectedUser: User) => {
+  const handleSelectUser = (selectedUser: IUser) => {
     console.log(selectedUser);
-    setOwnerId(selectedUser.id);
+    setOwnerId(parseInt(selectedUser.id));
     setIsModalOpen(false); // 모달 닫기
   };
 
@@ -191,9 +191,9 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
           />
           <input
             type="text"
-            value={formData.adddress_detail}
+            value={formData.address_detail}
             placeholder="상세주소"
-            onChange={(e) => setFormData({ ...formData, adddress_detail: e.target.value })}
+            onChange={(e) => setFormData({ ...formData, address_detail: e.target.value })}
             className="w-full p-2 border rounded"
           />
         </div>

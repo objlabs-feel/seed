@@ -31,6 +31,7 @@ const Step3Screen = ({ formData }) => {
         pagingEnabled 
         showsHorizontalScrollIndicator={false}
         style={styles.imageSlider}
+        contentContainerStyle={{ width: width }}
       >
         {formData.images?.map((image, index) => (
           <Image

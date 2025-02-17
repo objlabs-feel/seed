@@ -3,35 +3,14 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { IAuctionItem } from '@repo/shared/models';
 
-interface MedicalDevice {
-  id: number
-  description: string
-  // 필요한 다른 필드들 추가
-}
-
-interface AuctionItemHistory {
-  id: number
-  value: number
-  created_at: string
-}
-
-interface AuctionItem {
-  id: number
-  auction_code: string
-  status: number
-  start_timestamp: string
-  expired_count: number
-  medical_device: MedicalDevice
-  auction_item_history: AuctionItemHistory[]
-}
-
-interface AuctionResponse {
-  items: AuctionItem[]
-  total: number
-  page: number
-  totalPages: number
-}
+// interface IAuctionResponse {
+//   items: IAuctionItem[]
+//   total: number
+//   page: number
+//   totalPages: number
+// }
 
 interface SearchFilters {
   auction_code: string;
@@ -43,7 +22,7 @@ interface SearchFilters {
 
 export default function ProductList() {
   const router = useRouter();
-  const [auctionItems, setAuctionItems] = useState<AuctionItem[]>([]);
+  const [auctionItems, setAuctionItems] = useState<IAuctionItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
@@ -84,7 +63,7 @@ export default function ProductList() {
         ...(filters.device_id && { device_id: filters.device_id })
       });
 
-      const response = await fetch(`/api/v1/auction-items?${queryParams}`);
+      const response = await fetch(`/admin/api/v1/auction-items?${queryParams}`);
       const data = await response.json();
 
       if (data.items) {
@@ -112,9 +91,10 @@ export default function ProductList() {
 
   const getStatusText = (status: number) => {
     switch (status) {
-    case 0: return '진행중';
+    case 0: return '입찰중';
     case 1: return '낙찰완료';
-    case 2: return '취소';
+    case 2: return '거래완료';
+    case 3: return '취소';
     default: return '알수없음';
     }
   };
@@ -146,8 +126,9 @@ export default function ProductList() {
           >
             <option value="">상태 선택</option>
             <option value="0">진행중</option>
-            <option value="1">낙찰완료</option>
-            <option value="2">취소</option>
+            <option value="1">낙찰</option>
+            <option value="2">완료</option>
+            <option value="3">취소</option>
           </select>
         </div>
 

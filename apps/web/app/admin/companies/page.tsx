@@ -13,7 +13,7 @@ interface Company {
   company_type: number
   zipcode: string | null
   address: string | null
-  adddress_detail: string | null
+  address_detail: string | null
   profile?: {
     name: string
     email: string
@@ -175,7 +175,7 @@ export default function CompanyManagement() {
                       <td className="p-4">{company.profile?.name}</td>
                       <td className="p-4">{company.business_mobile || company.business_tel}</td>
                       <td className="p-4">
-                        {company.address && `${company.zipcode} ${company.address} ${company.adddress_detail || ''}`}
+                        {company.address && `${company.zipcode} ${company.address} ${company.address_detail || ''}`}
                       </td>
                       <td className="p-4">
                         <button

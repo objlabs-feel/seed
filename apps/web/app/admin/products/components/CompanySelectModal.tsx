@@ -2,50 +2,17 @@
 
 import { useState } from 'react';
 import CompanyRegisterForm from './CompanyRegisterForm';
-
-interface Company {
-  id: number
-  name: string
-  business_no: string
-  business_tel: string
-  license_img: string | null
-  owner_id: number | null
-  related_members: any[]
-  institute_members: any[]
-  created_at: string
-  updated_at: string
-  company_type: number
-  business_mobile: string | null
-  secret_info: {
-    bankAccount: string
-    bankCode: string
-    ownerName: string
-    businessEmail: string
-    businessNo: string
-    businessTel: string
-    businessMobile: string
-  }
-  zipcode: string | null
-  address: string | null
-  adddress_detail: string | null
-  profile?: {
-    id: number
-    name: string
-    email: string
-    mobile: string
-  }
-}
-
+import { ICompany } from '@repo/shared/models';
 interface CompanySelectModalProps {
   isOpen: boolean
   onClose: () => void
-  onSelect: (company: Company) => void
+  onSelect: (company: ICompany) => void
 }
 
 export default function CompanySelectModal({ isOpen, onClose, onSelect }: CompanySelectModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('name');
-  const [companies, setCompanies] = useState<Company[]>([]);
+  const [companies, setCompanies] = useState<ICompany[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
 
@@ -65,7 +32,7 @@ export default function CompanySelectModal({ isOpen, onClose, onSelect }: Compan
     }
   };
 
-  const handleRegisterSuccess = (newCompany: Company) => {
+  const handleRegisterSuccess = (newCompany: ICompany) => {
     setShowRegisterForm(false);
     onSelect(newCompany);
   };
@@ -138,7 +105,7 @@ export default function CompanySelectModal({ isOpen, onClose, onSelect }: Compan
                         {company.business_mobile || company.business_tel}
                       </td>
                       <td className="p-2">
-                        {company.address && `${company.zipcode} ${company.address} ${company.adddress_detail || ''}`}
+                        {company.address && `${company.zipcode} ${company.address} ${company.address_detail || ''}`}
                       </td>
                       <td className="p-2">
                         <button

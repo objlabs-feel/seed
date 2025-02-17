@@ -13,7 +13,7 @@ interface Company {
   company_type: number
   zipcode: string | null
   address: string | null
-  adddress_detail: string | null
+  address_detail: string | null
   profile?: {
     name: string
     email: string

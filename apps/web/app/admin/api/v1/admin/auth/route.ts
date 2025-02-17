@@ -16,7 +16,7 @@ async function generateToken(adminId: number): Promise<string> {
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('1d')
-    .sign(new TextEncoder().encode(process.env.JWT_SECRET || 'fallback-secret'));
+    .sign(new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'fallback-secret'));
 }
 
 // 로그인

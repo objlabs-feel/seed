@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-
-interface User {
-  id: number
-  profile_id: number
-  company_id: number
-  // 필요한 다른 필드들
-}
+import { IUser } from '@repo/shared/models';
 
 interface BidModalProps {
   isOpen: boolean
@@ -18,8 +12,8 @@ interface BidModalProps {
 export default function BidModal({ isOpen, onClose, onSubmit }: BidModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [value, setValue] = useState('');
-  const [users, setUsers] = useState<User[]>([]);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [users, setUsers] = useState<IUser[]>([]);
+  const [selectedUser, setSelectedUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState(false);
 
   const searchUsers = async () => {

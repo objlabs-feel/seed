@@ -40,7 +40,8 @@ import { checkIn, verifyUser } from './services/medidealer/api';
 import { AuthResponse } from '@medidealer/shared/models/user';
 import { initConstants } from './constants/data';
 import AuctionDetailScreen from './screens/AuctionDetailScreen';
-
+import AuctionSelectBidScreen from './screens/AuctionSelectBidScreen';
+import AuctionBidAcceptScreen from './screens/AuctionBidAcceptScreen';
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -119,7 +120,11 @@ const SplashScreen = ({ navigation }) => {
           navigation.replace(hasAgreed ? 'Home' : 'UserAgreement');
         }, 1000);
       } catch (error) {
-        console.error('Error initializing app:', error);
+        console.error('Error initializing app:', error);        
+        if (error instanceof Error && error.message.includes('400')) {
+          await AsyncStorage.removeItem('@MediDealer:userData');
+          await AsyncStorage.removeItem('@MediDealer:authToken');
+        }
         Alert.alert(
           '오류',
           '앱 초기화 중 문제가 발생했습니다. 다시 시도해주세요.',
@@ -184,7 +189,7 @@ const HomeTabs = () => {
       <Tab.Screen 
         name="Home" 
         component={HomeScreen}
-        options={{ title: 'Medi Dealer' }}
+        options={{ title: '홈' }}
       />
       <Tab.Screen 
         name="MyMedical" 
@@ -254,6 +259,24 @@ const App = () => {
           options={{
             headerShown: true,
             title: '경매 상세정보',
+            headerBackTitle: '뒤로',
+          }}
+        />
+        <Stack.Screen 
+          name="AuctionSelectBid" 
+          component={AuctionSelectBidScreen}
+          options={{
+            headerShown: true,
+            title: '낙찰하기',
+            headerBackTitle: '뒤로',
+          }}
+        />
+        <Stack.Screen 
+          name="AuctionBidAccept" 
+          component={AuctionBidAcceptScreen}
+          options={{
+            headerShown: true,
+            title: '낙찰하기',
             headerBackTitle: '뒤로',
           }}
         />

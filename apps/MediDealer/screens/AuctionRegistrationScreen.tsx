@@ -10,15 +10,17 @@ import Step3Screen from './auction/Step3Screen';
 import NavigationButtons from '../components/auction/NavigationButtons';
 import { registerAuction } from '../services/medidealer/api';
 import { departments, deviceTypes, locations, manufacturers } from '../constants/data';
+import CreateAuctionStep1 from './auction/CreateAuctionStep1';
+import CreateAuctionStep2 from './auction/CreateAuctionStep2';
 
 // 날짜 포맷팅 함수
-const formatDate = (date) => {
+const formatDate = (date: Date) => {
   if (!date) return '';
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
 // 메인 컴포넌트
-const AuctionRegistrationScreen = ({ navigation }) => {
+const AuctionRegistrationScreen = ({ navigation }: { navigation: any }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
     location: locations[0]?.id || '',  // 첫 번째 지역
@@ -34,25 +36,16 @@ const AuctionRegistrationScreen = ({ navigation }) => {
   });
   const [errors, setErrors] = useState({});
 
-  const validateStep = (step) => {
-    const newErrors = {};
+  const validateStep = (step: number) => {
+    const newErrors: any = {};
 
     switch (step) {
       case 1:
         if (!formData.location) newErrors.location = '지역을 선택해주세요';
-        if (!formData.hospitalName) newErrors.hospitalName = '병원명을 입력해주세요';
-        if (!formData.name) newErrors.name = '성함을 입력해주세요';
-        if (!formData.phone) newErrors.phone = '휴대폰 번호를 입력해주세요';
         if (!formData.department) newErrors.department = '진료과를 선택해주세요';
-        break;
-
-      case 2:
         if (!formData.equipmentType) newErrors.equipmentType = '장비 유형을 선택해주세요';
         if (!formData.quantity) newErrors.quantity = '수량을 입력해주세요';
         if (!formData.transferDate) newErrors.transferDate = '양도 가능일자를 선택해주세요';
-        break;
-
-      case 3:
         break;
     }
 
@@ -95,7 +88,7 @@ const AuctionRegistrationScreen = ({ navigation }) => {
     switch (currentStep) {
       case 1:
         return (
-          <Step1Screen 
+          <CreateAuctionStep1
             formData={formData} 
             setFormData={setFormData} 
             errors={errors}
@@ -103,16 +96,8 @@ const AuctionRegistrationScreen = ({ navigation }) => {
         );
       case 2:
         return (
-          <Step2Screen 
+          <CreateAuctionStep2
             formData={formData} 
-            setFormData={setFormData} 
-            errors={errors}
-          />
-        );
-      case 3:
-        return (
-          <Step3Screen 
-            formData={formData}
           />
         );
       default:
@@ -122,13 +107,18 @@ const AuctionRegistrationScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <StepIndicator currentStep={currentStep} />      
+      <StepIndicator currentStep={currentStep} totalSteps={2} />      
       {renderStep()}
       <NavigationButtons
         currentStep={currentStep}
+        totalSteps={2}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onSubmit={handleSubmit}
+        prevText="이전"
+        nextText="다음"
+        submitText="등록하기"
+        canReverse={true}
       />
     </View>
   );

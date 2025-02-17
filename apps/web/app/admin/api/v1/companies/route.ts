@@ -14,7 +14,7 @@ export async function POST(request: Request) {
         company_type: data.company_type,
         zipcode: data.zipcode,
         address: data.address,
-        adddress_detail: data.adddress_detail
+        address_detail: data.address_detail
       }
     });
 

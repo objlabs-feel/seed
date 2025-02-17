@@ -1,0 +1,117 @@
+.business-card {
+  font-family: Arial, sans-serif;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.header {
+  background-color: #333;
+  color: white;
+  padding: 10px;
+  text-align: center;
+}
+
+.nav a {
+  margin: 0 15px;
+  color: white;
+  text-decoration: none;
+  font-size: 1.2rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.content {
+  padding: 0;
+}
+
+.section {
+  margin: 0;
+  padding: 4px 0 0 0;
+}
+
+.slider {
+  height: 800px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.slider img {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.screenshot-slider {
+  position: relative;
+  width: 100%;
+  max-width: 720px;
+  aspect-ratio: 9 / 16;  /* 가로:세로 = 9:16 비율 유지 */
+  max-height: 1024px;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.screenshot-slider img {
+  transition: opacity 0.5s ease-in-out;
+}
+
+.app-links {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  display: flex;
+  gap: 12px;
+  padding: 16px;
+  background-color: rgba(0, 0, 0, 0.6);
+  border-radius: 12px;
+}
+
+.app-links a {
+  margin: 0;
+  transition: transform 0.2s;
+  display: block;
+}
+
+.app-links a:hover {
+  transform: translateY(-2px);
+}
+
+.company-intro-text {
+  padding: 40px;
+  line-height: 1.8;
+  font-size: 1.1rem;
+  color: #111;
+  background-color: rgba(255, 255, 255, 0.95);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-top: -60px;
+  position: relative;
+  z-index: 2;
+}
+
+.company-intro-text h2 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 30px;
+  color: #000;
+}
+
+.company-intro-text p {
+  margin-bottom: 20px;
+  word-break: keep-all;  /* 단어 단위 줄바꿈 */
+}
+
+.company-intro-text .highlight {
+  color: #007aff;
+  font-weight: 600;
+}
+
+.company-intro-text .signature {
+  margin-top: 40px;
+  font-weight: 600;
+  text-align: right;
+} 
