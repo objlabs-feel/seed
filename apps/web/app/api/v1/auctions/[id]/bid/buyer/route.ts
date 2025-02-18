@@ -133,11 +133,36 @@ export async function POST(
           company_id: company.id
         }
       });
+    } else {
+      company = await prisma.company.findUnique({
+        where: {
+          id: profile.company_id
+        }
+      });
     }
 
     if (!company) {
       return NextResponse.json({ error: '회사를 찾을 수 없습니다.' }, { status: 404 });
     }
+
+    const updatedCompany = {
+      id: company.id,
+      name: companyName,
+      address: address,
+      address_detail: addressDetail,
+      zipcode: zipCode,
+      business_no: businessNo,
+      business_mobile: ownerMobile,
+      secret_info: {
+        bankAccount: '',
+        bankCode: '',
+        bankHolder: '',
+        businessEmail: ownerEmail,
+        businessNo,
+        businessTel: '',
+        businessMobile: ownerMobile
+      }
+    };
 
     company.name = companyName;
     company.address = address;
@@ -148,7 +173,6 @@ export async function POST(
     profile.name = ownerName;
     profile.email = ownerEmail;
     profile.mobile = ownerMobile;
-    company.secret_info = { bankAccount: '', bankCode: '', bankHolder: '', businessEmail: ownerEmail, businessNo, businessTel: '', businessMobile: ownerMobile }
 
     const auctionItem = await prisma.auctionItem.findUnique({
       where: {
@@ -170,7 +194,7 @@ export async function POST(
       }),
       prisma.company.update({
         where: { id: company.id },
-        data: company
+        data: updatedCompany
       }),
       prisma.auctionItem.update({
         where: { id: auctionItem.id },

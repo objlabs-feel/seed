@@ -1,7 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const HomeScreen = ({ navigation }) => {
+type RootStackParamList = {
+  Home: undefined;
+  RequestNotification: undefined;
+  // ... 다른 스크린들
+};
+
+type NavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
+
+const HomeScreen = () => {
+  const navigation = useNavigation<NavigationProp>();
+
+  useEffect(() => {
+    console.log('HomeScreen mounted');
+    checkNotificationStatus();
+  }, []);
+
+  const checkNotificationStatus = async () => {
+    try {
+      const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
+      console.log('hasShownNotificationRequest:', hasShownNotificationRequest);
+      if (true) {
+        navigation.navigate('RequestNotification');
+        // 한 번 보여준 후에는 다시 보이지 않도록 'true'로 설정
+        await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
+      }
+    } catch (error) {
+      console.error('Error checking notification status:', error);
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>

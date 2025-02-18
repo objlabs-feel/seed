@@ -42,6 +42,7 @@ import { initConstants } from './constants/data';
 import AuctionDetailScreen from './screens/AuctionDetailScreen';
 import AuctionSelectBidScreen from './screens/AuctionSelectBidScreen';
 import AuctionBidAcceptScreen from './screens/AuctionBidAcceptScreen';
+import RequestNotificationScreen from './screens/notification/RequestNotificationScreen';
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -278,6 +279,14 @@ const App = () => {
             headerShown: true,
             title: '낙찰하기',
             headerBackTitle: '뒤로',
+          }}
+        />
+        <Stack.Screen 
+          name="RequestNotification" 
+          component={RequestNotificationScreen}
+          options={{
+            presentation: 'modal',
+            headerShown: false,
           }}
         />
       </Stack.Navigator>

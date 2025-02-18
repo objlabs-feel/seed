@@ -13,11 +13,14 @@
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/datetimepicker": "^8.2.0",
     "@react-native-cookies/cookies": "^6.2.1",
+    "@react-native-firebase/app": "^21.10.0",
+    "@react-native-firebase/messaging": "^21.10.0",
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@react-navigation/stack": "^7.1.1",
     "@types/crypto-js": "^4.2.2",
     "@types/react-native-dotenv": "^0.2.2",
+    "@types/react-native-vector-icons": "^6.4.18",
     "aws-sdk": "^2.1692.0",
     "axios": "^1.7.9",
     "buffer": "^6.0.3",
@@ -33,6 +36,7 @@
     "react-native-screens": "^4.5.0",
     "react-native-url-polyfill": "^2.0.0",
     "react-native-uuid": "^2.0.3",
+    "react-native-vector-icons": "^10.2.0",
     "react-native-webview": "^13.13.2"
   },
   "devDependencies": {
