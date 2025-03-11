@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/shared';
 import { convertBigIntToString } from '@/lib/utils';
 import { authenticateUser } from '@/lib/auth';
-
+import { sendNotification } from '@/lib/notification';
 // 경매 상품 목록 조회
 export async function GET(request: Request) {
   try {
@@ -213,6 +213,21 @@ export async function POST(request: Request) {
       });
 
       return {...auctionItem, ...profileAndCompany};
+    });
+
+    // 경매 상품 등록 알림발송
+    // 경매 상품 등록은 'all' 토픽에 알림발송
+    await sendNotification({
+      type: 'BROADCAST',
+      title: '경매 상품 등록',
+      body: `경매 상품 [${result.auction_code}]이 등록되었습니다.`,
+      data: {
+        type: 'AUCTION',
+        targetId: result.auction_code,
+        auction_code: result.auction_code,
+        title: '경매 상품 등록',
+        body: `경매 상품 [${result.auction_code}]이 등록되었습니다.`
+      }
     });
 
     // BigInt 값을 문자열로 변환

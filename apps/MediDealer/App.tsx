@@ -37,12 +37,13 @@ import AuctionSearchScreen from './screens/AuctionSearchScreen';
 import HomeScreen from './screens/HomeScreen';
 import { getOrCreateDeviceId } from './utils/deviceId';
 import { checkIn, verifyUser } from './services/medidealer/api';
-import { AuthResponse } from '@medidealer/shared/models/user';
+import { IAuthResponse } from '@repo/shared';
 import { initConstants } from './constants/data';
 import AuctionDetailScreen from './screens/AuctionDetailScreen';
 import AuctionSelectBidScreen from './screens/AuctionSelectBidScreen';
 import AuctionBidAcceptScreen from './screens/AuctionBidAcceptScreen';
 import RequestNotificationScreen from './screens/notification/RequestNotificationScreen';
+
 type SectionProps = PropsWithChildren<{
   title: string;
 }>;
@@ -100,14 +101,14 @@ const SplashScreen = ({ navigation }) => {
         if (userData) {
           const user = JSON.parse(userData);
           console.log('User data:', user);
-          const verifyResponse: AuthResponse = await verifyUser(user.id, deviceId);
+          const verifyResponse: IAuthResponse = await verifyUser(user.id, deviceId);
           console.log('Verify successful:', verifyResponse);
           // 상수 데이터 초기화
           await initConstants();
         } else {
-          const authResponse: AuthResponse = await checkIn(deviceId);
+          const authResponse: IAuthResponse = await checkIn(deviceId);
           console.log('Checkin successful:', authResponse);
-          const verifyResponse: AuthResponse = await verifyUser(authResponse.user.id, deviceId);
+          const verifyResponse: IAuthResponse = await verifyUser(authResponse.user.id, deviceId);
           console.log('Verify successful:', verifyResponse);
           // 상수 데이터 초기화
           await initConstants();

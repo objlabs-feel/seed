@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/shared';
 
 function replacer(key: string, value: any) {
   if (typeof value === 'bigint') {

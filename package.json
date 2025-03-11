@@ -13,6 +13,7 @@
     "release-ios": "cd apps/MediDealer && npx react-native run-ios --configuration Release"
   },
   "devDependencies": {
+    "dotenv-cli": "^8.0.0",
     "prettier": "^3.2.5",
     "turbo": "^2.2.3",
     "typescript": "5.5.4"

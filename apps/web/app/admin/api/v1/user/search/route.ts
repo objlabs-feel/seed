@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/shared';
 
 // 사용자 검색
 export async function GET(request: Request) {

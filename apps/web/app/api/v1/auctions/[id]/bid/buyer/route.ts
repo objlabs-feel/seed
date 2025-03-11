@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/shared';
 import { convertBigIntToString } from '@/lib/utils';
 import { authenticateUser } from '@/lib/auth';
 import { AuctionStatus, ICompany, IProfile } from '@repo/shared/models';
+import { sendNotification } from '@/lib/notification';
 
 export async function PUT(
   request: Request,
@@ -49,10 +50,47 @@ export async function PUT(
     data: {
       visit_date: new Date(visitDate),
       visit_time: visitTime,
-      seller_steps: 2,
+      seller_steps: 3,
       buyer_steps: 3
+    },
+    include: {
+      medical_device: {
+        include: {
+          company: true
+        }
+      }
     }
   });
+
+  const history = await prisma.auctionItemHistory.findUnique({
+    where: {
+      id: auctionItem.accept_id
+    }
+  });
+
+  // 방문 일정 교환 알림발송
+  const notificationInfoList = await prisma.notificationInfo.findMany({
+    where: {
+      user_id: {
+        in: [auctionItem.medical_device?.company?.owner_id, userId, history?.user_id]
+      }
+    }
+  });
+
+  if (notificationInfoList.length > 0) {
+    await sendNotification({
+      type: 'MULTI',
+      title: '입금확인',
+      body: `경매상품[${auctionItem.auction_code}]에 대한 방문일정을 확인하세요.`,
+      data: {
+        type: 'AUCTION',
+        targetId: auctionItem.auction_code,
+        userTokens: notificationInfoList.map(info => info.device_token),
+        title: '입금확인',
+        body: `경매상품[${auctionItem.auction_code}]에 대한 방문일정을 확인하세요.`
+      }
+    });
+  }
 
   return NextResponse.json(convertBigIntToString(updatedAuctionItem));
 }
@@ -177,6 +215,13 @@ export async function POST(
     const auctionItem = await prisma.auctionItem.findUnique({
       where: {
         id: auctionItemId
+      },
+      include: {
+        medical_device: {
+          include: {
+            company: true
+          }
+        }
       }
     });
 
@@ -201,6 +246,27 @@ export async function POST(
         data: auctionItem
       })
     ]);
+
+    const notificationInfoList = await prisma.notificationInfo.findMany({
+      where: {
+        user_id: auctionItem.medical_device?.company?.owner_id
+      }
+    });
+
+    if (notificationInfoList.length > 0) {
+      await sendNotification({
+        type: 'MULTI',
+        title: '입금대기',
+        body: `경매상품[${auctionItem.auction_code}]이 입금대기 상태가 되었습니다.`,
+        data: {
+          type: 'AUCTION',
+          targetId: auctionItem.auction_code,
+          userTokens: notificationInfoList.map(info => info.device_token),
+          title: '입금대기',
+          body: `경매상품[${auctionItem.auction_code}]이 입금대기 상태가 되었습니다.`
+        }
+      });
+    }
 
     return NextResponse.json(convertBigIntToString(auctionItem));
   } catch (error) {

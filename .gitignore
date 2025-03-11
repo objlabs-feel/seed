@@ -26,6 +26,7 @@ coverage
 out/
 build
 dist
+cdk.out
 
 
 # Debug
@@ -37,5 +38,8 @@ yarn-error.log*
 .DS_Store
 *.pem
 package-lock.json
+firebase-service-account.json
 
 .vscode
+
+function.zip

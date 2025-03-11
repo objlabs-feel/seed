@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "rhel-openssl-1.0.x"]
 }
 
 datasource db {
@@ -167,6 +168,22 @@ model notificationInfo {
   @@id([user_id, device_type, device_os, device_token], map: "notification_info_pk")
   @@index([user_id, permission_status, noti_notice, noti_event, noti_sms, noti_email, noti_auction, noti_favorite], map: "notification_info_index")
   @@map("notification_info")
+}
+
+model NotificationMessage {
+  id          BigInt    @id @default(autoincrement())
+  user_id     BigInt
+  title       String    @db.VarChar(100)
+  body        String    @db.VarChar(500)
+  data        Json?     @default("{}") @db.Json
+  is_read     Boolean   @default(false)
+  group_id    BigInt?
+  read_at     DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+
+  @@index([user_id, is_read])
+  @@map("notification_messages")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments

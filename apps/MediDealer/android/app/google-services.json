@@ -1,13 +1,13 @@
 {
   "project_info": {
-    "project_number": "123456789000",
-    "project_id": "medidealer-test",
-    "storage_bucket": "medidealer-test.appspot.com"
+    "project_number": "304741054996",
+    "project_id": "medidealer",
+    "storage_bucket": "medidealer.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456789000:android:1234567890abcdef",
+        "mobilesdk_app_id": "1:304741054996:android:789aef7ee7222de37c4501",
         "android_client_info": {
           "package_name": "com.medidealer"
         }
@@ -15,7 +15,7 @@
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyDummyKeyForTesting123456789"
+          "current_key": "AIzaSyB_b-R1LKn3VcRobcGRooEKgTl6aBZRQvg"
         }
       ],
       "services": {
@@ -26,4 +26,4 @@
     }
   ],
   "configuration_version": "1"
-} 
+}

@@ -75,3 +75,32 @@ export interface IManufacturer {
   img: string | null;
   description: string | null;
 }
+
+export interface INotificationMessage {
+  id: number;
+  user_id: number;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+  is_read: boolean;
+  read_at: string | null;
+}
+
+export interface INotificationInfo {
+  id: number;
+  user_id: number;
+  device_type: number;
+  device_os: number;
+  device_token: string;
+  permission_status: number;
+  noti_notice: number;
+  noti_event: number;
+  noti_sms: number;
+  noti_email: number;
+  noti_auction: number;
+  noti_favorite: number;
+  noti_set: any;
+  created_at: string;
+  updated_at: string;
+}

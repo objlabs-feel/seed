@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/shared';
 import { convertBigIntToString } from '@/lib/utils';
 
 // 경매 상품 목록 조회

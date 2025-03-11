@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENDPOINTS } from './endpoint';
 import '../network';  // 인터셉터가 설정된 axios import
 
-// const API_URL = 'http://192.168.0.2:3000/api/v1'; // 개발용 API
+// const API_URL = 'http://192.168.0.24:3000/api/v1'; // 개발용 API
 // const API_URL = 'http://192.168.219.5:3000/api/v1'; // 개발용 API
 // const API_URL = 'https://www.medidealer.com/api/v1'; // 실제 API URL로 변경 필요
 const API_URL = 'http://16.184.8.234:3000/api/v1'; // 테스트용 API
@@ -113,3 +113,35 @@ export const getAuctionCompleteForBuyer = async (id: string) => {
   const response = await axios.post(`${API_URL}${ENDPOINTS.AUCTION_ITEM}/${id}/complete`);
   return response.data;
 };
+
+export const setNotification = async (notificationData: any) => {
+  const response = await axios.post(`${API_URL}${ENDPOINTS.NOTIFICATION}`, notificationData);
+  return response.data;
+};
+
+export const getNotification = async () => {
+  const response = await axios.get(`${API_URL}${ENDPOINTS.NOTIFICATION}`);
+  return response.data;
+};
+
+export const updateNotification = async (notificationData: any) => {
+  const response = await axios.put(`${API_URL}${ENDPOINTS.NOTIFICATION}`, notificationData);
+  return response.data;
+};
+
+export const getNotificationList = async () => {
+  const response = await axios.get(`${API_URL}${ENDPOINTS.NOTIFICATION}/list`);
+  return response.data;
+};
+
+export const setReadNotification = async (notificationId: string) => {
+  const response = await axios.put(`${API_URL}${ENDPOINTS.NOTIFICATION}/${notificationId}`);
+  return response.data;
+};
+
+export const setReadAllNotification = async () => {
+  const response = await axios.post(`${API_URL}${ENDPOINTS.NOTIFICATION}/list`);
+  return response.data;
+};
+
+

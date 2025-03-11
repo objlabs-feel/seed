@@ -3,20 +3,53 @@ import { View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import messaging from '@react-native-firebase/messaging';
 import { useNavigation } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
-
+import { requestPushNotificationPermission } from '../../utils/permission';
+import { subscribeToTopic, unsubscribeFromTopic } from '../../services/notification';
+import { setNotification, updateNotification } from '../../services/medidealer/api';
+import { INotificationInfo } from '@repo/shared';
 const RequestNotificationScreen = () => {
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
+  const notificationInfo: INotificationInfo = {
+    device_type: 0,
+    device_os: 0,
+    device_token: '',
+    permission_status: 0,
+    noti_notice: 0,
+    noti_event: 0,
+    noti_sms: 0,
+    noti_email: 0,
+    noti_auction: 0,
+    noti_favorite: 0,
+  };
 
   useEffect(() => {
     checkNotificationPermission();
   }, []);
 
   const checkNotificationPermission = async () => {
-    const authStatus = await messaging().requestPermission();
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+    const { enabled, deviceType, deviceOs } = await requestPushNotificationPermission();
+    notificationInfo.device_type = deviceType;
+    notificationInfo.device_os = deviceOs;
+    notificationInfo.permission_status = 1;
+    notificationInfo.noti_notice = 1;
+    notificationInfo.noti_event = 1;
+    notificationInfo.noti_sms = 1;
+    notificationInfo.noti_email = 1;
+    notificationInfo.noti_auction = 1;
+    notificationInfo.noti_favorite = 1;
+
+    if (enabled) {
+      // 푸시 알림 토큰 가져오기
+      const token = await messaging().getToken();
+      console.log('FCM Token:', token);
+      await subscribeToTopic('all');      
+      notificationInfo.device_token = token;
+      await setNotification(notificationInfo);
+    } else {
+      // notificationInfo.device_token = '';
+      console.log('Push notifications not permitted');
+    }
 
     setHasPermission(enabled);
     if (!enabled) {
@@ -30,6 +63,11 @@ const RequestNotificationScreen = () => {
       const message = type === 'hospital' 
         ? '병원 관련 알림 설정이 완료되었습니다.' 
         : '업체 관련 알림 설정이 완료되었습니다.';
+
+      notificationInfo.noti_set = {topics:["all", type]};
+
+      await subscribeToTopic(type);
+      await updateNotification(notificationInfo);
       
       Alert.alert('알림 설정 완료', message, [
         { text: '확인', onPress: () => navigation.goBack() }

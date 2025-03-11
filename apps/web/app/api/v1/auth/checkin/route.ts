@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '@/lib/prisma';
+import { prisma } from '@repo/shared';
 import { convertBigIntToString } from '@/lib/utils';
 
 export async function POST(request: Request) {
