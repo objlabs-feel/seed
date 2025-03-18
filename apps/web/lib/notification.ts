@@ -29,8 +29,13 @@ interface NotificationOptions {
 // }
 
 export async function sendNotification(options: NotificationOptions) {
+  console.log('AWS Credentials:', {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID ? '***' + process.env.AWS_ACCESS_KEY_ID.slice(-4) : 'not set',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ? '***' + process.env.AWS_SECRET_ACCESS_KEY.slice(-4) : 'not set'
+  });
+
   const command = new SendMessageCommand({
-    QueueUrl: process.env.AWS_SQS_QUEUE_URL,
+    QueueUrl: "https://sqs.ap-northeast-2.amazonaws.com/682033503274/notification-queue",
     MessageBody: JSON.stringify(options),
   });
 
