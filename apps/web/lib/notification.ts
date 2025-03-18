@@ -1,6 +1,12 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 
-const sqs = new SQSClient({ region: 'ap-northeast-2' });
+const sqs = new SQSClient({
+  region: 'ap-northeast-2',
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || ''
+  }
+});
 
 // 타입 정의
 interface NotificationOptions {

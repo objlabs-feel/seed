@@ -10,7 +10,10 @@ import { INotificationInfo } from '@repo/shared';
 const RequestNotificationScreen = () => {
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const notificationInfo: INotificationInfo = {
+  const [notificationInfo, setNotificationInfo] = useState<INotificationInfo>({
+    id: 0,
+    user_id: 0,
+    noti_set: {},
     device_type: 0,
     device_os: 0,
     device_token: '',
@@ -21,7 +24,9 @@ const RequestNotificationScreen = () => {
     noti_email: 0,
     noti_auction: 0,
     noti_favorite: 0,
-  };
+    created_at: '',
+    updated_at: '',
+  });
 
   useEffect(() => {
     checkNotificationPermission();
@@ -29,25 +34,42 @@ const RequestNotificationScreen = () => {
 
   const checkNotificationPermission = async () => {
     const { enabled, deviceType, deviceOs } = await requestPushNotificationPermission();
-    notificationInfo.device_type = deviceType;
-    notificationInfo.device_os = deviceOs;
-    notificationInfo.permission_status = 1;
-    notificationInfo.noti_notice = 1;
-    notificationInfo.noti_event = 1;
-    notificationInfo.noti_sms = 1;
-    notificationInfo.noti_email = 1;
-    notificationInfo.noti_auction = 1;
-    notificationInfo.noti_favorite = 1;
 
     if (enabled) {
       // 푸시 알림 토큰 가져오기
       const token = await messaging().getToken();
       console.log('FCM Token:', token);
       await subscribeToTopic('all');      
-      notificationInfo.device_token = token;
+      
+      setNotificationInfo({
+        ...notificationInfo,
+        device_type: deviceType,
+        device_os: deviceOs,
+        device_token: token,
+        permission_status: 1,
+        noti_notice: 1,
+        noti_event: 1,
+        noti_sms: 1,
+        noti_email: 1,
+        noti_auction: 1,
+        noti_favorite: 1,
+      });
       await setNotification(notificationInfo);
     } else {
       // notificationInfo.device_token = '';
+      setNotificationInfo({
+        ...notificationInfo,
+        device_type: deviceType,
+        device_os: deviceOs,
+        device_token: '',
+        permission_status: 1,
+        noti_notice: 1,
+        noti_event: 1,
+        noti_sms: 1,
+        noti_email: 1,
+        noti_auction: 1,
+        noti_favorite: 1,
+      });
       console.log('Push notifications not permitted');
     }
 
@@ -64,7 +86,10 @@ const RequestNotificationScreen = () => {
         ? '병원 관련 알림 설정이 완료되었습니다.' 
         : '업체 관련 알림 설정이 완료되었습니다.';
 
-      notificationInfo.noti_set = {topics:["all", type]};
+      setNotificationInfo({
+        ...notificationInfo,
+        noti_set: {topics:["all", type]},
+      }); 
 
       await subscribeToTopic(type);
       await updateNotification(notificationInfo);
