@@ -11,6 +11,7 @@ interface BaseNotificationMessage {
   data?: {
     type: 'AUCTION' | 'POLICY' | 'MARKETING' | 'SYSTEM';
     targetId?: string;
+    screen?: string | 'HOME';
     [key: string]: any;
   };
 }
@@ -124,16 +125,25 @@ async function handleBroadcastNotification(message: any) {
 async function handleMultiUserNotification(message: MultiUserNotification) {
   console.log('Sending multi-user notification:', message);
 
-  const tokens: string[] = message.userTokens;
+  const tokens: string[] = message.userTokens || [];
+  console.log('tokens', tokens);
 
   if (tokens.length > 0) {
-    await admin.messaging().sendMulticast({
+    const response = await admin.messaging().sendEachForMulticast({
       tokens,
       notification: {
         title: message.title,
         body: message.body
       },
       data: message.data || {}
+    });
+
+    console.log(`성공: ${response.successCount}, 실패: ${response.failureCount}`);
+
+    response.responses.forEach((resp, idx) => {
+      if (!resp.success) {
+        console.error(`토큰 실패 [${idx}]:`, tokens[idx], resp.error);
+      }
     });
   }
 

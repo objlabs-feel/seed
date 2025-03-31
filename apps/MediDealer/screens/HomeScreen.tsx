@@ -1,13 +1,20 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import messaging from '@react-native-firebase/messaging';
+import { getNotification, updateNotification } from '../services/medidealer/api';
+import notifee from '@notifee/react-native';
 
 type RootStackParamList = {
   Home: undefined;
   RequestNotification: undefined;
-  // ... 다른 스크린들
+  AuctionRegistration: undefined;
+  AuctionSearch: undefined;
+  AuctionDetail: { id: string };
+  AuctionSelectBid: { id: string };
+  AuctionBidAccept: { id: string };
 };
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -17,18 +24,122 @@ const HomeScreen = () => {
 
   useEffect(() => {
     console.log('HomeScreen mounted');
-    checkNotificationStatus();
+    // checkNotificationStatus();
+    initializePushNotifications();
   }, []);
+
+  const initializePushNotifications = async () => {
+    try {
+      // FCM 권한 요청
+      const authStatus = await messaging().requestPermission();
+      const enabled =
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+
+      if (enabled) {
+        // FCM 토큰 가져오기
+        const fcmToken = await messaging().getToken();
+        console.log('FCM Token:', fcmToken);
+        
+        // TODO: FCM 토큰을 서버에 업데이트하는 API 호출 필요
+        const notificationInfo = await getNotification();
+        console.log('notificationInfo', notificationInfo);
+
+        if (notificationInfo.device_token !== fcmToken) {
+          // TODO: 새로운 토큰을 서버에 업데이트하는 API 호출 필요 
+          checkNotificationStatus();
+        }
+        // 토큰 리프레시 이벤트 처리
+        const unsubscribeToken = messaging().onTokenRefresh(token => {
+          console.log('New FCM Token:', token);
+          // TODO: 새로운 토큰을 서버에 업데이트하는 API 호출 필요 
+          updateNotification({
+            device_token: token,
+            permission_status: 1,
+            noti_notice: 1,
+            noti_event: 1,
+            noti_sms: 1,
+          });
+        });
+
+        // 포그라운드 상태에서 알림 수신 처리
+        const unsubscribeMessage = messaging().onMessage(async remoteMessage => {
+          console.log('Foreground message:', remoteMessage);
+          // TODO: 포그라운드 알림 표시 로직 추가
+          // 포그라운드 알림 표시
+          if (remoteMessage.notification) {
+            await notifee.displayNotification({
+              title: remoteMessage.notification.title,
+              body: remoteMessage.notification.body,
+              data: remoteMessage.data,
+            });
+          }
+        });
+
+        // 알림 클릭 처리
+        const unsubscribeNotificationOpen = messaging().onNotificationOpenedApp(remoteMessage => {
+          console.log('Notification opened app:', remoteMessage);
+          const screenName = remoteMessage.data?.screen as keyof RootStackParamList;
+          const screenId = remoteMessage.data?.targetId as string;
+          
+          switch(screenName) {
+            case 'AuctionDetail':
+            case 'AuctionSelectBid':
+            case 'AuctionBidAccept':
+              navigation.navigate('AuctionDetail', { id: screenId });
+              break;
+            default:
+              navigation.navigate(screenName);
+          }
+        });
+
+        // 종료된 상태에서 알림으로 앱 실행 처리
+        const initialNotification = await messaging().getInitialNotification();
+        if (initialNotification) {
+          console.log('Initial notification:', initialNotification);
+          if (initialNotification.data?.screen && initialNotification.data?.id) {
+            const screenName = initialNotification.data?.screen as keyof RootStackParamList;
+            const screenId = initialNotification.data?.targetId as string;
+            
+            switch(screenName) {
+              case 'AuctionDetail':
+              case 'AuctionSelectBid':
+              case 'AuctionBidAccept':
+                navigation.navigate('AuctionDetail', { id: screenId });
+                break;
+              default:
+                navigation.navigate(screenName);
+            }
+            // navigation.navigate(initialNotification.data.screen as keyof RootStackParamList, {
+            //   id: initialNotification.data.id
+            // });
+          }
+        }
+
+        // 클린업 함수 반환
+        return () => {
+          unsubscribeToken();
+          unsubscribeMessage();
+          unsubscribeNotificationOpen();
+        };
+      } else {
+        console.log('Push notification not enabled');        
+        checkNotificationStatus();        
+      }
+    } catch (error) {
+      console.error('Push notification initialization error:', error);      
+      checkNotificationStatus();
+    }
+  };
 
   const checkNotificationStatus = async () => {
     try {
-      const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
-      console.log('hasShownNotificationRequest:', hasShownNotificationRequest);
-      if (true) {
-        navigation.navigate('RequestNotification');
-        // 한 번 보여준 후에는 다시 보이지 않도록 'true'로 설정
-        await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
-      }
+      navigation.navigate('RequestNotification');
+      // const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
+      // console.log('hasShownNotificationRequest:', hasShownNotificationRequest);
+      // if (hasShownNotificationRequest === null) {
+      //   navigation.navigate('RequestNotification');
+      // }
     } catch (error) {
       console.error('Error checking notification status:', error);
     }
@@ -40,14 +151,14 @@ const HomeScreen = () => {
         {/* Total 통계 영역 */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Total 판매</Text>
+            <Text style={styles.statLabel}>Total</Text>
             <Text style={styles.statNumber}>2,138</Text>
           </View>
-          <View style={styles.statDivider} />
+          {/* <View style={styles.statDivider} />
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Total 구매</Text>
             <Text style={styles.statNumber}>1,857</Text>
-          </View>
+          </View> */}
         </View>
 
         {/* 팔기/사기 버튼 영역 */}

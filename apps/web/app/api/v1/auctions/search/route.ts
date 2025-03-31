@@ -5,6 +5,7 @@ import { convertBigIntToString } from '@/lib/utils';
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const keyword = searchParams.get('keyword');
+  console.log('keyword:', keyword);
 
   try {
     if (!keyword) {
@@ -36,24 +37,7 @@ export async function GET(request: Request) {
                 }
               }
             },
-            {
-              medical_device: {
-                department: {
-                  name: {
-                    contains: keyword
-                  }
-                }
-              }
-            },
-            {
-              medical_device: {
-                department: {
-                  name: {
-                    contains: keyword
-                  }
-                }
-              }
-            },
+            { medical_device: { deviceType: { name: { contains: keyword } } } },
             {
               medical_device: {
                 company: {

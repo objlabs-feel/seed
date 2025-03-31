@@ -1,0 +1,105 @@
+===== 빌드 스크립트 시작: Thu Mar 27 18:02:51 KST 2025 =====
+PROJECT_DIR: /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios
+PWD: /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios
+PROJECT_ROOT: /Users/feel/workgroup/objlabs/projects/seed
+NODE_BINARY: /opt/homebrew/bin/node
+Node binary exists: YES
+Node version: v23.9.0
+REACT_NATIVE_PATH: /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native
+Path exists: YES
+Directory content:
+total 200
+drwxr-xr-x   31 feel  staff    992 Mar  6 16:27 .
+drwxr-xr-x  843 feel  staff  26976 Mar 27 16:25 ..
+-rw-r--r--    1 feel  staff   1088 Mar  6 16:27 LICENSE
+drwxr-xr-x   58 feel  staff   1856 Mar  6 16:27 Libraries
+-rw-r--r--    1 feel  staff   6827 Mar  6 16:27 README.md
+drwxr-xr-x   20 feel  staff    640 Mar  6 16:27 React
+-rw-r--r--    1 feel  staff   5736 Mar  6 16:27 React-Core.podspec
+-rw-r--r--    1 feel  staff   2630 Mar  6 16:27 React.podspec
+drwxr-xr-x   12 feel  staff    384 Mar  6 16:27 ReactAndroid
+drwxr-xr-x    4 feel  staff    128 Mar  6 16:27 ReactApple
+drwxr-xr-x   22 feel  staff    704 Mar  6 16:27 ReactCommon
+drwxr-xr-x    3 feel  staff     96 Mar  6 16:27 android
+-rw-r--r--    1 feel  staff    801 Mar  6 16:27 build.gradle.kts
+-rwxr-xr-x    1 feel  staff   7394 Mar  6 16:27 cli.js
+drwxr-xr-x    9 feel  staff    288 Mar  6 16:27 flow
+drwxr-xr-x    3 feel  staff     96 Mar  6 16:27 gradle
+-rw-r--r--    1 feel  staff     24 Mar  6 16:27 gradle.properties
+-rw-r--r--    1 feel  staff  31663 Mar  6 16:27 index.js
+-rw-r--r--    1 feel  staff    792 Mar  6 16:27 interface.js
+drwxr-xr-x   13 feel  staff    416 Mar  6 16:27 jest
+-rw-r--r--    1 feel  staff    737 Mar  6 16:27 jest-preset.js
+drwxr-xr-x   10 feel  staff    320 Mar  6 16:27 node_modules
+-rw-r--r--    1 feel  staff   4567 Mar  6 16:27 package.json
+-rw-r--r--    1 feel  staff   2851 Mar  6 16:27 react-native.config.js
+-rw-r--r--    1 feel  staff    299 Mar  6 16:27 rn-get-polyfills.js
+drwxr-xr-x   19 feel  staff    608 Mar  6 16:27 scripts
+drwxr-xr-x    5 feel  staff    160 Mar  6 16:27 sdks
+-rw-r--r--    1 feel  staff    954 Mar  6 16:27 settings.gradle.kts
+drwxr-xr-x    3 feel  staff     96 Mar  6 16:27 src
+drwxr-xr-x   10 feel  staff    320 Mar  6 16:27 third-party-podspecs
+drwxr-xr-x    9 feel  staff    288 Mar  6 16:27 types
+WITH_ENVIRONMENT: /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/xcode/with-environment.sh
+WITH_ENVIRONMENT exists: YES
+REACT_NATIVE_XCODE: /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/react-native-xcode.sh
+REACT_NATIVE_XCODE exists: YES
+WITH_ENVIRONMENT content (first 10 lines):
+#!/bin/bash
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# This script is used to source in Xcode the environment settings required to run properly.
+# The script first sources the base `.xcode.env` file.
+# Then it sources the `.xcode.env.local` file if present, to override some local config
+# Finally, it will execute the command passed i input if any.
+REACT_NATIVE_XCODE content (first 10 lines):
+#!/bin/bash
+# Copyright (c) Meta Platforms, Inc. and affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Bundle React Native app's code and image assets.
+# This script is supposed to be invoked as part of Xcode build process
+# and relies on environment variables (including PWD) set by Xcode
+
+ENTRY_FILE: /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios/../index.js
+ENTRY_FILE exists: YES
+===== 스크립트 실행 시작 =====
++ /bin/sh -c '/Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/xcode/with-environment.sh /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/react-native-xcode.sh'
+Node found at: /opt/homebrew/Cellar/node/23.6.0/bin/node
++ DEST=/Users/feel/Library/Developer/Xcode/DerivedData/MediDealer-cgzhbnxaqmdjsmgcqngpdovptcks/Build/Products/Debug-iphoneos/MediDealer.app
++ [[ ! -n '' ]]
++ [[ Debug = *Debug* ]]
++ [[ ! iphoneos == *simulator ]]
++ for num in 0 1 2 3 4 5 6 7 8
+++ ipconfig getifaddr en0
++ IP=192.168.45.187
++ '[' '!' -z 192.168.45.187 ']'
++ break
++ '[' -z 192.168.45.187 ']'
++ echo 192.168.45.187
++ [[ -n '' ]]
++ case "$CONFIGURATION" in
++ [[ iphoneos == *simulator ]]
++ echo 'Bundling for physical device. Use the SKIP_BUNDLING flag to change this behavior.'
+Bundling for physical device. Use the SKIP_BUNDLING flag to change this behavior.
++ DEV=true
++++ dirname /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/react-native-xcode.sh
+++ cd /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/..
+++ pwd
++ REACT_NATIVE_DIR=/Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native
++ PROJECT_ROOT=/Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios/..
++ cd /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios/..
++ [[ -n /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios/../index.js ]]
++ :
++ source /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/node-binary.sh
+++ '[' -z /opt/homebrew/Cellar/node/23.6.0/bin/node ']'
+++ type /opt/homebrew/Cellar/node/23.6.0/bin/node
+++ nodejs_not_found
+++ echo 'error: Can'\''t find the '\''/opt/homebrew/Cellar/node/23.6.0/bin/node'\'' binary to build the React Native bundle. ' 'If you have a non-standard Node.js installation, select your project in Xcode, find ' ''\''Build Phases'\'' - '\''Bundle React Native code and images'\'' and change NODE_BINARY to an ' 'absolute path to your node executable. You can find it by invoking '\''which node'\'' in the terminal.'
+error: Can't find the '/opt/homebrew/Cellar/node/23.6.0/bin/node' binary to build the React Native bundle.  If you have a non-standard Node.js installation, select your project in Xcode, find  'Build Phases' - 'Bundle React Native code and images' and change NODE_BINARY to an  absolute path to your node executable. You can find it by invoking 'which node' in the terminal.
+++ exit 2

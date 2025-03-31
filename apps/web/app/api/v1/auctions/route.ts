@@ -208,7 +208,11 @@ export async function POST(request: Request) {
           expired_count: 0
         },
         include: {
-          medical_device: true
+          medical_device: {
+            include: {
+              deviceType: true
+            }
+          }
         }
       });
 
@@ -220,13 +224,14 @@ export async function POST(request: Request) {
     await sendNotification({
       type: 'BROADCAST',
       title: '경매 상품 등록',
-      body: `경매 상품 [${result.auction_code}]이 등록되었습니다.`,
+      body: `경매 상품 [${result.medical_device?.deviceType?.name}]이 등록되었습니다.\n[경매번호: ${result.auction_code}]`,
       data: {
         type: 'AUCTION',
-        targetId: result.auction_code,
+        screen: 'AuctionDetail',
+        targetId: result.id.toString(),
         auction_code: result.auction_code,
         title: '경매 상품 등록',
-        body: `경매 상품 [${result.auction_code}]이 등록되었습니다.`
+        body: `경매 상품 [${result.medical_device?.deviceType?.name}]이 등록되었습니다.\n[경매번호: ${result.auction_code}]`
       }
     });
 

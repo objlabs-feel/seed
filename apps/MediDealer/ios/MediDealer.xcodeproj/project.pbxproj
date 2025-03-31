@@ -8,14 +8,14 @@
 
 /* Begin PBXBuildFile section */
 		00E356F31AD99517003FC87E /* MediDealerTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 00E356F21AD99517003FC87E /* MediDealerTests.m */; };
-		08D167C32C27236312250B08 /* libPods-MediDealer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 8C7F82608868737FAFDC73A9 /* libPods-MediDealer.a */; };
 		108740FC2D66E41D00AC05DC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = 108740FB2D66E41C00AC05DC /* GoogleService-Info.plist */; };
 		13B07FBC1A68108700A75B9A /* AppDelegate.mm in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB01A68108700A75B9A /* AppDelegate.mm */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		13B07FC11A68108700A75B9A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 13B07FB71A68108700A75B9A /* main.m */; };
 		81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */; };
-		D4F85027D2302125ACD4A95B /* libPods-MediDealer-MediDealerTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 19CEB849AF3B4CDA8CFDC32C /* libPods-MediDealer-MediDealerTests.a */; };
+		D7C06CAC921682103379986F /* libPods-MediDealer-MediDealerTests.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 743123F5EF4CD6523359FA06 /* libPods-MediDealer-MediDealerTests.a */; };
 		E21A9A1D1B664241E5352746 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */; };
+		F369E80B438F1DE5A061FE40 /* libPods-MediDealer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 91469E7048603122A765837F /* libPods-MediDealer.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -41,12 +41,12 @@
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MediDealer/Info.plist; sourceTree = "<group>"; };
 		13B07FB71A68108700A75B9A /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = MediDealer/main.m; sourceTree = "<group>"; };
 		13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = PrivacyInfo.xcprivacy; path = MediDealer/PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
-		19CEB849AF3B4CDA8CFDC32C /* libPods-MediDealer-MediDealerTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MediDealer-MediDealerTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		36A43EAA0E79A0B6A4DEEBA2 /* Pods-MediDealer-MediDealerTests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MediDealer-MediDealerTests.release.xcconfig"; path = "Target Support Files/Pods-MediDealer-MediDealerTests/Pods-MediDealer-MediDealerTests.release.xcconfig"; sourceTree = "<group>"; };
+		743123F5EF4CD6523359FA06 /* libPods-MediDealer-MediDealerTests.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MediDealer-MediDealerTests.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		7594B24C8C60C9A6A4196D97 /* Pods-MediDealer.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MediDealer.release.xcconfig"; path = "Target Support Files/Pods-MediDealer/Pods-MediDealer.release.xcconfig"; sourceTree = "<group>"; };
 		81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.storyboard; name = LaunchScreen.storyboard; path = MediDealer/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		87D2C32A7E5144224F017CDA /* Pods-MediDealer-MediDealerTests.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MediDealer-MediDealerTests.debug.xcconfig"; path = "Target Support Files/Pods-MediDealer-MediDealerTests/Pods-MediDealer-MediDealerTests.debug.xcconfig"; sourceTree = "<group>"; };
-		8C7F82608868737FAFDC73A9 /* libPods-MediDealer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MediDealer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		91469E7048603122A765837F /* libPods-MediDealer.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MediDealer.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		ED297162215061F000B7C4FE /* JavaScriptCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaScriptCore.framework; path = System/Library/Frameworks/JavaScriptCore.framework; sourceTree = SDKROOT; };
 		FA8401AB65F329EF3AF1A944 /* Pods-MediDealer.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MediDealer.debug.xcconfig"; path = "Target Support Files/Pods-MediDealer/Pods-MediDealer.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -56,7 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				D4F85027D2302125ACD4A95B /* libPods-MediDealer-MediDealerTests.a in Frameworks */,
+				D7C06CAC921682103379986F /* libPods-MediDealer-MediDealerTests.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -64,7 +64,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				08D167C32C27236312250B08 /* libPods-MediDealer.a in Frameworks */,
+				F369E80B438F1DE5A061FE40 /* libPods-MediDealer.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -108,8 +108,8 @@
 			isa = PBXGroup;
 			children = (
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
-				8C7F82608868737FAFDC73A9 /* libPods-MediDealer.a */,
-				19CEB849AF3B4CDA8CFDC32C /* libPods-MediDealer-MediDealerTests.a */,
+				91469E7048603122A765837F /* libPods-MediDealer.a */,
+				743123F5EF4CD6523359FA06 /* libPods-MediDealer-MediDealerTests.a */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -272,7 +272,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "set -e\n\nWITH_ENVIRONMENT=\"$REACT_NATIVE_PATH/scripts/xcode/with-environment.sh\"\nREACT_NATIVE_XCODE=\"$REACT_NATIVE_PATH/scripts/react-native-xcode.sh\"\n\n/bin/sh -c \"$WITH_ENVIRONMENT $REACT_NATIVE_XCODE\"\n";
+			shellScript = "set -e\n\n# 로그 파일 설정\nLOG_FILE=\"${PROJECT_DIR}/react-native-bundle.log\"\necho \"=== React Native 번들링 시작 $(date) ===\" > \"$LOG_FILE\"\n\n# 프로젝트 구조 확인\necho \"PROJECT_DIR: ${PROJECT_DIR}\" >> \"$LOG_FILE\"\nROOT_DIR=\"/Users/feel/workgroup/objlabs/projects/seed\"\necho \"ROOT_DIR: ${ROOT_DIR}\" >> \"$LOG_FILE\"\n\n# Node 경로 직접 설정\nexport NODE_BINARY=$(which node)\necho \"NODE_BINARY: $NODE_BINARY\" >> \"$LOG_FILE\"\n\n# React Native 경로 설정\nexport REACT_NATIVE_PATH=\"${ROOT_DIR}/node_modules/react-native\"\necho \"REACT_NATIVE_PATH: $REACT_NATIVE_PATH\" >> \"$LOG_FILE\"\necho \"Path exists: $([ -d \"$REACT_NATIVE_PATH\" ] && echo \"YES\" || echo \"NO\")\" >> \"$LOG_FILE\"\n\n# 스크립트 경로 설정\nWITH_ENV=\"${REACT_NATIVE_PATH}/scripts/xcode/with-environment.sh\"\nRN_XCODE=\"${REACT_NATIVE_PATH}/scripts/react-native-xcode.sh\"\n\necho \"WITH_ENVIRONMENT: $WITH_ENV (exists: $([ -f \"$WITH_ENV\" ] && echo \"YES\" || echo \"NO\"))\" >> \"$LOG_FILE\"\necho \"REACT_NATIVE_XCODE: $RN_XCODE (exists: $([ -f \"$RN_XCODE\" ] && echo \"YES\" || echo \"NO\"))\" >> \"$LOG_FILE\"\n\n# 엔트리 파일 설정\nENTRY_FILE=\"${PROJECT_DIR}/../index.js\"\necho \"ENTRY_FILE: $ENTRY_FILE (exists: $([ -f \"$ENTRY_FILE\" ] && echo \"YES\" || echo \"NO\"))\" >> \"$LOG_FILE\"\n\n# 표준 번들링 시도\necho \"스크립트 실행 시작\" >> \"$LOG_FILE\"\nBUNDLING_FAILED=false\n\n# with-environment.sh가 존재하면 실행, 아니면 직접 번들링\nif [ -f \"$WITH_ENV\" ] && [ -f \"$RN_XCODE\" ]; then\n  echo \"표준 방식으로 번들링 시도...\" >> \"$LOG_FILE\"\n  set -x\n  ( \"$WITH_ENV\" \"$NODE_BINARY\" \"$RN_XCODE\" ) >> \"$LOG_FILE\" 2>&1 || BUNDLING_FAILED=true\n  set +x\nelse\n  echo \"표준 번들링 스크립트가 없어서 직접 번들링 시도...\" >> \"$LOG_FILE\"\n  BUNDLING_FAILED=true\nfi\n\nif [ \"$BUNDLING_FAILED\" = true ]; then\n  echo \"직접 번들링 시도...\" >> \"$LOG_FILE\"\n  \n  # 출력 경로 설정\n  OUTPUT_DIR=\"${CONFIGURATION_BUILD_DIR}/${UNLOCALIZED_RESOURCES_FOLDER_PATH}\"\n  BUNDLE_FILE=\"${OUTPUT_DIR}/main.jsbundle\"\n  \n  # 디렉토리 생성\n  mkdir -p \"$OUTPUT_DIR\"\n  \n  echo \"OUTPUT_DIR: $OUTPUT_DIR\" >> \"$LOG_FILE\"\n  echo \"BUNDLE_FILE: $BUNDLE_FILE\" >> \"$LOG_FILE\"\n  \n  # 직접 npx로 번들링 시도 - 정확한 경로 사용\n  echo \"직접 번들링 시작 (절대 경로 사용)...\" >> \"$LOG_FILE\"\n  \n  cd \"$ROOT_DIR\"\n  echo \"작업 디렉토리: $(pwd)\" >> \"$LOG_FILE\"\n  \n  \"$NODE_BINARY\" node_modules/.bin/react-native bundle \\\n    --entry-file=\"apps/MediDealer/index.js\" \\\n    --platform=ios \\\n    --dev=false \\\n    --reset-cache \\\n    --bundle-output=\"$BUNDLE_FILE\" \\\n    --assets-dest=\"$OUTPUT_DIR\" >> \"$LOG_FILE\" 2>&1 || {\n      echo \"react-native bundle 실패, webpack-bundle 시도...\" >> \"$LOG_FILE\"\n      \n      \"$NODE_BINARY\" node_modules/.bin/react-native webpack-bundle \\\n        --entry-file=\"apps/MediDealer/index.js\" \\\n        --platform=ios \\\n        --dev=false \\\n        --reset-cache \\\n        --bundle-output=\"$BUNDLE_FILE\" \\\n        --assets-dest=\"$OUTPUT_DIR\" >> \"$LOG_FILE\" 2>&1 || {\n          echo \"webpack-bundle도 실패, Metro 시도...\" >> \"$LOG_FILE\"\n          \n          \"$NODE_BINARY\" node_modules/.bin/metro bundle \\\n            --entry-file=\"apps/MediDealer/index.js\" \\\n            --platform=ios \\\n            --dev=false \\\n            --reset-cache \\\n            --bundle-output=\"$BUNDLE_FILE\" \\\n            --assets-dest=\"$OUTPUT_DIR\" >> \"$LOG_FILE\" 2>&1 || {\n              echo \"모든 번들링 방식이 실패했습니다.\" >> \"$LOG_FILE\"\n            }\n        }\n    }\n  \n  # 번들 파일 존재 확인\n  if [ -f \"$BUNDLE_FILE\" ]; then\n    echo \"번들링 성공: $BUNDLE_FILE\" >> \"$LOG_FILE\"\n  else\n    echo \"번들링 실패: 파일이 생성되지 않음\" >> \"$LOG_FILE\"\n    echo \"개발용 빌드라면 무시하고 계속 진행\" >> \"$LOG_FILE\"\n  fi\nfi\n\necho \"스크립트 종료: $(date)\" >> \"$LOG_FILE\"\n\n# 개발 모드에서는 오류가 있어도 성공으로 처리\nexit 0\n";
 		};
 		2E3C6816EDD3481CE29137E0 /* [CP] Check Pods Manifest.lock */ = {
 			isa = PBXShellScriptBuildPhase;

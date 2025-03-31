@@ -7,6 +7,7 @@ import { requestPushNotificationPermission } from '../../utils/permission';
 import { subscribeToTopic, unsubscribeFromTopic } from '../../services/notification';
 import { setNotification, updateNotification } from '../../services/medidealer/api';
 import { INotificationInfo } from '@repo/shared';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const RequestNotificationScreen = () => {
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
@@ -39,7 +40,7 @@ const RequestNotificationScreen = () => {
       // 푸시 알림 토큰 가져오기
       const token = await messaging().getToken();
       console.log('FCM Token:', token);
-      await subscribeToTopic('all');      
+      await subscribeToTopic('all');
       
       setNotificationInfo({
         ...notificationInfo,
@@ -92,14 +93,15 @@ const RequestNotificationScreen = () => {
       }); 
 
       await subscribeToTopic(type);
-      await updateNotification(notificationInfo);
-      
-      Alert.alert('알림 설정 완료', message, [
-        { text: '확인', onPress: () => navigation.goBack() }
-      ]);
-    } catch (error) {
-      Alert.alert('오류', '알림 설정 중 문제가 발생했습니다.');
+      await updateNotification(notificationInfo);      
+      // Alert.alert('알림 설정 완료', message, [
+      //   { text: '확인', onPress: () => navigation.goBack() }
+      // ]);
+    } catch (error) {      
+      // Alert.alert('오류', '알림 설정 중 문제가 발생했습니다.');
     }
+    await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
+    navigation.goBack();
   };
 
   return (

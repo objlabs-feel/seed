@@ -129,7 +129,7 @@ export async function PUT(request: Request) {
       noti_set
     });
 
-    const notificationInfo = await prisma.notificationInfo.update({
+    const notificationInfo = await prisma.notificationInfo.upsert({
       where: {
         user_id_device_type_device_os_device_token: {
           user_id: BigInt(userId),
@@ -138,15 +138,24 @@ export async function PUT(request: Request) {
           device_token
         }
       },
-      data: {
-        noti_notice,
-        noti_event,
-        noti_sms,
-        noti_email,
-        noti_auction,
-        noti_favorite,
+      update: {
+        permission_status: 1,
         noti_set,
         updated_at: new Date()
+      },
+      create: {
+        user_id: BigInt(userId),
+        device_type,
+        device_os,
+        device_token,
+        permission_status: 1,
+        noti_notice: 1,
+        noti_event: 1,
+        noti_sms: 1,
+        noti_email: 1,
+        noti_auction: 1,
+        noti_favorite: 1,
+        noti_set: { topics: ["all"] }
       }
     });
 

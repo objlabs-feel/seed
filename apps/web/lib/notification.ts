@@ -13,9 +13,11 @@ interface NotificationOptions {
   type: 'SINGLE' | 'MULTI' | 'BROADCAST';
   title: string;
   body: string;
+  userTokens?: string[];
   data?: {
     type: 'AUCTION' | 'POLICY' | 'MARKETING' | 'SYSTEM';
     targetId?: string;
+    screen?: string | 'HOME';
     [key: string]: any;
   };
 }
@@ -62,6 +64,7 @@ export async function sendBroadcastNotification(title: string, body: string, dat
       body,
       data: {
         type: "SYSTEM",
+        screen: "HOME",
         ...data
       }
     })

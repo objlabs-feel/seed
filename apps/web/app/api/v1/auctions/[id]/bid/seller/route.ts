@@ -75,6 +75,16 @@ export async function POST(
     const auctionItem = await prisma.auctionItem.findUnique({
       where: {
         id: auctionItemId
+      },
+      include: {
+        medical_device: {
+          include: {
+            company: true,
+            department: true,
+            deviceType: true,
+            manufacturer: true
+          }
+        }
       }
     });
 
@@ -121,13 +131,14 @@ export async function POST(
       await sendNotification({
         type: 'MULTI',
         title: '경매 낙찰',
-        body: `경매상품[${auctionItem.auction_code}]이 낙찰 되었습니다.`,
+        body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]이 낙찰 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+        userTokens: notificationInfoList.map(info => info.device_token),
         data: {
           type: 'AUCTION',
-          targetId: auctionItem.auction_code,
-          userTokens: notificationInfoList.map(info => info.device_token),
+          screen: 'AuctionDetail',
+          targetId: auctionItem.id.toString(),          
           title: '경매 낙찰',
-          body: `경매상품[${auctionItem.auction_code}]이 낙찰 되었습니다.`
+          body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]이 낙찰 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
         }
       });
     }

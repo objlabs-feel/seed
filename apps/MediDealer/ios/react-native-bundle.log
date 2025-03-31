@@ -1,0 +1,14 @@
+=== React Native 번들링 시작 Mon Mar 31 11:54:16 KST 2025 ===
+PROJECT_DIR: /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios
+ROOT_DIR: /Users/feel/workgroup/objlabs/projects/seed
+NODE_BINARY: /opt/homebrew/bin/node
+REACT_NATIVE_PATH: /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native
+Path exists: YES
+WITH_ENVIRONMENT: /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/xcode/with-environment.sh (exists: YES)
+REACT_NATIVE_XCODE: /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/react-native-xcode.sh (exists: YES)
+ENTRY_FILE: /Users/feel/workgroup/objlabs/projects/seed/apps/MediDealer/ios/../index.js (exists: YES)
+스크립트 실행 시작
+표준 방식으로 번들링 시도...
++ /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/xcode/with-environment.sh /opt/homebrew/bin/node /Users/feel/workgroup/objlabs/projects/seed/node_modules/react-native/scripts/react-native-xcode.sh
+Node found at: /opt/homebrew/Cellar/node/23.6.0/bin/node
+스크립트 종료: Mon Mar 31 11:54:16 KST 2025

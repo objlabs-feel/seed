@@ -83,6 +83,11 @@ type RootStackParamList = {
   UserAgreement: undefined;
   Home: undefined;
   AuctionRegistration: undefined;
+  AuctionSearch: undefined;
+  AuctionDetail: { id: string };
+  AuctionSelectBid: { id: string };
+  AuctionBidAccept: { id: string };
+  RequestNotification: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -117,7 +122,7 @@ const SplashScreen = ({ navigation }) => {
         // 이용약관 확인
         const hasAgreed = await AsyncStorage.getItem('userAgreement');
         
-        // 약간의 지연 후 다음 화면으로 이동
+        // 다음 화면으로 이동
         setTimeout(() => {
           navigation.replace(hasAgreed ? 'Home' : 'UserAgreement');
         }, 1000);

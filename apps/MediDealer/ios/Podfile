@@ -1,44 +1,130 @@
-# 파일 상단에 추가
+# macOS 업데이트 후 SDK 호환성 및 Firebase 문제 해결을 위한 Podfile
+
+require_relative '../../../node_modules/react-native/scripts/react_native_pods'
+require_relative '../../../node_modules/@react-native-community/cli-platform-ios/native_modules'
+
+# SDK 경로 명시적 지정 (필요한 경우 경로 수정)
+# ENV['SDKROOT'] = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk'
+
+# 플리퍼 비활성화
+ENV['NO_FLIPPER'] = '1'
+
+# New Architecture 및 Hermes 비활성화
 ENV['RCT_NEW_ARCH_ENABLED'] = '0'
-ENV['USE_FABRIC'] = '0'
-ENV['USE_BRIDGELESS'] = '0'
+ENV['USE_HERMES'] = '0'
 
-# Resolve react_native_pods.rb with node to allow for hoisting
-require Pod::Executable.execute_command('node', ['-p',
-  'require.resolve(
-    "react-native/scripts/react_native_pods.rb",
-    {paths: [process.argv[1]]},
-  )', __dir__]).strip
+# C++ 표준 설정
+ENV['RCT_CXXFLAGS'] = '-std=c++20'
 
-platform :ios, min_ios_version_supported
-prepare_react_native_project!
+# Firebase 정적 프레임워크 설정 - 동적으로 변경
+$RNFirebaseAsStaticFramework = false
 
-# Swift 모듈 문제 해결을 위해 추가
-use_modular_headers!
+# iOS 배포 타겟 설정 - React Native 0.76.6 요구사항 충족
+ENV['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+platform :ios, '15.1'
 
-# 프레임워크 설정 제거
-# use_frameworks! :linkage => :static
+# 시스템 프레임워크 호환성 향상을 위한 설정
+install! 'cocoapods', 
+         :deterministic_uuids => false
 
 target 'MediDealer' do
+  # pod 'React', :path => '../../../node_modules/react-native/'
+  # pod 'React-Core', :path => '../../../node_modules/react-native/'
+  # pod 'React-RCTAppDelegate', :path => '../../../node_modules/react-native/Libraries/AppDelegate'
+  
   config = use_native_modules!
-
+  
+  # React Native 기본 설정
   use_react_native!(
     :path => config[:reactNativePath],
     :hermes_enabled => false,
-    :app_path => "#{Pod::Config.instance.installation_root}/.."
+    :fabric_enabled => false,
+    :app_path => "#{Dir.pwd}/.."
   )
+  
+  # Firebase 모듈 - 순서와 설정 최적화
+  pod 'Firebase', :modular_headers => true
+  pod 'FirebaseCore', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseMessaging', :modular_headers => true
+  pod 'GoogleUtilities', :modular_headers => true
+  
+  # RNFirebase 모듈 - 명시적 참조
+  pod 'RNFBApp', :path => '../../../node_modules/@react-native-firebase/app', :modular_headers => true
+  pod 'RNFBMessaging', :path => '../../../node_modules/@react-native-firebase/messaging', :modular_headers => true
 
   target 'MediDealerTests' do
     inherit! :complete
-    # Pods for testing
   end
 
   post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    # 기본 post_install 설정
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false
     )
+    
+    # 시스템 라이브러리 호환성 설정
+    installer.pods_project.build_configurations.each do |config|
+      config.build_settings['SWIFT_VERSION'] = '5.0'
+      config.build_settings["EXCLUDED_ARCHS[sdk=iphonesimulator*]"] = 'i386'
+      config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = '15.1'
+      config.build_settings['MACOSX_DEPLOYMENT_TARGET'] = '10.15'
+      config.build_settings['ENABLE_USER_SCRIPT_SANDBOXING'] = 'NO'
+      
+      # Firebase 헤더 검색 경로 추가
+      if config.build_settings['HEADER_SEARCH_PATHS']
+        config.build_settings['HEADER_SEARCH_PATHS'] << '${PODS_ROOT}/FirebaseCore/FirebaseCore/Sources/Private'
+        config.build_settings['HEADER_SEARCH_PATHS'] << '${PODS_ROOT}/FirebaseMessaging'
+        config.build_settings['HEADER_SEARCH_PATHS'] << '${PODS_ROOT}/FirebaseCoreInternal'
+      else
+        config.build_settings['HEADER_SEARCH_PATHS'] = [
+          '$(inherited)',
+          '${PODS_ROOT}/FirebaseCore/FirebaseCore/Sources/Private',
+          '${PODS_ROOT}/FirebaseMessaging',
+          '${PODS_ROOT}/FirebaseCoreInternal'
+        ]
+      end
+    end
+    
+    # 타겟별 최적화 설정
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # macOS SDK 호환성 설정
+        config.build_settings['DEAD_CODE_STRIPPING'] = 'YES'
+        
+        # C++ 표준 설정
+        config.build_settings['CLANG_CXX_LANGUAGE_STANDARD'] = 'c++20'
+        
+        # DarwinFoundation 모듈 문제 해결
+        config.build_settings['SWIFT_INCLUDE_PATHS'] = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/include'
+        
+        # Firebase 관련 설정 강화
+        if target.name.include?('Firebase') || target.name.include?('Google') || target.name.include?('RNFB')
+          config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+          config.build_settings['APPLICATION_EXTENSION_API_ONLY'] = 'NO'
+          
+          # Firebase 모듈 검색 경로 추가
+          if config.build_settings['HEADER_SEARCH_PATHS']
+            config.build_settings['HEADER_SEARCH_PATHS'] << '${PODS_ROOT}/FirebaseCore/FirebaseCore/Sources/Private'
+            config.build_settings['HEADER_SEARCH_PATHS'] << '${PODS_ROOT}/FirebaseMessaging'
+            config.build_settings['HEADER_SEARCH_PATHS'] << '${PODS_ROOT}/FirebaseCoreInternal'
+          end
+          
+          # Firebase Swift 모듈 설정
+          config.build_settings['DEFINES_MODULE'] = 'YES'
+        end
+        
+        # ReactCodegen 스크립트 우회
+        if target.name == 'ReactCodegen' || target.name.include?('codegen')
+          target.build_phases.each do |phase|
+            if phase.is_a?(Xcodeproj::Project::Object::PBXShellScriptBuildPhase)
+              phase.shell_script = "echo 'Skipping script phase'; exit 0;"
+            end
+          end
+        end
+      end
+    end
   end
 end

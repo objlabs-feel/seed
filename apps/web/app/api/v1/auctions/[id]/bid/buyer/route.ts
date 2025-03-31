@@ -26,6 +26,16 @@ export async function PUT(
   const auctionItem = await prisma.auctionItem.findUnique({
     where: {
       id: auctionItemId
+    },
+    include: {
+      medical_device: {
+        include: {
+          company: true,
+          department: true,
+          deviceType: true,
+          manufacturer: true
+        }
+      }
     }
   });
 
@@ -56,7 +66,10 @@ export async function PUT(
     include: {
       medical_device: {
         include: {
-          company: true
+          company: true,
+          department: true,
+          deviceType: true,
+          manufacturer: true
         }
       }
     }
@@ -81,13 +94,14 @@ export async function PUT(
     await sendNotification({
       type: 'MULTI',
       title: '입금확인',
-      body: `경매상품[${auctionItem.auction_code}]에 대한 방문일정을 확인하세요.`,
+      body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`,
+      userTokens: notificationInfoList.map(info => info.device_token),
       data: {
         type: 'AUCTION',
-        targetId: auctionItem.auction_code,
-        userTokens: notificationInfoList.map(info => info.device_token),
+        screen: 'AuctionDetail',
+        targetId: auctionItem.id.toString(),        
         title: '입금확인',
-        body: `경매상품[${auctionItem.auction_code}]에 대한 방문일정을 확인하세요.`
+        body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`
       }
     });
   }
@@ -219,7 +233,10 @@ export async function POST(
       include: {
         medical_device: {
           include: {
-            company: true
+            company: true,
+            department: true,
+            deviceType: true,
+            manufacturer: true
           }
         }
       }
@@ -257,13 +274,14 @@ export async function POST(
       await sendNotification({
         type: 'MULTI',
         title: '입금대기',
-        body: `경매상품[${auctionItem.auction_code}]이 입금대기 상태가 되었습니다.`,
+        body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+        userTokens: notificationInfoList.map(info => info.device_token),
         data: {
           type: 'AUCTION',
-          targetId: auctionItem.auction_code,
-          userTokens: notificationInfoList.map(info => info.device_token),
+          screen: 'AuctionDetail',
+          targetId: auctionItem.id.toString(),          
           title: '입금대기',
-          body: `경매상품[${auctionItem.auction_code}]이 입금대기 상태가 되었습니다.`
+          body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
         }
       });
     }

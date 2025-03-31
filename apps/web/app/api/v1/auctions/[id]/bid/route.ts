@@ -25,7 +25,10 @@ export async function POST(
       include: {
         medical_device: {
           include: {
-            company: true
+            company: true,
+            department: true,
+            deviceType: true,
+            manufacturer: true
           }
         }
       }
@@ -34,6 +37,8 @@ export async function POST(
     if (!auctionItem) {
       return NextResponse.json({ error: '경매 상품을 찾을 수 없습니다.' }, { status: 404 });
     }
+
+    console.log('auctionItem', auctionItem);
 
     const notificationInfoList = await prisma.notificationInfo.findMany({
       where: {
@@ -49,22 +54,25 @@ export async function POST(
       }
     });
 
-    // 경매 상품 등록 알림발송
-    // 경매 상품 등록은 'all' 토픽에 알림발송
+    // 경매 입찰 알림발송
+    // 경매 입찰 알림발송은 'all' 토픽에 알림발송
+    // 대신, token 목록을 받아서 알림발송
     if (notificationInfoList.length > 0) {
       await sendNotification({
         type: 'MULTI',
         title: '경매 입찰',
-        body: `경매상품[${auctionItem.auction_code}]에 입찰이 등록되었습니다.`,
+        body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+        userTokens: notificationInfoList.map(info => info.device_token),
         data: {
           type: 'AUCTION',
-          targetId: auctionItem.auction_code,
-          userTokens: notificationInfoList.map(info => info.device_token),
+          screen: 'AuctionDetail',
+          targetId: auctionItem.id.toString(),          
           title: '경매 입찰',
-          body: `경매상품[${auctionItem.auction_code}]에 입찰이 등록되었습니다.`
+          body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
         }
       });
     }
+    console.log('notificationInfoList', notificationInfoList);
 
     return NextResponse.json(convertBigIntToString(history));
   } catch (error) {
