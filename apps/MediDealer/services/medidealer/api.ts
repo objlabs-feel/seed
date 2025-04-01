@@ -144,4 +144,36 @@ export const setReadAllNotification = async () => {
   return response.data;
 };
 
+export const getMyDevices = async ({
+  deviceTypeId,
+  departmentId,
+  manufacturerId,
+  page = 1,
+  limit = 10
+}: {
+  deviceTypeId?: number;
+  departmentId?: number;
+  manufacturerId?: number;
+  page?: number;
+  limit?: number;
+} = {}) => {
+  let url = `${API_URL}${ENDPOINTS.MY_DEVICES}`;
+
+  // 쿼리 파라미터 구성
+  const params = new URLSearchParams();
+  if (deviceTypeId) params.append('deviceTypeId', deviceTypeId.toString());
+  if (departmentId) params.append('departmentId', departmentId.toString());
+  if (manufacturerId) params.append('manufacturerId', manufacturerId.toString());
+  params.append('page', page.toString());
+  params.append('limit', limit.toString());
+
+  // 쿼리 파라미터가 있으면 URL에 추가
+  if (params.toString()) {
+    url += `?${params.toString()}`;
+  }
+
+  const response = await axios.get(url);
+  return response.data;
+};
+
 

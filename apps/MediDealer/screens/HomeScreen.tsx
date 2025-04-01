@@ -6,6 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { getNotification, updateNotification } from '../services/medidealer/api';
 import notifee from '@notifee/react-native';
+import { getDeviceType, getOSVersion } from '../utils/device';
+import { eventEmitter } from '../utils/eventEmitter';
 
 type RootStackParamList = {
   Home: undefined;
@@ -19,42 +21,130 @@ type RootStackParamList = {
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
 
+// FCM 구독 정리 함수 타입 정의
+interface NotificationCleanup {
+  unsubscribeToken: () => void;
+  unsubscribeMessage: () => void;
+  unsubscribeNotificationOpen: () => void;
+}
+
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
 
   useEffect(() => {
-    console.log('HomeScreen mounted');
+    console.log('[HomeScreen] 마운트됨');
     // checkNotificationStatus();
-    initializePushNotifications();
+    
+    // 구독 및 토큰 변수 - 클린업을 위해 사용
+    let cleanupFunctions: NotificationCleanup | null = null;
+    
+    // 알림 초기화 함수 호출
+    initializePushNotifications()
+      .then((cleanup) => {
+        // 클린업 함수가 반환되면 저장
+        if (cleanup) {
+          cleanupFunctions = cleanup;
+        }
+      })
+      .catch(console.error);
+    
+    // 알림 초기화 이벤트 리스너 등록
+    const notificationInitializedListener = eventEmitter.addListener(
+      'notificationInitialized',
+      handleNotificationInitialized
+    );
+    
+    console.log('[HomeScreen] 이벤트 리스너 등록됨');
+    
+    return () => {
+      console.log('[HomeScreen] 언마운트됨, 리소스 정리');
+      // 이벤트 리스너 제거
+      notificationInitializedListener.remove();
+      
+      // FCM 이벤트 리스너 제거
+      if (cleanupFunctions) {
+        cleanupFunctions.unsubscribeToken();
+        cleanupFunctions.unsubscribeMessage();
+        cleanupFunctions.unsubscribeNotificationOpen();
+      }
+    };
   }, []);
+  
+  // 알림 초기화 이벤트 처리 함수
+  const handleNotificationInitialized = () => {
+    console.log('[HomeScreen] 알림 초기화 이벤트 수신됨');
+    
+    // 알림 초기화 함수를 약간 지연시켜 호출 - 이벤트 처리 시 경쟁 상태 방지
+    setTimeout(() => {
+      // 알림 초기화 함수 다시 호출
+      initializePushNotifications()
+        .then((cleanup) => {
+          console.log('[HomeScreen] 알림 초기화 재실행 완료', cleanup ? '(클린업 함수 반환됨)' : '(클린업 함수 없음)');
+          // 여기서는 기존 클린업 함수를 교체할 필요가 없음
+          // useEffect에서 이미 관리하고 있으므로 무시
+        })
+        .catch((error) => {
+          console.error('[HomeScreen] 알림 초기화 재실행 오류:', error);
+        });
+    }, 1000); // 1초 지연
+  };
 
-  const initializePushNotifications = async () => {
+  const initializePushNotifications = async (): Promise<NotificationCleanup | null> => {
     try {
-      // FCM 권한 요청
-      const authStatus = await messaging().requestPermission();
+      console.log('[HomeScreen] 알림 초기화 시작');
+      // FCM 권한 확인 (requestPermission 대신 hasPermission 사용)
+      const authStatus = await messaging().hasPermission();
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
 
+      console.log('[HomeScreen] 알림 권한 상태:', enabled ? '허용' : '거부');
+
       if (enabled) {
         // FCM 토큰 가져오기
         const fcmToken = await messaging().getToken();
-        console.log('FCM Token:', fcmToken);
+        console.log('[HomeScreen] FCM 토큰:', fcmToken);
         
-        // TODO: FCM 토큰을 서버에 업데이트하는 API 호출 필요
-        const notificationInfo = await getNotification();
-        console.log('notificationInfo', notificationInfo);
+        try {
+          // 서버에 토큰 정보 확인 및 업데이트
+          console.log('[HomeScreen] 서버에서 알림 설정 조회');
+          const notificationInfo = await getNotification();
+          console.log('[HomeScreen] 서버에서 알림 설정 조회 성공:', notificationInfo);
 
-        if (notificationInfo.device_token !== fcmToken) {
-          // TODO: 새로운 토큰을 서버에 업데이트하는 API 호출 필요 
-          checkNotificationStatus();
+          if (notificationInfo.device_token !== fcmToken) {
+            console.log('[HomeScreen] 토큰 불일치, 서버 업데이트 필요');
+            // 새로운 토큰을 서버에 업데이트
+            await updateNotification({
+              device_token: fcmToken,
+              device_type: getDeviceType(), // 유틸리티 함수 사용
+              device_os: getOSVersion(), // 유틸리티 함수 사용
+              permission_status: 1,
+              noti_notice: 1,
+              noti_event: 1,
+              noti_sms: 1,
+            });
+            console.log('[HomeScreen] 서버 업데이트 완료');
+          }
+        } catch (apiError: any) {
+          console.error('[HomeScreen] 알림 API 오류:', apiError);
+          
+          // 서버에서 404 오류가 반환되면 알림 설정이 서버에 없는 것이므로
+          // RequestNotification 화면으로 이동하여 초기 설정을 할 수 있도록 함
+          if (apiError.response && apiError.response.status === 404) {
+            console.log('[HomeScreen] 알림 설정이 서버에 없음, 초기 설정 필요');
+            navigation.navigate('RequestNotification');
+            return null;
+          }
         }
+        
         // 토큰 리프레시 이벤트 처리
+        console.log('[HomeScreen] 토큰 리프레시 이벤트 리스너 등록');
         const unsubscribeToken = messaging().onTokenRefresh(token => {
-          console.log('New FCM Token:', token);
-          // TODO: 새로운 토큰을 서버에 업데이트하는 API 호출 필요 
+          console.log('[HomeScreen] 새 FCM 토큰:', token);
           updateNotification({
             device_token: token,
+            device_type: getDeviceType(), // 유틸리티 함수 사용
+            device_os: getOSVersion(), // 유틸리티 함수 사용
             permission_status: 1,
             noti_notice: 1,
             noti_event: 1,
@@ -63,9 +153,9 @@ const HomeScreen = () => {
         });
 
         // 포그라운드 상태에서 알림 수신 처리
+        console.log('[HomeScreen] 포그라운드 메시지 리스너 등록');
         const unsubscribeMessage = messaging().onMessage(async remoteMessage => {
-          console.log('Foreground message:', remoteMessage);
-          // TODO: 포그라운드 알림 표시 로직 추가
+          console.log('[HomeScreen] 포그라운드 메시지 수신:', remoteMessage);
           // 포그라운드 알림 표시
           if (remoteMessage.notification) {
             await notifee.displayNotification({
@@ -77,8 +167,9 @@ const HomeScreen = () => {
         });
 
         // 알림 클릭 처리
+        console.log('[HomeScreen] 알림 클릭 이벤트 리스너 등록');
         const unsubscribeNotificationOpen = messaging().onNotificationOpenedApp(remoteMessage => {
-          console.log('Notification opened app:', remoteMessage);
+          console.log('[HomeScreen] 알림으로 앱 실행:', remoteMessage);
           const screenName = remoteMessage.data?.screen as keyof RootStackParamList;
           const screenId = remoteMessage.data?.targetId as string;
           
@@ -117,31 +208,64 @@ const HomeScreen = () => {
         }
 
         // 클린업 함수 반환
-        return () => {
-          unsubscribeToken();
-          unsubscribeMessage();
-          unsubscribeNotificationOpen();
+        console.log('[HomeScreen] 알림 초기화 완료, 클린업 함수 반환');
+        return {
+          unsubscribeToken,
+          unsubscribeMessage,
+          unsubscribeNotificationOpen
         };
       } else {
-        console.log('Push notification not enabled');        
-        checkNotificationStatus();        
+        console.log('[HomeScreen] 알림 권한 없음');
+        // 권한이 없는 경우에만 알림 요청 화면으로 이동
+        checkNotificationStatus();
+        return null;
       }
     } catch (error) {
-      console.error('Push notification initialization error:', error);      
+      console.error('[HomeScreen] 알림 초기화 오류:', error);
+      // 오류 발생 시 알림 요청 화면으로 이동
       checkNotificationStatus();
+      return null;
     }
   };
 
   const checkNotificationStatus = async () => {
     try {
-      navigation.navigate('RequestNotification');
-      // const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
-      // console.log('hasShownNotificationRequest:', hasShownNotificationRequest);
-      // if (hasShownNotificationRequest === null) {
-      //   navigation.navigate('RequestNotification');
-      // }
+      console.log('[HomeScreen] 알림 권한 상태 확인 시작');
+      
+      // 현재 권한 상태 확인
+      const authStatus = await messaging().hasPermission();
+      const enabled = 
+        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+      
+      console.log('[HomeScreen] 현재 권한 상태:', enabled ? '허용됨' : '거부됨', authStatus);
+      
+      // AsyncStorage에서 알림 요청을 이미 보여줬는지 확인
+      const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
+      
+      // 권한이 없을 때만 RequestNotification 화면으로 이동
+      if (!enabled) {
+        // 이미 거부됨 상태인지 확인
+        if (authStatus === messaging.AuthorizationStatus.DENIED) {
+          console.log('[HomeScreen] 알림 권한이 명시적으로 거부됨');
+          
+          // 이전에 요청을 보여줬는지에 따라 다른 행동
+          if (hasShownNotificationRequest === 'true') {
+            console.log('[HomeScreen] 이미 알림 요청을 보여줬으므로 무시');
+            return;
+          }
+        }
+        
+        console.log('[HomeScreen] RequestNotification 화면으로 이동');
+        navigation.navigate('RequestNotification');
+        
+        // 요청을 보여줬다고 표시
+        await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
+      } else {
+        console.log('[HomeScreen] 이미 알림 권한이 허용되어 있습니다.');
+      }
     } catch (error) {
-      console.error('Error checking notification status:', error);
+      console.error('[HomeScreen] 알림 상태 확인 오류:', error);
     }
   };
 

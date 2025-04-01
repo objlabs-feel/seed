@@ -18,6 +18,8 @@ import {
   Button,
   ActivityIndicator,
   Alert,
+  TouchableOpacity,
+  Platform,
 } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
@@ -25,6 +27,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { enableScreens } from 'react-native-screens';
 import AuctionRegistrationScreen from './screens/AuctionRegistrationScreen';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import IconTestScreen from './screens/IconTestScreen';
 
 import {
   Colors,
@@ -43,6 +47,16 @@ import AuctionDetailScreen from './screens/AuctionDetailScreen';
 import AuctionSelectBidScreen from './screens/AuctionSelectBidScreen';
 import AuctionBidAcceptScreen from './screens/AuctionBidAcceptScreen';
 import RequestNotificationScreen from './screens/notification/RequestNotificationScreen';
+import MyDeviceScreen from './screens/MyDeviceScreen';
+import MyConsultScreen from './screens/MyConsultScreen';
+import SettingNotificationScreen from './screens/SettingNotificationScreen';
+import SettingsScreen from './screens/SettingsScreen';
+import ProductDetailScreen from './screens/product/ProductDetailScreen';
+import ConsultFeatureScreen from './screens/consult/ConsultFeatureScreen';
+import ConsultClosureScreen from './screens/consult/ConsultClosureScreen';
+import ConsultOpeningScreen from './screens/consult/ConsultOpeningScreen';
+import ConsultRepairScreen from './screens/consult/ConsultRepairScreen';
+import ConsultInspectorScreen from './screens/consult/ConsultInspectorScreen';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -82,12 +96,19 @@ type RootStackParamList = {
   Splash: undefined;
   UserAgreement: undefined;
   Home: undefined;
+  IconTest: undefined;
   AuctionRegistration: undefined;
   AuctionSearch: undefined;
   AuctionDetail: { id: string };
   AuctionSelectBid: { id: string };
   AuctionBidAccept: { id: string };
   RequestNotification: undefined;
+  DeviceDetail: { id: string };
+  ConsultFeature: undefined;
+  ConsultClosure: undefined;
+  ConsultOpening: undefined;
+  ConsultRepair: undefined;
+  ConsultInspector: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -192,31 +213,101 @@ const TabScreen = ({ title }) => (
 // 홈 탭 네비게이터
 const HomeTabs = () => {
   return (
-    <Tab.Navigator>
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#007bff',
+        tabBarInactiveTintColor: '#6c757d',
+      }}
+    >
       <Tab.Screen 
         name="Home" 
         component={HomeScreen}
-        options={{ title: '홈' }}
+        options={{ 
+          title: '홈',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign 
+              name="home" 
+              color={color} 
+              size={size} 
+              style={{width: size, height: size, textAlign: 'center'}} 
+            />
+          ),
+        }}
       />
       <Tab.Screen 
         name="MyMedical" 
-        component={() => <TabScreen title="내의료기" />}
-        options={{ title: '내의료기' }}
+        component={MyDeviceScreen}
+        options={{ 
+          title: '내의료기',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign 
+              name="medicinebox" 
+              color={color} 
+              size={size} 
+              style={{width: size, height: size, textAlign: 'center'}} 
+            />
+          ),
+        }}
       />
       <Tab.Screen 
         name="Consulting" 
-        component={() => <TabScreen title="상담하기" />}
-        options={{ title: '상담하기' }}
+        component={MyConsultScreen}
+        options={{ 
+          title: '상담하기',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign 
+              name="message1" 
+              color={color} 
+              size={size} 
+              style={{width: size, height: size, textAlign: 'center'}} 
+            />
+          ),
+        }}
       />
+      {/* <Tab.Screen 
+        name="IconTest" 
+        component={IconTestScreen}
+        options={{ 
+          title: '아이콘테스트',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign 
+              name="search1" 
+              color={color} 
+              size={size} 
+              style={{width: size, height: size, textAlign: 'center'}} 
+            />
+          ),
+        }}
+      /> */}
       <Tab.Screen 
         name="Notification" 
-        component={() => <TabScreen title="알림설정" />}
-        options={{ title: '알림설정' }}
+        component={SettingNotificationScreen}
+        options={{ 
+          title: '알림설정',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign 
+              name="notification" 
+              color={color} 
+              size={size} 
+              style={{width: size, height: size, textAlign: 'center'}} 
+            />
+          ),
+        }}
       />
       <Tab.Screen 
         name="Settings" 
-        component={() => <TabScreen title="설정" />}
-        options={{ title: '설정' }}
+        component={SettingsScreen}
+        options={{ 
+          title: '설정',
+          tabBarIcon: ({ color, size }) => (
+            <AntDesign 
+              name="setting" 
+              color={color} 
+              size={size} 
+              style={{width: size, height: size, textAlign: 'center'}} 
+            />
+          ),
+        }}
       />
     </Tab.Navigator>
   );
@@ -224,13 +315,40 @@ const HomeTabs = () => {
 
 // 앱 메인
 const App = () => {
+  // 앱이 시작될 때 아이콘 폰트 등록
+  useEffect(() => {
+    // 아이콘 라이브러리 등록
+    // 이렇게 하면 폰트가 로드되었는지 확인 가능
+    // console.log('등록된 아이콘 폰트:', AntDesign.getFontFamily());
+  }, []);
+
   return (
     <NavigationContainer>
       <Stack.Navigator 
         initialRouteName="Splash"
-        screenOptions={{
-          headerShown: false
-        }}
+        screenOptions={({ navigation }: { navigation: any }) => ({
+          headerShown: false,
+          headerLeft: () => (
+            navigation.canGoBack() ? (
+              <TouchableOpacity 
+                onPress={() => navigation.goBack()} 
+                style={{ 
+                  marginLeft: Platform.OS === 'ios' ? 8 : 0,
+                  padding: 8,
+                  flexDirection: 'row',
+                  alignItems: 'center'
+                }}
+              >
+                <AntDesign 
+                  name={Platform.OS === 'ios' ? 'left' : 'arrowleft'} 
+                  size={Platform.OS === 'ios' ? 22 : 24} 
+                  color="#007bff" 
+                />
+                {Platform.OS === 'ios' && <Text style={{ marginLeft: 5, color: '#007bff', fontSize: 17 }}>뒤로</Text>}
+              </TouchableOpacity>
+            ) : undefined
+          )
+        })}
       >
         <Stack.Screen name="Splash" component={SplashScreen} />
         <Stack.Screen 
@@ -293,6 +411,56 @@ const App = () => {
           options={{
             presentation: 'modal',
             headerShown: false,
+          }}
+        />
+        <Stack.Screen 
+          name="DeviceDetail"
+          component={ProductDetailScreen}
+          options={{
+            headerShown: true,
+            title: '의료기기 상세',
+            headerBackTitle: '뒤로',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen 
+          name="ConsultFeature"
+          component={ConsultFeatureScreen}
+          options={{
+            headerShown: true,
+            title: '기능 건의/문의하기',
+          }}
+        />
+        <Stack.Screen 
+          name="ConsultClosure"
+          component={ConsultClosureScreen}
+          options={{
+            headerShown: true,
+            title: '폐업 상담하기',
+          }}
+        />
+        <Stack.Screen 
+          name="ConsultOpening"
+          component={ConsultOpeningScreen}
+          options={{
+            headerShown: true,
+            title: '개업 상담하기',
+          }}
+        />
+        <Stack.Screen 
+          name="ConsultRepair"
+          component={ConsultRepairScreen}
+          options={{
+            headerShown: true,
+            title: '의료기 수리 상담하기',
+          }}
+        />
+        <Stack.Screen 
+          name="ConsultInspector"
+          component={ConsultInspectorScreen}
+          options={{
+            headerShown: true,
+            title: '검사원 온라인 신청',
           }}
         />
       </Stack.Navigator>

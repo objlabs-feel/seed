@@ -12,6 +12,7 @@ import { registerAuction } from '../services/medidealer/api';
 import { departments, deviceTypes, locations, manufacturers } from '../constants/data';
 import CreateAuctionStep1 from './auction/CreateAuctionStep1';
 import CreateAuctionStep2 from './auction/CreateAuctionStep2';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 // 날짜 포맷팅 함수
 const formatDate = (date: Date) => {

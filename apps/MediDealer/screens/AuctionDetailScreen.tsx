@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useLayoutEffect } from 'react';
+import React, { useEffect, useState, useLayoutEffect, useRef, useCallback } from 'react';
 import {
   View,
   Text,
@@ -12,16 +12,38 @@ import {
   Modal,
   TextInput,
   Alert,
+  Animated,
+  Platform,
 } from 'react-native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { bidAuction, getAuctionDetail, getAuctionHistory } from '../services/medidealer/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { IAuctionItem, IAuctionHistory } from '@repo/shared/models';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { processImageUrl, createImageSource } from '../utils/imageHelper';
 
 const { width } = Dimensions.get('window');
 
 const DEFAULT_IMAGE = require('../assets/default.jpg'); // 기본 이미지 추가
+
+// 이미지 슬라이더의 이미지 크기 설정
+const IMAGE_WIDTH = width;
+const IMAGE_HEIGHT = width * 0.8;
+
+// 이미지 로딩 상태 추적을 위한 인터페이스
+interface ImageLoadingState {
+  [key: number]: boolean;
+}
+
+// 이미지 인터페이스 정의
+interface DeviceImage {
+  url: string | null;
+  id?: string | number;
+  description?: string;
+  originalUrl?: string;
+}
 
 interface AuctionItemParams {
   id: string | number;
@@ -34,9 +56,9 @@ interface AuctionItemProps {
 }
 
 const PreviewSection = ({ title, content }: { title: string, content: string }) => (
-  <View style={styles.section}>
-    <Text style={styles.sectionTitle}>{title}</Text>
-    <Text style={styles.sectionContent}>{content || '-'}</Text>
+  <View style={styles.specContainer}>
+    <Text style={styles.specLabel}>{title}</Text>
+    <Text style={styles.specValue}>{content || '-'}</Text>
   </View>
 );
 
@@ -50,6 +72,68 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
   const [isBidModalVisible, setIsBidModalVisible] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [canAccept, setCanAccept] = useState(false);
+  
+  // 이미지 슬라이더 관련 상태 및 ref
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [imageLoading, setImageLoading] = useState<ImageLoadingState>({});
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  const prevIndexRef = useRef(0);
+  const [selectedImage, setSelectedImage] = useState<DeviceImage | null>(null);
+  const [viewingFullScreen, setViewingFullScreen] = useState(false);
+  
+  // 이미지 확대 모드 토글
+  const toggleFullScreenMode = useCallback((image: DeviceImage) => {
+    setSelectedImage(image);
+    setViewingFullScreen(true);
+  }, []);
+
+  // 특정 이미지로 스크롤하는 함수
+  const scrollToImage = useCallback((index: number) => {
+    // 이전 인덱스와 다를 경우에만 애니메이션 시작
+    if (prevIndexRef.current !== index) {
+      // 페이드 아웃
+      Animated.timing(fadeAnim, {
+        toValue: 0.7,
+        duration: 150,
+        useNativeDriver: true,
+      }).start(() => {
+        // 스크롤 이동
+        if (scrollViewRef.current) {
+          scrollViewRef.current.scrollTo({ x: index * IMAGE_WIDTH, animated: true });
+        }
+        
+        // 페이드 인
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }).start();
+      });
+      
+      prevIndexRef.current = index;
+    } else {
+      // 같은 인덱스면 바로 스크롤
+      if (scrollViewRef.current) {
+        scrollViewRef.current.scrollTo({ x: index * IMAGE_WIDTH, animated: true });
+      }
+    }
+  }, [fadeAnim, scrollViewRef]);
+
+  // 이미지 소스 메모이제이션
+  const getImageSource = useCallback((url: string | null) => {
+    if (!url) return DEFAULT_IMAGE;
+    return createImageSource(url);
+  }, []);
+
+  // 스크롤 이벤트 핸들러
+  const handleScroll = useCallback((event: any) => {
+    const x = event.nativeEvent.contentOffset.x;
+    const index = Math.floor(x / IMAGE_WIDTH + 0.5);
+    if (index !== currentImageIndex) {
+      setCurrentImageIndex(index);
+    }
+  }, [currentImageIndex]);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -112,12 +196,12 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
   };
 
   useLayoutEffect(() => {
-    if (auctionItem?.medical_device?.deviceType?.name) {
-      navigation.setOptions({
-        title: auctionItem.medical_device.deviceType.name,
-        headerBackTitle: '뒤로',
-      });
-    }
+    navigation.setOptions({
+      headerShown: true,
+      title: auctionItem?.medical_device?.deviceType?.name || '상세 정보',
+      headerBackTitle: '뒤로',
+      headerTitleAlign: 'center',
+    });
   }, [navigation, auctionItem]);
 
   if (isLoading) {
@@ -138,86 +222,233 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
 
   const { medical_device } = auctionItem;
 
+  // 이미지 배열 생성
+  const deviceImages: DeviceImage[] = medical_device.images && medical_device.images.length > 0
+    ? medical_device.images.map((img, index) => ({
+        url: img.url,
+        id: index,
+        originalUrl: img.url
+      }))
+    : [{ url: null, id: 0 }];
+
   const isOwner = currentUserId === auctionItem?.medical_device.company.owner_id;
 //   const isOwner = true;
+
+  // 이미지 슬라이더 렌더링 함수
+  const renderImageSlider = () => {
+    return (
+      <Animated.View 
+        style={[
+          styles.imageSliderContainer,
+          { opacity: fadeAnim }
+        ]}
+      >
+        <ScrollView
+          ref={scrollViewRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+        >
+          {deviceImages.map((image: DeviceImage, index: number) => (
+            <TouchableOpacity 
+              key={`image-${image.id || index}`}
+              style={styles.imageContainer}
+              activeOpacity={0.9}
+              onPress={() => toggleFullScreenMode(image)}
+            >
+              {imageLoading[index] && (
+                <View style={styles.imageLoadingContainer}>
+                  <ActivityIndicator size="large" color="#007bff" />
+                </View>
+              )}
+              
+              {image.url ? (
+                <Image
+                  source={getImageSource(image.url)}
+                  style={styles.deviceImage}
+                  defaultSource={DEFAULT_IMAGE}
+                  onLoadStart={() => {
+                    setImageLoading(prev => ({ ...prev, [index]: true }));
+                  }}
+                  onLoadEnd={() => {
+                    setImageLoading(prev => ({ ...prev, [index]: false }));
+                  }}
+                  onError={(e) => {
+                    console.error('이미지 로딩 오류:', e.nativeEvent.error);
+                    setImageLoading(prev => ({ ...prev, [index]: false }));
+                  }}
+                />
+              ) : (
+                <Image
+                  source={DEFAULT_IMAGE}
+                  style={styles.deviceImage}
+                />
+              )}
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+        
+        {/* 이미지 인디케이터 */}
+        {deviceImages.length > 1 && (
+          <View style={styles.indicatorContainer}>
+            {deviceImages.map((_: any, index: number) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.indicator,
+                  currentImageIndex === index && styles.activeIndicator,
+                ]}
+                onPress={() => scrollToImage(index)}
+              />
+            ))}
+          </View>
+        )}
+
+        {/* 이미지 슬라이더 좌우 버튼 (여러 개 이미지가 있을 경우에만 표시) */}
+        {deviceImages.length > 1 && (
+          <>
+            {currentImageIndex > 0 && (
+              <TouchableOpacity
+                style={[styles.sliderButton, styles.sliderButtonLeft]}
+                onPress={() => scrollToImage(currentImageIndex - 1)}
+              >
+                <Icon name="chevron-left" size={24} color="white" />
+              </TouchableOpacity>
+            )}
+            
+            {currentImageIndex < deviceImages.length - 1 && (
+              <TouchableOpacity
+                style={[styles.sliderButton, styles.sliderButtonRight]}
+                onPress={() => scrollToImage(currentImageIndex + 1)}
+              >
+                <Icon name="chevron-right" size={24} color="white" />
+              </TouchableOpacity>
+            )}
+          </>
+        )}
+        
+        {/* 이미지 정보 표시 */}
+        {deviceImages.length > 0 && (
+          <View style={styles.imageCountContainer}>
+            <Text style={styles.imageCountText}>
+              {currentImageIndex + 1} / {deviceImages.length}
+            </Text>
+          </View>
+        )}
+      </Animated.View>
+    );
+  };
+
+  // 전체 화면 이미지 뷰어 렌더링
+  const renderFullScreenImageViewer = () => {
+    if (!viewingFullScreen || !selectedImage) return null;
+    
+    return (
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={viewingFullScreen}
+        onRequestClose={() => setViewingFullScreen(false)}
+      >
+        <View style={styles.fullScreenContainer}>
+          <TouchableOpacity
+            style={styles.fullScreenCloseButton}
+            onPress={() => setViewingFullScreen(false)}
+          >
+            <AntDesign name="close" size={24} color="white" />
+          </TouchableOpacity>
+          
+          <View style={styles.fullScreenImageContainer}>
+            {selectedImage.url ? (
+              <Image
+                source={createImageSource(selectedImage.url)}
+                style={styles.fullScreenImage}
+                resizeMode="contain"
+              />
+            ) : (
+              <Image
+                source={DEFAULT_IMAGE}
+                style={styles.fullScreenImage}
+                resizeMode="contain"
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+    );
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={[styles.scrollView, { marginBottom: 80 }]}>
         {/* 이미지 슬라이더 */}
-        <ScrollView 
-          horizontal 
-          pagingEnabled 
-          showsHorizontalScrollIndicator={false}
-          style={styles.imageSlider}
-          contentContainerStyle={{ width: width }}
-        >
-          {medical_device.images && medical_device.images.length > 0 ? (
-            medical_device.images.map((image, index) => (
-              <Image
-                key={index}
-                source={{ uri: image.url }}
-                style={styles.sliderImage}
-                resizeMode="cover"
-              />
-            ))
-          ) : (
-            <Image
-              source={DEFAULT_IMAGE}
-              style={styles.sliderImage}
-              resizeMode="contain"
-            />
-          )}
-        </ScrollView>
-
-        {/* 이미지 인디케이터 */}
-        <View style={styles.imageIndicator}>
-          <Text style={styles.imageCount}>
-            {medical_device.images?.length || 0}장의 사진
-          </Text>
-        </View>
+        {renderImageSlider()}
 
         {/* 기본 정보 */}
-        <View style={styles.infoContainer}>
-          {/* 판매자 정보 */}
-          <View style={styles.sellerInfo}>
-            <Text style={styles.sectionTitle}>경매고유번호: {auctionItem.auction_code} | 남은 경매시간: 00:00</Text>
-            <Text style={styles.sellerTitle}>판매자 정보: {auctionItem.medical_device.company.area}</Text>            
+        <View style={styles.contentContainer}>
+          {/* 경매 정보 헤더 */}
+          <View style={styles.headerContainer}>
+            <Text style={styles.deviceName}>경매번호: {auctionItem.auction_code}</Text>
+            <View style={styles.statusBadge}>
+              <Text style={styles.statusText}>남은 시간: 00:00</Text>
+            </View>
           </View>
-
-          {/* 장비 정보 */}
-          <View style={styles.equipmentInfo}>
-            <Text style={styles.equipmentTitle}>장비정보</Text>
-            <Text style={styles.equipmentInfo}>
-            장비유형: {medical_device.deviceType?.name || '장비명 없음'}
-            </Text>
-            <Text style={styles.equipmentInfo}>
-            진료과: {medical_device.department?.name}
-            </Text>
-            <Text style={styles.equipmentInfo}>
-            제조사: {medical_device.manufacturer?.name} | 제조연도: {medical_device.manufacture_year ? `${medical_device.manufacture_year}년` : '-'}
-            </Text>
-            <Text style={styles.equipmentInfo}>
-            상세 설명: {medical_device.description || '-'}            
-            </Text>
+          
+          <Text style={styles.deviceModel}>
+            판매자 정보: {auctionItem.medical_device.company.area}
+          </Text>
+          
+          <View style={styles.divider} />
+          
+          {/* 장비 스펙 */}
+          <Text style={styles.sectionTitle}>장비 정보</Text>
+          
+          <View style={styles.specContainer}>
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>장비 유형</Text>
+              <Text style={styles.specValue}>{medical_device.deviceType?.name || '정보 없음'}</Text>
+            </View>
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>진료과</Text>
+              <Text style={styles.specValue}>{medical_device.department?.name || '정보 없음'}</Text>
+            </View>
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>제조사</Text>
+              <Text style={styles.specValue}>{medical_device.manufacturer?.name || '정보 없음'}</Text>
+            </View>
+            <View style={styles.specItem}>
+              <Text style={styles.specLabel}>제조연도</Text>
+              <Text style={styles.specValue}>{medical_device.manufacture_year ? `${medical_device.manufacture_year}년` : '정보 없음'}</Text>
+            </View>
           </View>
+          
+          <View style={styles.divider} />
+          
+          {/* 장비 설명 */}
+          <Text style={styles.sectionTitle}>설명</Text>
+          <Text style={styles.description}>
+            {medical_device.description || '장비에 대한 설명이 없습니다.'}
+          </Text>
+          
+          <View style={styles.divider} />
 
           {/* 경매 정보 */}
-          <View style={styles.auctionInfo}>
-            <Text style={styles.auctionTitle}>경매 정보</Text>
+          <Text style={styles.sectionTitle}>경매 정보</Text>
+          <View style={styles.specContainer}>
             {isOwner && (
-              <>                
-                <PreviewSection 
-                  title="현재 최고 입찰가" 
-                  content={`${highestBid || 0}원`} 
-                />
-              </>
+              <View style={styles.specItem}>
+                <Text style={styles.specLabel}>현재 최고 입찰가</Text>
+                <Text style={styles.specValue}>{`${highestBid || 0}원`}</Text>
+              </View>
             )}
-            <View style={styles.divider} />
+            
             {/* 내 입찰기록 */}
             {!isOwner && (                
               <>
-                <Text style={styles.sectionTitle}>내 입찰 기록</Text>
+                <Text style={styles.subSectionTitle}>내 입찰 기록</Text>
                 {auctionHistory
                   .filter(bid => bid.user_id === currentUserId)
                   .map((bid, index) => (
@@ -236,9 +467,15 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
                 )}
               </>
             )}
-          </View>          
+          </View>
+          
+          {/* 하단 여백 */}
+          <View style={{ height: 30 }} />
         </View>
       </ScrollView>
+
+      {/* 전체 화면 이미지 뷰어 */}
+      {renderFullScreenImageViewer()}
 
       {!isOwner && (
         <View style={styles.bottomButtonContainer}>
@@ -379,81 +616,222 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imageSlider: {
-    height: width,
+  scrollView: {
+    flex: 1,
   },
-  sliderImage: {
-    width: width,
-    height: width,
+  imageSliderContainer: {
+    width: '100%',
+    height: IMAGE_HEIGHT,
+    backgroundColor: '#000',
+    position: 'relative',
+    overflow: 'hidden',
   },
-  imageIndicator: {
+  imageContainer: {
+    width: IMAGE_WIDTH,
+    height: IMAGE_HEIGHT,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'relative',
+    overflow: 'hidden',
+  },
+  imageLoadingContainer: {
     position: 'absolute',
-    right: 15,
+    zIndex: 1,
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  deviceImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+  indicatorContainer: {
+    position: 'absolute',
+    bottom: 15,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    width: '100%',
+    zIndex: 5,
+  },
+  indicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginHorizontal: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  activeIndicator: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: 'white',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.3)',
+  },
+  sliderButton: {
+    position: 'absolute',
+    top: '50%',
+    marginTop: -25,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  sliderButtonLeft: {
+    left: 10,
+  },
+  sliderButtonRight: {
+    right: 10,
+  },
+  imageCountContainer: {
+    position: 'absolute',
     top: 15,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    paddingHorizontal: 10,
+    right: 15,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
     paddingVertical: 5,
+    paddingHorizontal: 10,
     borderRadius: 15,
   },
-  imageCount: {
-    color: '#fff',
+  imageCountText: {
+    color: 'white',
     fontSize: 12,
+    fontWeight: '600',
   },
-  infoContainer: {
+  fullScreenContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.9)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenCloseButton: {
+    position: 'absolute',
+    top: 40,
+    right: 20,
+    zIndex: 10,
+    padding: 10,
+  },
+  fullScreenImageContainer: {
+    width: '100%',
+    height: '80%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  fullScreenImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'contain',
+  },
+  contentContainer: {
     padding: 20,
   },
-  title: {
-    fontSize: 24,
+  headerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  deviceName: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginBottom: 15,
+    color: '#212529',
+    flex: 1,
+  },
+  statusBadge: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
+    marginLeft: 10,
+    backgroundColor: '#ffc107',
+  },
+  statusText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  deviceModel: {
+    fontSize: 16,
+    color: '#495057',
+    marginBottom: 16,
   },
   divider: {
     height: 1,
-    backgroundColor: '#eee',
-    marginVertical: 5,
-  },
-  sellerInfo: {
-    marginBottom: 0,
-  },
-  sellerTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
-  },
-  auctionInfo: {
-    marginBottom: 10,
-  },
-  auctionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#333',
-  },
-  equipmentInfo: {
-    marginBottom: 10,
-  },
-  equipmentTitle: {
-    marginTop: 10,
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 5,
-    color: '#333',
-  },
-  section: {
-    marginBottom: 15,
+    backgroundColor: '#dee2e6',
+    marginVertical: 20,
   },
   sectionTitle: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 5,
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#343a40',
+    marginBottom: 16,
   },
-  sectionContent: {
+  subSectionTitle: {
     fontSize: 16,
-    color: '#333',
+    fontWeight: 'bold',
+    color: '#343a40',
+    marginBottom: 10,
+    marginTop: 5,
   },
-  scrollView: {
+  specContainer: {
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 15,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
+  },
+  specItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f1f3f5',
+  },
+  specLabel: {
+    fontSize: 14,
+    color: '#6c757d',
     flex: 1,
+  },
+  specValue: {
+    fontSize: 14,
+    color: '#212529',
+    fontWeight: '500',
+    flex: 2,
+    textAlign: 'right',
+  },
+  description: {
+    fontSize: 14,
+    color: '#495057',
+    lineHeight: 24,
+    backgroundColor: 'white',
+    borderRadius: 8,
+    padding: 15,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 2,
+      },
+    }),
   },
   bottomButtonContainer: {
     position: 'absolute',
@@ -567,7 +945,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#eee',
+    borderBottomColor: '#f1f3f5',
   },
   bidAmount: {
     fontSize: 16,
@@ -576,11 +954,11 @@ const styles = StyleSheet.create({
   },
   bidTime: {
     fontSize: 14,
-    color: '#666',
+    color: '#6c757d',
   },
   noBidsText: {
     fontSize: 14,
-    color: '#666',
+    color: '#6c757d',
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 10,

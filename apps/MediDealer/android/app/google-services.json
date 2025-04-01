@@ -7,6 +7,25 @@
   "client": [
     {
       "client_info": {
+        "mobilesdk_app_id": "1:304741054996:android:a51ceab46c4df8587c4501",
+        "android_client_info": {
+          "package_name": "co.kr.medidealer"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_b-R1LKn3VcRobcGRooEKgTl6aBZRQvg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
         "mobilesdk_app_id": "1:304741054996:android:789aef7ee7222de37c4501",
         "android_client_info": {
           "package_name": "com.medidealer"

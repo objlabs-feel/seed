@@ -9,4 +9,5 @@ export const ENDPOINTS = {
   AUCTION_ITEM: '/auctions',
   COMPANY_LIST: '/companies',
   NOTIFICATION: '/notifications',
+  MY_DEVICES: '/products',
 };

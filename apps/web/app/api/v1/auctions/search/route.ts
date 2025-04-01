@@ -7,9 +7,24 @@ export async function GET(request: Request) {
   const keyword = searchParams.get('keyword');
   console.log('keyword:', keyword);
 
+  const today = new Date();
+  const endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
+
   try {
     if (!keyword) {
       const items = await prisma.auctionItem.findMany({
+        where: {
+          OR: [
+            {
+              start_timestamp: {
+                lte: endDate
+              }
+            },
+            {
+              status: 0
+            }
+          ]
+        },
         include: {
           medical_device: {
             include: {
@@ -19,6 +34,9 @@ export async function GET(request: Request) {
               company: true
             }
           }
+        },
+        orderBy: {
+          created_at: 'desc'
         }
       });
 
@@ -35,9 +53,31 @@ export async function GET(request: Request) {
                     contains: keyword
                   }
                 }
-              }
+              },
+              OR: [
+                {
+                  start_timestamp: {
+                    lte: endDate
+                  }
+                },
+                {
+                  status: 0
+                }
+              ]
             },
-            { medical_device: { deviceType: { name: { contains: keyword } } } },
+            {
+              medical_device: { deviceType: { name: { contains: keyword } } },
+              OR: [
+                {
+                  start_timestamp: {
+                    lte: endDate
+                  }
+                },
+                {
+                  status: 0
+                }
+              ]
+            },
             {
               medical_device: {
                 company: {
@@ -45,14 +85,34 @@ export async function GET(request: Request) {
                     contains: keyword
                   }
                 }
-              }
+              },
+              OR: [
+                {
+                  start_timestamp: {
+                    lte: endDate
+                  }
+                },
+                {
+                  status: 0
+                }
+              ]
             },
             {
               auction_code: {
                 contains: keyword
-              }
+              },
+              OR: [
+                {
+                  start_timestamp: {
+                    lte: endDate
+                  }
+                },
+                {
+                  status: 0
+                }
+              ]
             }
-          ]
+          ],
         },
         include: {
           medical_device: {
@@ -63,6 +123,9 @@ export async function GET(request: Request) {
               company: true
             }
           }
+        },
+        orderBy: {
+          created_at: 'desc'
         }
       });
 

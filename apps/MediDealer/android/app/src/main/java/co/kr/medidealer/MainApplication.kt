@@ -1,4 +1,4 @@
-package com.medidealer
+package co.kr.medidealer
 
 import android.app.Application
 import com.facebook.react.PackageList
@@ -41,4 +41,4 @@ class MainApplication : Application(), ReactApplication {
       load()
     }
   }
-}
+} 

@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, Modal, Platform, ActivityIndicator } from 'react-native';
 import { TextInput } from 'react-native-gesture-handler';
 import SelectionModal from '../../components/auction/SelectionModal';
-import { departments, deviceTypes, locations } from '../../constants/data';
+import { locations, departments, deviceTypes, manufacturers, initConstants, isConstantsInitialized } from '../../constants/data';
 import ImageUploader from '../../components/common/ImageUploader';
 import DateTimePicker from '@react-native-community/datetimepicker';
+
 const formatDate = (date: Date) => {
   if (!date) return '';
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -16,6 +17,64 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerDate, setDatePickerDate] = useState(new Date());
+  const [loading, setLoading] = useState(!isConstantsInitialized);
+
+  // 컴포넌트 마운트 시 상수 데이터 초기화
+  useEffect(() => {
+    const initializeConstants = async () => {
+      // 이미 초기화되었으면 로딩 스킵
+      if (isConstantsInitialized && departments.length > 0 && deviceTypes.length > 0) {
+        console.log('이미 초기화됨, 기본값 설정 진행');
+        setDefaultValues();
+        setLoading(false);
+        return;
+      }
+
+      try {
+        setLoading(true);
+        // 상수 데이터 초기화
+        const success = await initConstants();
+        
+        if (success) {
+          console.log('상수 데이터 초기화 성공, 기본값 설정');
+          setDefaultValues();
+        } else {
+          console.error('상수 데이터 초기화 실패');
+        }
+      } catch (error) {
+        console.error('상수 초기화 오류:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // 초기값 설정 함수
+    const setDefaultValues = () => {
+      // 기존 formData 복사
+      const updatedFormData = { ...formData };
+      let updated = false;
+
+      // 진료과 기본값 설정 (아직 선택되지 않은 경우)
+      if (!updatedFormData.department && departments.length > 0) {
+        updatedFormData.department = departments[0].id;
+        updated = true;
+      }
+
+      // 장비 유형 기본값 설정 (아직 선택되지 않은 경우)
+      if (!updatedFormData.equipmentType && deviceTypes.length > 0) {
+        updatedFormData.equipmentType = deviceTypes[0].id;
+        updated = true;
+      }
+
+      // 변경된 경우에만 업데이트
+      if (updated) {
+        console.log('기본값 설정됨:', updatedFormData.department, updatedFormData.equipmentType);
+        setFormData(updatedFormData);
+      }
+    };
+
+    initializeConstants();
+  }, [formData, setFormData]);
 
   const onDateChange = (event: any, selectedDate: Date | undefined) => {
     setShowDatePicker(Platform.OS === 'ios');
@@ -24,6 +83,15 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
       setFormData((prev: any) => ({ ...prev, transferDate: selectedDate }));
     }
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <ActivityIndicator size="large" color="#007bff" />
+        <Text style={styles.loadingText}>데이터를 불러오는 중...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -59,33 +127,36 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
         </View>
       </View>
 
-      <View style={styles.inputGroup}>
-        <Text style={styles.label}>장비 유형 *</Text>
-        <TouchableOpacity 
-          style={[styles.selectButton, errors.equipmentType && styles.inputError]}
-          onPress={() => setShowEquipmentModal(true)}
-        >
-          <Text style={formData.equipmentType ? styles.selectText : styles.placeholderText}>
-            {formData.equipmentType ? 
-              deviceTypes.find(item => item.id === formData.equipmentType)?.name : 
-              '장비 유형을 선택해주세요'}
-          </Text>
-        </TouchableOpacity>
-        {errors.equipmentType && <Text style={styles.errorText}>{errors.equipmentType}</Text>}
-      </View>
-
       <View style={styles.row}>
         <View style={styles.fieldHalf}>
-          <Text style={styles.label}>장비 제조년 *</Text>
-          <TextInput
-            style={[styles.input, errors.manufacturingYear && styles.inputError]}
-            placeholder="제조년도(ex. 2024)"
-            keyboardType="number-pad"
-            value={formData.manufacturingYear}
-            onChangeText={(text) => setFormData((prev: any) => ({ ...prev, manufacturingYear: text }))}
-          />
-          {errors.manufacturingYear && <Text style={styles.errorText}>{errors.manufacturingYear}</Text>}
+          <Text style={styles.label}>장비 유형 *</Text>
+          <TouchableOpacity 
+            style={[styles.selectButton, errors.equipmentType && styles.inputError]}
+            onPress={() => setShowEquipmentModal(true)}
+          >
+            <Text style={formData.equipmentType ? styles.selectText : styles.placeholderText}>
+              {formData.equipmentType ? 
+                deviceTypes.find(item => item.id === formData.equipmentType)?.name : 
+                '유형을 선택해주세요'}
+            </Text>
+          </TouchableOpacity>
+          {errors.equipmentType && <Text style={styles.errorText}>{errors.equipmentType}</Text>}
         </View>
+        <View style={styles.fieldHalf}>
+          <Text style={styles.label}>양도 가능일자 *</Text>
+          <TouchableOpacity 
+            style={[styles.selectButton, errors.transferDate && styles.inputError]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={formData.transferDate ? styles.selectText : styles.placeholderText}>
+              {formData.transferDate ? formatDate(formData.transferDate) : '양도 가능일자를 선택해주세요'}
+            </Text>
+          </TouchableOpacity>
+          {errors.transferDate && <Text style={styles.errorText}>{errors.transferDate}</Text>}
+        </View>
+      </View>
+
+      <View style={styles.row}>        
         <View style={styles.fieldHalf}>
           <Text style={styles.label}>수량 *</Text>
           <TextInput
@@ -97,19 +168,30 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
           />
           {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
         </View>
+        <View style={styles.fieldHalf}>
+          <Text style={styles.label}>장비 제조년 *</Text>
+          <TextInput
+            style={[styles.input, errors.manufacturingYear && styles.inputError]}
+            placeholder="제조년도(ex. 2024)"
+            keyboardType="number-pad"
+            value={formData.manufacturingYear}
+            onChangeText={(text) => setFormData((prev: any) => ({ ...prev, manufacturingYear: text }))}
+          />
+          {errors.manufacturingYear && <Text style={styles.errorText}>{errors.manufacturingYear}</Text>}
+        </View>
       </View>
-
       <View style={styles.inputGroup}>
-        <Text style={styles.label}>양도 가능일자 *</Text>
-        <TouchableOpacity 
-          style={[styles.selectButton, errors.transferDate && styles.inputError]}
-          onPress={() => setShowDatePicker(true)}
-        >
-          <Text style={formData.transferDate ? styles.selectText : styles.placeholderText}>
-            {formData.transferDate ? formatDate(formData.transferDate) : '양도 가능일자를 선택해주세요'}
-          </Text>
-        </TouchableOpacity>
-        {errors.transferDate && <Text style={styles.errorText}>{errors.transferDate}</Text>}
+        <Text style={styles.label}>설명 *</Text>
+        <TextInput
+          style={[styles.input, styles.multilineInput, errors.description && styles.inputError]}
+          placeholder="특이사항 또는 설명을 입력해주세요"
+          value={formData.description}
+          onChangeText={(text) => setFormData((prev: any) => ({ ...prev, description: text }))}
+          multiline={true}
+          numberOfLines={3}
+          maxLength={1000}
+          textAlignVertical="top"
+        />
       </View>
 
       <View style={styles.inputGroup}>
@@ -118,7 +200,7 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
           setImages={(images: any) => setFormData((prev: any) => ({ ...prev, images }))}
           onImagesChange={(images: any) => setFormData((prev: any) => ({ ...prev, images }))}
           maxImages={10}
-          label="장비 사진 (최대 10장) *"
+          label="사진 (최대 10장) *"
           error={errors.images}
         />
       </View>
@@ -301,6 +383,22 @@ const styles = StyleSheet.create({
   },
   fieldHalf: {
     flex: 1,
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 16,
+    marginTop: 10,
+    color: '#6c757d',
+  },
+  multilineInput: {
+    minHeight: 80,     // 약 3줄 높이에 해당하는 값
+    maxHeight: 400,    // 약 20줄까지 표시 가능한 높이
+    textAlignVertical: 'top',
+    paddingTop: 10,
+    paddingBottom: 10,
   },
 });
 
