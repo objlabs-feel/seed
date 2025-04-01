@@ -10,4 +10,5 @@ export const ENDPOINTS = {
   COMPANY_LIST: '/companies',
   NOTIFICATION: '/notifications',
   MY_DEVICES: '/products',
+  USER: '/users',
 };

@@ -4,12 +4,14 @@ import messaging from '@react-native-firebase/messaging';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { requestPushNotificationPermission } from '../../utils/permission';
-import { subscribeToTopic, unsubscribeFromTopic } from '../../services/notification';
+import { subscribeToAllTopics, subscribeToTopic, unsubscribeFromTopic } from '../../services/notification';
 import { setNotification, updateNotification } from '../../services/medidealer/api';
 import { INotificationInfo } from '@repo/shared';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDeviceType, getOSVersion } from '../../utils/device';
 import { eventEmitter } from '../../utils/eventEmitter';
+import { deviceTypes } from '../../constants/data';
+import { createNotificationSet, getAllTopics } from '../../utils/notification';
 
 const RequestNotificationScreen = () => {
   const navigation = useNavigation();
@@ -17,7 +19,7 @@ const RequestNotificationScreen = () => {
   const [notificationInfo, setNotificationInfo] = useState<INotificationInfo>({
     id: 0,
     user_id: 0,
-    noti_set: {},
+    ...createNotificationSet(getAllTopics(), 'HOSPITAL'),
     device_type: 0,
     device_os: 0,
     device_token: '',
@@ -275,7 +277,7 @@ const RequestNotificationScreen = () => {
     }
   };
 
-  const handleNotificationTypeSelect = async (type: 'hospital' | 'company') => {
+  const handleNotificationTypeSelect = async (type: 'HOSPITAL' | 'COMPANY') => {
     try {
       console.log(`[RequestNotificationScreen] 알림 타입 선택: ${type}`);
       
@@ -342,7 +344,7 @@ const RequestNotificationScreen = () => {
       console.log('[RequestNotificationScreen] 알림 권한 확인됨, 타입 설정 진행');
       
       // 알림 메시지 설정
-      const message = type === 'hospital' 
+      const message = type === 'HOSPITAL' 
         ? '병원 관련 알림 설정이 완료되었습니다.' 
         : '업체 관련 알림 설정이 완료되었습니다.';
 
@@ -352,6 +354,9 @@ const RequestNotificationScreen = () => {
       // 토큰이 비어있는 경우 서버 호출은 건너뜀
       if (!token || token.trim() === '') {
         console.log('[RequestNotificationScreen] 토큰이 비어있어 서버 저장 취소됨');
+        const notiSet = await subscribeToAllTopics(type);
+        console.log('[RequestNotificationScreen] 토큰이 비어있어 서버 저장 취소됨', notiSet);
+
         // AsyncStorage만 설정하고 서버 호출은 하지 않음
         await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
         
@@ -391,7 +396,7 @@ const RequestNotificationScreen = () => {
         noti_email: 1,
         noti_auction: 1,
         noti_favorite: 1,
-        noti_set: {topics:["all", type]},
+        ...createNotificationSet(getAllTopics(), type)
       };
       
       setNotificationInfo(updatedInfo);
@@ -476,7 +481,7 @@ const RequestNotificationScreen = () => {
 
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => handleNotificationTypeSelect('hospital')}
+          onPress={() => handleNotificationTypeSelect('HOSPITAL')}
         >
           <Text style={styles.buttonTitle}>병원입니다</Text>
           <Text style={styles.buttonDescription}>
@@ -486,7 +491,7 @@ const RequestNotificationScreen = () => {
 
         <TouchableOpacity 
           style={styles.button}
-          onPress={() => handleNotificationTypeSelect('company')}
+          onPress={() => handleNotificationTypeSelect('COMPANY')}
         >
           <Text style={styles.buttonTitle}>업체입니다</Text>
           <Text style={styles.buttonDescription}>

@@ -4,6 +4,7 @@ import { getConstants } from '../services/medidealer/api';
 export interface SelectionItem {
   id: string;
   name: string;
+  code?: string;
 }
 
 // 초기 빈 배열로 설정
@@ -34,7 +35,8 @@ export const initConstants = async (): Promise<boolean> => {
 
     deviceTypes = constants.deviceTypes?.map((type: any) => ({
       id: String(type.id),
-      name: type.name
+      name: type.name,
+      code: type.code
     })) || [];
 
     manufacturers = constants.manufacturers?.map((mfr: any) => ({

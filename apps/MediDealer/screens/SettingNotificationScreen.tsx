@@ -1,39 +1,47 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Linking, Platform } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Linking, Platform, Modal } from 'react-native';
 import { getNotification, updateNotification, setNotification } from '../services/medidealer/api';
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDeviceType, getOSVersion } from '../utils/device';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { eventEmitter } from '../utils/eventEmitter';
+import { INotificationInfo } from '@repo/shared';
+import { deviceTypes, initConstants } from '../constants/data';
+import { subscribeToAllTopics } from '../services/notification';
+import { getAllTopics } from '../utils/notification';
 
 interface NotificationSettings {
-  permission_status: number; // 알림 권한 상태
+  permission_status: number;
   device_token?: string;
-  noti_notice: number; // 기본 알림
-  noti_event: number; // 정보 알림
-  noti_sms: number; // SMS 알림
-  noti_email: number; // 이메일 알림
+  noti_notice: number;
+  noti_event: number;
+  noti_sms: number;
+  noti_email: number;
 }
 
-interface UserInfo {
-  hospital_name?: string;
-  company_name?: string;
+interface TopicSubscription {
+  topic: string;
+  isSubscribed: boolean;
 }
 
 const SettingNotificationScreen = () => {
   const navigation = useNavigation();
   const isFocused = useIsFocused(); // 화면 포커스 상태 감지 훅
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
-  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const [notiSet, setNotiSet] = useState<INotificationInfo['noti_set'] | null>(null);
+  const [userInfo, setUserInfo] = useState<'HOSPITAL' | 'COMPANY'>('HOSPITAL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [devicePermissionEnabled, setDevicePermissionEnabled] = useState(false);
   const [isNewUser, setIsNewUser] = useState(false);
   const [lastFocusTime, setLastFocusTime] = useState(0); // 마지막 포커스 시간 추적
+  const [showTopicModal, setShowTopicModal] = useState(false);
+  const [subscribedTopics, setSubscribedTopics] = useState<string[]>([]);
+  const [topicSubscriptions, setTopicSubscriptions] = useState<TopicSubscription[]>([]);
 
   useEffect(() => {
-    // 첫 렌더링 시 권한 상태 확인
+    // 첫 렌더링 시 권한 상태 확인 및 상수 데이터 초기화
     checkDevicePermissionStatus();
   }, []);
 
@@ -52,7 +60,10 @@ const SettingNotificationScreen = () => {
 
   useEffect(() => {
     if (devicePermissionEnabled) {
-      fetchNotificationSettings();
+      // settings가 없을 때만 서버에서 데이터를 가져옴
+      if (!settings) {
+        fetchNotificationSettings();
+      }
     }
   }, [devicePermissionEnabled]);
 
@@ -62,22 +73,20 @@ const SettingNotificationScreen = () => {
       console.log('[SettingNotificationScreen] 알림 설정 조회 시작');
       const response = await getNotification();
       console.log('[SettingNotificationScreen] 알림 설정 조회 성공:', response);
-      
+
+      setNotiSet(response.noti_set || { topics: [], user_type: 'HOSPITAL' });
       const newSettings: NotificationSettings = {
         permission_status: response.permission_status || 0,
         device_token: response.device_token,
         noti_notice: response.noti_notice || 0,
         noti_event: response.noti_event || 0,
         noti_sms: response.noti_sms || 0,
-        noti_email: response.noti_email || 0,
+        noti_email: response.noti_email || 0
       };
       
       setSettings(newSettings);
-      
-      setUserInfo({
-        hospital_name: response.user?.hospital_name,
-        company_name: response.user?.company_name,
-      });
+
+      setUserInfo(response.noti_set.user_type || 'HOSPITAL');
       
       // 설정을 가져온 후 실제 권한 상태 확인
       const authStatus = await messaging().hasPermission();
@@ -488,6 +497,68 @@ const SettingNotificationScreen = () => {
     }
   };
 
+  const handleTopicPress = () => {
+    setShowTopicModal(true);
+  };
+
+  const handleTopicToggle = async (topic: string, isSubscribed: boolean) => {
+    try {
+      // 토픽 구독 상태 업데이트
+      const updatedSubscriptions = topicSubscriptions.map(sub => 
+        sub.topic === topic ? { ...sub, isSubscribed } : sub
+      );
+      setTopicSubscriptions(updatedSubscriptions);
+
+      // 기본 알림 토픽인 경우 settings도 업데이트
+      if (topic === 'NOTICE' || topic === 'UPDATE') {
+        const hasAnyBasicTopic = updatedSubscriptions.some(sub => 
+          (sub.topic === 'NOTICE' || sub.topic === 'UPDATE') && sub.isSubscribed
+        );
+        
+        if (settings) {
+          const updatedSettings = {
+            ...settings,
+            noti_notice: hasAnyBasicTopic ? 1 : 0
+          };
+          setSettings(updatedSettings);
+          await updateNotification(updatedSettings);
+        }
+      } else {
+        // 장비 유형 토픽인 경우
+        if (settings && notiSet) {
+          const updatedTopics = isSubscribed
+            ? notiSet.topics.filter(t => t !== topic)
+            : [...notiSet.topics, topic];
+          
+          const updatedNotiSet = { ...notiSet, topics: updatedTopics };
+          setNotiSet(updatedNotiSet);
+          
+          await updateNotification({
+            ...settings,
+            device_type: getDeviceType(),
+            device_os: getOSVersion(),
+            noti_set: updatedNotiSet
+          });
+        }
+      }
+    } catch (error) {
+      console.error('토픽 구독 상태 업데이트 오류:', error);
+      Alert.alert('오류', '토픽 구독 상태 업데이트에 실패했습니다.');
+    }
+  };
+
+  const getTopicDisplayName = (topic: string) => {
+    switch (topic) {
+      case 'NOTICE':
+        return '공지사항';
+      case 'UPDATE':
+        return '업데이트';
+      default:
+        const deviceType = deviceTypes.find(dt => dt.code === topic);
+        return deviceType ? deviceType.name : topic;
+    }
+  };
+
   if (loading) {
     return (
       <View style={styles.centerContainer}>
@@ -565,16 +636,26 @@ const SettingNotificationScreen = () => {
         
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>내 알림 정보</Text>
-          <View style={styles.infoBox}>
-            {userInfo?.hospital_name && (
-              <Text style={styles.infoText}>병원: {userInfo.hospital_name}</Text>
-            )}
-            {userInfo?.company_name && (
-              <Text style={styles.infoText}>업체: {userInfo.company_name}</Text>
-            )}
-            {!userInfo?.hospital_name && !userInfo?.company_name && (
-              <Text style={styles.infoText}>등록된 정보가 없습니다.</Text>
-            )}
+          <View style={styles.userTypeContainer}>
+            <View style={[
+              styles.userTypeItem,
+              userInfo === 'HOSPITAL' && styles.userTypeItemSelected
+            ]}>
+              <Text style={[
+                styles.userTypeText,
+                userInfo === 'HOSPITAL' && styles.userTypeTextSelected
+              ]}>병원</Text>
+            </View>
+            <View style={[
+              styles.userTypeItem,
+              userInfo === 'COMPANY' && styles.userTypeItemSelected,
+              { borderRightWidth: 0 }
+            ]}>
+              <Text style={[
+                styles.userTypeText,
+                userInfo === 'COMPANY' && styles.userTypeTextSelected
+              ]}>업체</Text>
+            </View>
           </View>
         </View>
         
@@ -583,7 +664,15 @@ const SettingNotificationScreen = () => {
           
           <View style={styles.settingItem}>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingLabel}>기본 알림</Text>
+              <View style={styles.settingLabelContainer}>
+                <Text style={styles.settingLabel}>기본 알림</Text>
+                <TouchableOpacity 
+                  style={styles.detailButton}
+                  onPress={handleTopicPress}
+                >
+                  <Text style={styles.detailButtonText}>상세구독설정</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.settingDescription}>공지사항, 업데이트 등 기본 알림</Text>
             </View>
             <Switch
@@ -644,6 +733,173 @@ const SettingNotificationScreen = () => {
           </Text>
         </View>
       </ScrollView>
+
+      <Modal
+        visible={showTopicModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowTopicModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>구독 토픽 설정</Text>
+            
+            <ScrollView style={styles.filterOptions}>
+              <Text style={styles.filterSectionTitle}>기본 알림</Text>
+              <View style={styles.filterOptionsList}>
+                <TouchableOpacity
+                  style={[
+                    styles.filterOption,
+                    notiSet?.topics.includes('NOTICE') && styles.filterOptionSelected
+                  ]}
+                  onPress={() => {
+                    if (settings && notiSet) {
+                      const updatedTopics = notiSet.topics.includes('NOTICE')
+                        ? notiSet.topics.filter(t => t !== 'NOTICE')
+                        : [...notiSet.topics, 'NOTICE'];
+                      
+                      const updatedNotiSet = { ...notiSet, topics: updatedTopics };
+                      setNotiSet(updatedNotiSet);
+                      updateNotification({
+                        ...settings,
+                        device_type: getDeviceType(),
+                        device_os: getOSVersion(),
+                        noti_set: updatedNotiSet
+                      });
+                    }
+                  }}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    notiSet?.topics.includes('NOTICE') && styles.filterOptionTextSelected
+                  ]}>
+                    공지사항
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.filterOption,
+                    notiSet?.topics.includes('UPDATE') && styles.filterOptionSelected
+                  ]}
+                  onPress={() => {
+                    if (settings && notiSet) {
+                      const updatedTopics = notiSet.topics.includes('UPDATE')
+                        ? notiSet.topics.filter(t => t !== 'UPDATE')
+                        : [...notiSet.topics, 'UPDATE'];
+                      
+                      const updatedNotiSet = { ...notiSet, topics: updatedTopics };
+                      setNotiSet(updatedNotiSet);
+                      updateNotification({
+                        ...settings,
+                        device_type: getDeviceType(),
+                        device_os: getOSVersion(),
+                        noti_set: updatedNotiSet
+                      });
+                    }
+                  }}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    notiSet?.topics.includes('UPDATE') && styles.filterOptionTextSelected
+                  ]}>
+                    업데이트
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <Text style={styles.filterSectionTitle}>장비 유형</Text>
+              <View style={styles.filterOptionsList}>
+                {deviceTypes.map(type => {
+                  const isSelected = notiSet?.topics.includes(type.code || '');
+                  return (
+                    <TouchableOpacity
+                      key={`type-${type.id}`}
+                      style={[
+                        styles.filterOption,
+                        isSelected && styles.filterOptionSelected
+                      ]}
+                      onPress={() => {
+                        if (settings && notiSet) {
+                          const updatedTopics = isSelected
+                            ? notiSet.topics.filter(t => t !== type.code)
+                            : [...notiSet.topics, type.code || ''];
+                          
+                          const updatedNotiSet = { ...notiSet, topics: updatedTopics };
+                          setNotiSet(updatedNotiSet);
+                          updateNotification({
+                            ...settings,
+                            device_type: getDeviceType(),
+                            device_os: getOSVersion(),
+                            noti_set: updatedNotiSet
+                          });
+                        }
+                      }}
+                    >
+                      <Text style={[
+                        styles.filterOptionText,
+                        isSelected && styles.filterOptionTextSelected
+                      ]}>
+                        {type.name}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+            
+            <View style={styles.modalActions}>
+              <TouchableOpacity 
+                style={styles.resetButton} 
+                onPress={async () => {
+                  if (settings) {
+                    try {
+                      // 사용자 타입에 따라 전체 구독 실행
+                      const userType = userInfo;
+                      await subscribeToAllTopics(userType);
+                      
+                      // 모든 토픽 설정
+                      setNotiSet({ 
+                        topics: getAllTopics(),
+                        user_type: userType
+                      });
+                      
+                      // 로컬 상태 업데이트
+                      setSettings({
+                        ...settings,
+                        noti_notice: 1,
+                        noti_event: 1,
+                        noti_sms: 1,
+                        noti_email: 1
+                      });
+                    } catch (error) {
+                      console.error('전체 구독 설정 실패:', error);
+                      Alert.alert('오류', '전체 구독 설정에 실패했습니다.');
+                    }
+                  }
+                }}
+              >
+                <Text style={styles.resetButtonText}>전체 구독</Text>
+              </TouchableOpacity>
+              <TouchableOpacity 
+                style={styles.resetButton} 
+                onPress={() => {
+                  if (settings && notiSet) {
+                    updateNotification({
+                      ...settings,
+                      device_type: getDeviceType(),
+                      device_os: getOSVersion(),
+                      noti_set: notiSet
+                    });
+                  }
+                  setShowTopicModal(false);
+                }}
+              >
+                <Text style={styles.resetButtonText}>닫기</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -790,6 +1046,124 @@ const styles = StyleSheet.create({
   cancelButtonText: {
     color: '#6c757d',
     fontSize: 16,
+  },
+  modalContainer: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 20,
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#1a1a1a',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  filterOptions: {
+    maxHeight: 400,
+  },
+  filterOptionsList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  filterOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  filterOptionSelected: {
+    backgroundColor: '#e7f5ff',
+    borderColor: '#007bff',
+  },
+  filterOptionText: {
+    fontSize: 14,
+    color: '#495057',
+  },
+  filterOptionTextSelected: {
+    color: '#007bff',
+    fontWeight: '500',
+  },
+  modalActions: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e9ecef',
+  },
+  resetButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#f8f9fa',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  resetButtonText: {
+    color: '#495057',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  settingLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  detailButton: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#e7f5ff',
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#007bff',
+  },
+  detailButtonText: {
+    fontSize: 13,
+    color: '#007bff',
+    fontWeight: '500',
+  },
+  filterSectionTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginBottom: 8,
+  },
+  userTypeContainer: {
+    flexDirection: 'row',
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+    overflow: 'hidden',
+  },
+  userTypeItem: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderRightWidth: 1,
+    borderRightColor: '#dee2e6',
+  },
+  userTypeItemSelected: {
+    backgroundColor: '#e7f5ff',
+  },
+  userTypeText: {
+    fontSize: 16,
+    color: '#6c757d',
+  },
+  userTypeTextSelected: {
+    color: '#007bff',
+    fontWeight: '500',
   },
 });
 

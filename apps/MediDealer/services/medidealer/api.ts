@@ -176,4 +176,19 @@ export const getMyDevices = async ({
   return response.data;
 };
 
+export const getAuctionCount = async () => {
+  const response = await axios.get(`${API_URL}${ENDPOINTS.AUCTION_ITEM}/count`);
+  return response.data;
+};
+
+export const getMyProfile = async () => {
+  const response = await axios.get(`${API_URL}${ENDPOINTS.USER}`);
+  return response.data;
+};
+
+export const deleteMyProfile = async () => {
+  const response = await axios.delete(`${API_URL}${ENDPOINTS.USER}`);
+  return response.data;
+};
+
 

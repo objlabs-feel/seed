@@ -100,7 +100,21 @@ export interface INotificationInfo {
   noti_email: number;
   noti_auction: number;
   noti_favorite: number;
-  noti_set: any;
+  noti_set: {
+    topics: string[];
+    user_type: string;
+  };
   created_at: string;
   updated_at: string;
+}
+
+export interface IUserProfile {
+  id: string;
+  device_token: string | null;
+  profile_id?: number;
+  status: number;
+  created_at: string;
+  updated_at: string;
+  profile?: IProfile;
+  company?: ICompany;
 }

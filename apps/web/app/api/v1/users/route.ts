@@ -1,78 +1,35 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@repo/shared';
-
-function replacer(key: string, value: any) {
-  if (typeof value === 'bigint') {
-    return value.toString();
-  }
-  return value;
-}
+import { authenticateUser } from '@/lib/auth';
+import { convertBigIntToString } from '@/lib/utils';
 
 export async function GET(request: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
-    const status = searchParams.get('status') ? parseInt(searchParams.get('status') || '0') : undefined;
-    const profile_name = searchParams.get('profile_name');
-    const email = searchParams.get('email');
-    const mobile = searchParams.get('mobile');
+    // 쿠키나 헤더에서 사용자 ID 가져오기 (인증 방식에 따라 수정 필요)
+    const auth = await authenticateUser(request);
+    if ('error' in auth) {
+      return NextResponse.json({ error: auth.error }, { status: auth.status });
+    }
+    const { userId } = auth as { userId: string };
 
-    const skip = (page - 1) * limit;
-
-    const where = {
-      ...(status !== undefined && { status }),
-      ...(profile_name && {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: BigInt(userId)
+      },
+      include: {
         profile: {
-          name: {
-            contains: profile_name
+          include: {
+            company: true,            
           }
         }
-      }),
-      ...(email && {
-        profile: {
-          email: {
-            contains: email
-          }
-        }
-      }),
-      ...(mobile && {
-        profile: {
-          mobile: {
-            contains: mobile
-          }
-        }
-      })
-    };
-
-    const [users, total] = await Promise.all([
-      prisma.user.findMany({
-        where,
-        include: {
-          profile: true
-        },
-        skip,
-        take: limit,
-        orderBy: {
-          created_at: 'desc'
-        }
-      }),
-      prisma.user.count({ where })
-    ]);
+      }
+    });
 
     // BigInt를 문자열로 변환
-    const responseUsers = users.map(user => ({
-      ...user,
-      id: user.id.toString(), // BigInt 필드를 문자열로 변환
-      profile_id: user.profile_id ? user.profile_id.toString() : null
-    }));
+    const responseUser = convertBigIntToString(user);
 
     return NextResponse.json({
-      users: responseUsers,
-      total,
-      page,
-      totalPages: Math.ceil(total / limit),
-      hasMore: skip + users.length < total
+      ...responseUser,
     });
   } catch (error) {
     console.error('이용자 목록 조회 중 오류:', error);

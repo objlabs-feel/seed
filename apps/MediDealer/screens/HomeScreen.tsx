@@ -1,10 +1,10 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
-import { getNotification, updateNotification } from '../services/medidealer/api';
+import { getNotification, updateNotification, getAuctionCount } from '../services/medidealer/api';
 import notifee from '@notifee/react-native';
 import { getDeviceType, getOSVersion } from '../utils/device';
 import { eventEmitter } from '../utils/eventEmitter';
@@ -30,6 +30,7 @@ interface NotificationCleanup {
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const [auctionCount, setAuctionCount] = useState(0);
 
   useEffect(() => {
     console.log('[HomeScreen] 마운트됨');
@@ -56,6 +57,17 @@ const HomeScreen = () => {
     
     console.log('[HomeScreen] 이벤트 리스너 등록됨');
     
+    const fetchAuctionCount = async () => {
+      try {
+        const response = await getAuctionCount();
+        setAuctionCount(response.count);
+      } catch (error) {
+        console.error('Error fetching auction count:', error);
+      }
+    };
+
+    fetchAuctionCount();
+
     return () => {
       console.log('[HomeScreen] 언마운트됨, 리소스 정리');
       // 이벤트 리스너 제거
@@ -275,8 +287,8 @@ const HomeScreen = () => {
         {/* Total 통계 영역 */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Total</Text>
-            <Text style={styles.statNumber}>2,138</Text>
+            <Text style={styles.statLabel}>누적 경매 건수</Text>
+            <Text style={styles.statNumber}>{2100 + auctionCount}</Text>
           </View>
           {/* <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -292,12 +304,14 @@ const HomeScreen = () => {
             onPress={() => navigation.navigate('AuctionRegistration')}
           >
             <Text style={styles.buttonText}>팔기</Text>
+            <Text style={styles.buttonSubtext}>의료기기 등록</Text>
           </TouchableOpacity>
           <TouchableOpacity 
             style={[styles.button, styles.buyButton]}
             onPress={() => navigation.navigate('AuctionSearch')}
           >
             <Text style={styles.buttonText}>사기</Text>
+            <Text style={styles.buttonSubtext}>의료기기 구매</Text>
           </TouchableOpacity>
         </View>
 
@@ -315,7 +329,7 @@ const HomeScreen = () => {
           <Text style={styles.sectionTitle}>공지사항</Text>
           <View style={styles.adContent}>
             <Text style={styles.adTitle}>의료기기 거래 수수료 0%</Text>
-            <Text style={styles.adText}>2024년 상반기 프로모션</Text>
+            <Text style={styles.adText}>2025년 상반기 프로모션</Text>
           </View>
         </View>
       </ScrollView>
@@ -375,40 +389,47 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
-    gap: 12,
+    gap: 16,
   },
   button: {
-    paddingVertical: 12,
-    paddingHorizontal: 32,
-    borderRadius: 8,
+    flex: 1,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 120,
+    minWidth: 140,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
         shadowOffset: {
           width: 0,
-          height: 2,
+          height: 4,
         },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
+        shadowOpacity: 0.15,
+        shadowRadius: 8,
       },
       android: {
-        elevation: 3,
+        elevation: 5,
       },
     }),
   },
   sellButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#4CAF50',
   },
   buyButton: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#2196F3',
   },
   buttonText: {
     color: 'white',
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  buttonSubtext: {
+    color: 'rgba(255, 255, 255, 0.8)',
+    fontSize: 12,
+    fontWeight: '500',
   },
   mouContainer: {
     backgroundColor: 'white',
