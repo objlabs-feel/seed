@@ -11,6 +11,9 @@
   },
   "dependencies": {
     "@aws-sdk/client-sqs": "^3.758.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.1",
     "@repo/shared": "*",
     "@repo/ui": "*",
     "crypto": "^1.0.1",
