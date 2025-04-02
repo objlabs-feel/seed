@@ -5,7 +5,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
 import { getNotification, updateNotification, getAuctionCount } from '../services/medidealer/api';
-import notifee from '@notifee/react-native';
+import notifee, { EventType } from '@notifee/react-native';
 import { getDeviceType, getOSVersion } from '../utils/device';
 import { eventEmitter } from '../utils/eventEmitter';
 
@@ -36,27 +36,26 @@ const HomeScreen = () => {
     console.log('[HomeScreen] 마운트됨');
     // checkNotificationStatus();
     
-    // 구독 및 토큰 변수 - 클린업을 위해 사용
-    let cleanupFunctions: NotificationCleanup | null = null;
+    let isMounted = true;
     
-    // 알림 초기화 함수 호출
-    initializePushNotifications()
-      .then((cleanup) => {
-        // 클린업 함수가 반환되면 저장
-        if (cleanup) {
-          cleanupFunctions = cleanup;
+    const initializeNotifications = async () => {
+      try {
+        const cleanup = await initializePushNotifications();
+        if (isMounted && cleanup) {
+          // 클린업 함수 저장
         }
-      })
-      .catch(console.error);
-    
-    // 알림 초기화 이벤트 리스너 등록
-    const notificationInitializedListener = eventEmitter.addListener(
+      } catch (error) {
+        console.error('알림 초기화 오류:', error);
+      }
+    };
+
+    initializeNotifications();
+
+    const notificationListener = eventEmitter.addListener(
       'notificationInitialized',
       handleNotificationInitialized
     );
-    
-    console.log('[HomeScreen] 이벤트 리스너 등록됨');
-    
+
     const fetchAuctionCount = async () => {
       try {
         const response = await getAuctionCount();
@@ -68,17 +67,65 @@ const HomeScreen = () => {
 
     fetchAuctionCount();
 
+    // 포그라운드 메시지 핸들러
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      try {
+        if (remoteMessage.notification) {
+          await notifee.displayNotification({
+            title: remoteMessage.notification.title,
+            body: remoteMessage.notification.body,
+            data: remoteMessage.data,
+            android: {
+              channelId: 'default',
+              pressAction: {
+                id: 'default',
+              },
+            },
+            ios: {
+              foregroundPresentationOptions: {
+                badge: true,
+                sound: true,
+                banner: true,
+                list: true,
+              },
+            },
+          });
+        }
+      } catch (error) {
+        console.error('알림 표시 중 오류:', error);
+      }
+    });
+
+    // 백그라운드 메시지 핸들러
+    messaging().setBackgroundMessageHandler(async remoteMessage => {
+      if (remoteMessage.notification) {
+        await notifee.displayNotification({
+          title: remoteMessage.notification.title,
+          body: remoteMessage.notification.body,
+          data: remoteMessage.data,
+        });
+      }
+    });
+
+    // 알림 이벤트 리스너
+    const unsubscribeNotifee = notifee.onForegroundEvent(({ type, detail }) => {
+      switch (type) {
+        case EventType.DISMISSED:
+          console.log('알림이 닫혔습니다:', detail.notification);
+          break;
+        case EventType.PRESS:
+          console.log('알림을 눌렀습니다:', detail.notification);
+          // 알림 클릭 시 처리 로직
+          break;
+      }
+    });
+
     return () => {
       console.log('[HomeScreen] 언마운트됨, 리소스 정리');
-      // 이벤트 리스너 제거
-      notificationInitializedListener.remove();
-      
-      // FCM 이벤트 리스너 제거
-      if (cleanupFunctions) {
-        cleanupFunctions.unsubscribeToken();
-        cleanupFunctions.unsubscribeMessage();
-        cleanupFunctions.unsubscribeNotificationOpen();
-      }
+      isMounted = false;
+      notificationListener.remove();
+      unsubscribe();
+      unsubscribeNotifee();
     };
   }, []);
   

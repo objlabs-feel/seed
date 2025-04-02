@@ -279,190 +279,42 @@ const RequestNotificationScreen = () => {
 
   const handleNotificationTypeSelect = async (type: 'HOSPITAL' | 'COMPANY') => {
     try {
-      console.log(`[RequestNotificationScreen] 알림 타입 선택: ${type}`);
-      
-      // 현재 권한 상태 확인
-      const authStatus = await messaging().hasPermission();
-      const isEnabled =
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-      
-      if (!isEnabled) {
-        console.log('[RequestNotificationScreen] 권한 없음, 권한 요청 필요');
-        
-        // 권한이 이미 명시적으로 거부된 경우 설정으로 이동
-        if (authStatus === messaging.AuthorizationStatus.DENIED) {
-          Alert.alert(
-            '알림 권한 필요',
-            '알림 기능을 사용하려면 설정 앱에서 권한을 허용해주세요.',
-            [
-              { text: '취소', style: 'cancel', onPress: () => navigation.goBack() },
-              { 
-                text: '설정으로 이동', 
-                onPress: () => {
-                  console.log('[RequestNotificationScreen] 설정 앱으로 이동');
-                  Linking.openSettings();
-                }
-              }
-            ]
-          );
-          return;
-        }
-        
-        // 권한 요청 시도
-        let enabled = false;
-        
-        try {
-          if (Platform.OS === 'ios') {
-            // iOS에서는 직접 requestPermission 호출
-            const result = await messaging().requestPermission();
-            enabled =
-              result === messaging.AuthorizationStatus.AUTHORIZED ||
-              result === messaging.AuthorizationStatus.PROVISIONAL;
-              
-            console.log('[RequestNotificationScreen] iOS 권한 요청 결과:', enabled ? '허용' : '거부');
-          } else {
-            // Android에서는 permission 유틸리티 사용
-            const permissionResult = await requestPushNotificationPermission();
-            enabled = permissionResult.enabled;
-            console.log('[RequestNotificationScreen] Android 권한 요청 결과:', enabled ? '허용' : '거부');
-          }
-          
-          if (!enabled) {
-            console.log('[RequestNotificationScreen] 권한 획득 실패, 뒤로 이동');
-            navigation.goBack();
-            return;
-          }
-        } catch (permError) {
-          console.error('[RequestNotificationScreen] 권한 요청 오류:', permError);
-          navigation.goBack();
-          return;
-        }
-      }
-      
-      // 권한이 허용된 경우 계속 진행
-      console.log('[RequestNotificationScreen] 알림 권한 확인됨, 타입 설정 진행');
-      
-      // 알림 메시지 설정
-      const message = type === 'HOSPITAL' 
-        ? '병원 관련 알림 설정이 완료되었습니다.' 
-        : '업체 관련 알림 설정이 완료되었습니다.';
-
-      // FCM 토큰 가져오기
-      const token = await messaging().getToken();
-      
-      // 토큰이 비어있는 경우 서버 호출은 건너뜀
-      if (!token || token.trim() === '') {
-        console.log('[RequestNotificationScreen] 토큰이 비어있어 서버 저장 취소됨');
-        const notiSet = await subscribeToAllTopics(type);
-        console.log('[RequestNotificationScreen] 토큰이 비어있어 서버 저장 취소됨', notiSet);
-
-        // AsyncStorage만 설정하고 서버 호출은 하지 않음
-        await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
-        
-        // 이벤트만 발행
-        try {
-          console.log('[RequestNotificationScreen] notificationInitialized 이벤트만 발행');
-          setTimeout(() => {
-            eventEmitter.emit('notificationInitialized');
-          }, 1000);
-        } catch (eventError) {
-          console.error('[RequestNotificationScreen] 이벤트 발행 오류:', eventError);
-        }
-        
-        // 성공 메시지는 표시
-        Alert.alert('알림 설정 완료', message, [
-          { 
-            text: '확인', 
-            onPress: () => {
-              console.log('[RequestNotificationScreen] 이전 화면으로 이동');
-              navigation.goBack();
-            }
-          }
-        ]);
-        return;
-      }
-      
-      // 업데이트할 notificationInfo 준비
       const updatedInfo = {
         ...notificationInfo,
-        device_type: getDeviceType(),
-        device_os: getOSVersion(),
-        device_token: token,
-        permission_status: 1,
-        noti_notice: 1,
-        noti_event: 1,
-        noti_sms: 1,
-        noti_email: 1,
-        noti_auction: 1,
-        noti_favorite: 1,
-        ...createNotificationSet(getAllTopics(), type)
+        noti_set: {
+          topics: getAllTopics(),
+          user_type: type
+        }
       };
-      
       setNotificationInfo(updatedInfo);
       
-      // 토픽 구독 시도 - 실패해도 계속 진행
-      try {
-        console.log(`[RequestNotificationScreen] 토픽 구독 시작: ${type}`); 
-        await subscribeToTopic(type);
-        console.log(`[RequestNotificationScreen] 토픽 구독 완료: ${type}`);
-      } catch (topicError) {
-        console.error(`[RequestNotificationScreen] 토픽 구독 오류: ${type}`, topicError);
-        // 오류가 발생해도 계속 진행
-      }
-      
-      // AsyncStorage에 설정 저장
-      await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
-      
-      // 서버에 설정 업데이트 시도
-      try {
-        console.log('[RequestNotificationScreen] 서버에 알림 설정 업데이트 시작');
-        await updateNotification(updatedInfo);
-        console.log('[RequestNotificationScreen] 서버에 알림 설정 업데이트 완료');
-      } catch (apiError) {
-        console.error('[RequestNotificationScreen] 서버 업데이트 오류:', apiError);
-        // 오류가 발생해도 계속 진행
-      }
-      
-      // 알림 초기화 이벤트 발행
-      try {
-        console.log('[RequestNotificationScreen] notificationInitialized 이벤트 발행 준비');
-        setTimeout(() => {
-          eventEmitter.emit('notificationInitialized');
-          console.log('[RequestNotificationScreen] notificationInitialized 이벤트 발행 완료');
-        }, 1000);
-      } catch (eventError) {
-        console.error('[RequestNotificationScreen] 이벤트 발행 오류:', eventError);
-      }
-      
-      // 성공 메시지 표시
-      Alert.alert('알림 설정 완료', message, [
-        { 
-          text: '확인', 
-          onPress: () => {
-            console.log('[RequestNotificationScreen] 이전 화면으로 이동');
-            navigation.goBack();
-          }
-        }
-      ]);
-    } catch (error) {      
-      console.error('[RequestNotificationScreen] 알림 설정 오류:', error);
-      
-      // 오류 발생 시에도 AsyncStorage 설정 저장 시도
-      try {
-        await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
-      } catch (storageError) {
-        console.error('[RequestNotificationScreen] AsyncStorage 저장 오류:', storageError);
-      }
-      
-      Alert.alert('오류', '알림 설정 중 문제가 발생했습니다.', [
-        { 
-          text: '확인', 
-          onPress: () => navigation.goBack()
-        }
-      ]);
+      // 서버에 업데이트
+      await updateNotification({
+        ...updatedInfo,
+        device_type: getDeviceType(),
+        device_os: getOSVersion()
+      });
+    } catch (error) {
+      console.error('알림 타입 변경 오류:', error);
+      Alert.alert('오류', '알림 타입 변경에 실패했습니다.');
     }
   };
+
+  // 초기 상태 설정
+  useEffect(() => {
+    const initializeNotificationInfo = async () => {
+      try {
+        const storedType = await AsyncStorage.getItem('notificationType');
+        if (storedType) {
+          handleNotificationTypeSelect(storedType as 'HOSPITAL' | 'COMPANY');
+        }
+      } catch (error) {
+        console.error('알림 타입 초기화 오류:', error);
+      }
+    };
+
+    initializeNotificationInfo();
+  }, []);
 
   return (
     <View style={styles.container}>

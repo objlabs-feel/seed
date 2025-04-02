@@ -8,8 +8,8 @@ import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { eventEmitter } from '../utils/eventEmitter';
 import { INotificationInfo } from '@repo/shared';
 import { deviceTypes, initConstants } from '../constants/data';
-import { subscribeToAllTopics } from '../services/notification';
-import { getAllTopics } from '../utils/notification';
+import { getAllTopics, createNotificationSet } from '../utils/notification';
+import { subscribeToAllTopics, updateTopicSubscriptions } from '../services/notification';
 
 interface NotificationSettings {
   permission_status: number;
@@ -37,8 +37,8 @@ const SettingNotificationScreen = () => {
   const [isNewUser, setIsNewUser] = useState(false);
   const [lastFocusTime, setLastFocusTime] = useState(0); // 마지막 포커스 시간 추적
   const [showTopicModal, setShowTopicModal] = useState(false);
-  const [subscribedTopics, setSubscribedTopics] = useState<string[]>([]);
-  const [topicSubscriptions, setTopicSubscriptions] = useState<TopicSubscription[]>([]);
+  const [tempTopics, setTempTopics] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     // 첫 렌더링 시 권한 상태 확인 및 상수 데이터 초기화
@@ -498,53 +498,62 @@ const SettingNotificationScreen = () => {
   };
 
   const handleTopicPress = () => {
+    // 모달 열 때 현재 토픽 상태를 임시 상태로 복사
+    setTempTopics(notiSet?.topics || []);
     setShowTopicModal(true);
   };
 
-  const handleTopicToggle = async (topic: string, isSubscribed: boolean) => {
-    try {
-      // 토픽 구독 상태 업데이트
-      const updatedSubscriptions = topicSubscriptions.map(sub => 
-        sub.topic === topic ? { ...sub, isSubscribed } : sub
-      );
-      setTopicSubscriptions(updatedSubscriptions);
+  const handleTopicToggle = (topic: string, isSubscribing: boolean) => {
+    // 임시 상태만 업데이트
+    const updatedTopics = isSubscribing
+      ? [...tempTopics, topic]
+      : tempTopics.filter(t => t !== topic);
+    setTempTopics(updatedTopics);
+  };
 
-      // 기본 알림 토픽인 경우 settings도 업데이트
-      if (topic === 'NOTICE' || topic === 'UPDATE') {
-        const hasAnyBasicTopic = updatedSubscriptions.some(sub => 
-          (sub.topic === 'NOTICE' || sub.topic === 'UPDATE') && sub.isSubscribed
-        );
-        
-        if (settings) {
-          const updatedSettings = {
-            ...settings,
-            noti_notice: hasAnyBasicTopic ? 1 : 0
-          };
-          setSettings(updatedSettings);
-          await updateNotification(updatedSettings);
-        }
-      } else {
-        // 장비 유형 토픽인 경우
-        if (settings && notiSet) {
-          const updatedTopics = isSubscribed
-            ? notiSet.topics.filter(t => t !== topic)
-            : [...notiSet.topics, topic];
-          
-          const updatedNotiSet = { ...notiSet, topics: updatedTopics };
-          setNotiSet(updatedNotiSet);
-          
-          await updateNotification({
-            ...settings,
-            device_type: getDeviceType(),
-            device_os: getOSVersion(),
-            noti_set: updatedNotiSet
-          });
-        }
+  const handleSubscribeAll = () => {
+    // 임시 상태만 업데이트
+    const allTopics = [...getAllTopics(), userInfo];
+    setTempTopics(allTopics);
+  };
+
+  const handleSaveTopics = async () => {
+    try {
+      if (!settings || !notiSet || !userInfo) {
+        Alert.alert('오류', '사용자 정보가 없습니다.');
+        return;
       }
+
+      setIsSaving(true);
+
+      // 토픽 구독 상태 업데이트
+      await updateTopicSubscriptions(notiSet.topics, tempTopics);
+      
+      // notiSet 업데이트
+      const updatedNotiSet = { ...notiSet, topics: tempTopics };
+      setNotiSet(updatedNotiSet);
+
+      // 서버에 업데이트
+      await updateNotification({
+        ...settings,
+        device_type: getDeviceType(),
+        device_os: getOSVersion(),
+        noti_set: updatedNotiSet
+      });
+
+      setShowTopicModal(false);
     } catch (error) {
-      console.error('토픽 구독 상태 업데이트 오류:', error);
-      Alert.alert('오류', '토픽 구독 상태 업데이트에 실패했습니다.');
+      console.error('토픽 저장 중 오류:', error);
+      Alert.alert('오류', '토픽 설정 저장 중 오류가 발생했습니다.');
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    // 모달 닫을 때 임시 상태 초기화
+    setTempTopics(notiSet?.topics || []);
+    setShowTopicModal(false);
   };
 
   const getTopicDisplayName = (topic: string) => {
@@ -738,11 +747,19 @@ const SettingNotificationScreen = () => {
         visible={showTopicModal}
         transparent={true}
         animationType="slide"
-        onRequestClose={() => setShowTopicModal(false)}
+        onRequestClose={handleCloseModal}
       >
         <View style={styles.modalContainer}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>구독 토픽 설정</Text>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>구독 토픽 설정</Text>
+              <TouchableOpacity 
+                style={styles.subscribeAllButton}
+                onPress={handleSubscribeAll}
+              >
+                <Text style={styles.subscribeAllButtonText}>전체 구독</Text>
+              </TouchableOpacity>
+            </View>
             
             <ScrollView style={styles.filterOptions}>
               <Text style={styles.filterSectionTitle}>기본 알림</Text>
@@ -750,28 +767,13 @@ const SettingNotificationScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.filterOption,
-                    notiSet?.topics.includes('NOTICE') && styles.filterOptionSelected
+                    tempTopics.includes('NOTICE') && styles.filterOptionSelected
                   ]}
-                  onPress={() => {
-                    if (settings && notiSet) {
-                      const updatedTopics = notiSet.topics.includes('NOTICE')
-                        ? notiSet.topics.filter(t => t !== 'NOTICE')
-                        : [...notiSet.topics, 'NOTICE'];
-                      
-                      const updatedNotiSet = { ...notiSet, topics: updatedTopics };
-                      setNotiSet(updatedNotiSet);
-                      updateNotification({
-                        ...settings,
-                        device_type: getDeviceType(),
-                        device_os: getOSVersion(),
-                        noti_set: updatedNotiSet
-                      });
-                    }
-                  }}
+                  onPress={() => handleTopicToggle('NOTICE', !tempTopics.includes('NOTICE'))}
                 >
                   <Text style={[
                     styles.filterOptionText,
-                    notiSet?.topics.includes('NOTICE') && styles.filterOptionTextSelected
+                    tempTopics.includes('NOTICE') && styles.filterOptionTextSelected
                   ]}>
                     공지사항
                   </Text>
@@ -779,28 +781,13 @@ const SettingNotificationScreen = () => {
                 <TouchableOpacity
                   style={[
                     styles.filterOption,
-                    notiSet?.topics.includes('UPDATE') && styles.filterOptionSelected
+                    tempTopics.includes('UPDATE') && styles.filterOptionSelected
                   ]}
-                  onPress={() => {
-                    if (settings && notiSet) {
-                      const updatedTopics = notiSet.topics.includes('UPDATE')
-                        ? notiSet.topics.filter(t => t !== 'UPDATE')
-                        : [...notiSet.topics, 'UPDATE'];
-                      
-                      const updatedNotiSet = { ...notiSet, topics: updatedTopics };
-                      setNotiSet(updatedNotiSet);
-                      updateNotification({
-                        ...settings,
-                        device_type: getDeviceType(),
-                        device_os: getOSVersion(),
-                        noti_set: updatedNotiSet
-                      });
-                    }
-                  }}
+                  onPress={() => handleTopicToggle('UPDATE', !tempTopics.includes('UPDATE'))}
                 >
                   <Text style={[
                     styles.filterOptionText,
-                    notiSet?.topics.includes('UPDATE') && styles.filterOptionTextSelected
+                    tempTopics.includes('UPDATE') && styles.filterOptionTextSelected
                   ]}>
                     업데이트
                   </Text>
@@ -810,7 +797,7 @@ const SettingNotificationScreen = () => {
               <Text style={styles.filterSectionTitle}>장비 유형</Text>
               <View style={styles.filterOptionsList}>
                 {deviceTypes.map(type => {
-                  const isSelected = notiSet?.topics.includes(type.code || '');
+                  const isSelected = tempTopics.includes(type.code || '');
                   return (
                     <TouchableOpacity
                       key={`type-${type.id}`}
@@ -818,22 +805,7 @@ const SettingNotificationScreen = () => {
                         styles.filterOption,
                         isSelected && styles.filterOptionSelected
                       ]}
-                      onPress={() => {
-                        if (settings && notiSet) {
-                          const updatedTopics = isSelected
-                            ? notiSet.topics.filter(t => t !== type.code)
-                            : [...notiSet.topics, type.code || ''];
-                          
-                          const updatedNotiSet = { ...notiSet, topics: updatedTopics };
-                          setNotiSet(updatedNotiSet);
-                          updateNotification({
-                            ...settings,
-                            device_type: getDeviceType(),
-                            device_os: getOSVersion(),
-                            noti_set: updatedNotiSet
-                          });
-                        }
-                      }}
+                      onPress={() => handleTopicToggle(type.code || '', !isSelected)}
                     >
                       <Text style={[
                         styles.filterOptionText,
@@ -849,52 +821,22 @@ const SettingNotificationScreen = () => {
             
             <View style={styles.modalActions}>
               <TouchableOpacity 
-                style={styles.resetButton} 
-                onPress={async () => {
-                  if (settings) {
-                    try {
-                      // 사용자 타입에 따라 전체 구독 실행
-                      const userType = userInfo;
-                      await subscribeToAllTopics(userType);
-                      
-                      // 모든 토픽 설정
-                      setNotiSet({ 
-                        topics: getAllTopics(),
-                        user_type: userType
-                      });
-                      
-                      // 로컬 상태 업데이트
-                      setSettings({
-                        ...settings,
-                        noti_notice: 1,
-                        noti_event: 1,
-                        noti_sms: 1,
-                        noti_email: 1
-                      });
-                    } catch (error) {
-                      console.error('전체 구독 설정 실패:', error);
-                      Alert.alert('오류', '전체 구독 설정에 실패했습니다.');
-                    }
-                  }
-                }}
+                style={[styles.resetButton, styles.closeButton]} 
+                onPress={handleCloseModal}
+                disabled={isSaving}
               >
-                <Text style={styles.resetButtonText}>전체 구독</Text>
+                <Text style={styles.closeButtonText}>닫기</Text>
               </TouchableOpacity>
               <TouchableOpacity 
-                style={styles.resetButton} 
-                onPress={() => {
-                  if (settings && notiSet) {
-                    updateNotification({
-                      ...settings,
-                      device_type: getDeviceType(),
-                      device_os: getOSVersion(),
-                      noti_set: notiSet
-                    });
-                  }
-                  setShowTopicModal(false);
-                }}
+                style={[styles.resetButton, styles.saveButton]} 
+                onPress={handleSaveTopics}
+                disabled={isSaving}
               >
-                <Text style={styles.resetButtonText}>닫기</Text>
+                {isSaving ? (
+                  <ActivityIndicator color="#ffffff" />
+                ) : (
+                  <Text style={styles.saveButtonText}>저장하기</Text>
+                )}
               </TouchableOpacity>
             </View>
           </View>
@@ -1110,7 +1052,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginRight: 8,
   },
-  resetButtonText: {
+  closeButton: {
+    backgroundColor: '#f8f9fa',
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  closeButtonText: {
     color: '#495057',
     fontSize: 16,
     fontWeight: '500',
@@ -1163,6 +1110,32 @@ const styles = StyleSheet.create({
   },
   userTypeTextSelected: {
     color: '#007bff',
+    fontWeight: '500',
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  subscribeAllButton: {
+    backgroundColor: '#28a745',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 6,
+  },
+  subscribeAllButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+  saveButton: {
+    backgroundColor: '#007bff',
+    marginLeft: 8,
+  },
+  saveButtonText: {
+    color: '#ffffff',
+    fontSize: 16,
     fontWeight: '500',
   },
 });
