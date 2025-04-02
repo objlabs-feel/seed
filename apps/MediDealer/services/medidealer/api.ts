@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENDPOINTS } from './endpoint';
 import '../network';  // 인터셉터가 설정된 axios import
-
+import { IAuctionItem } from '@repo/shared';
 const API_URL = 'http://192.168.45.187:3000/api/v1'; // 개발용 API
 // const API_URL = 'http://192.168.219.5:3000/api/v1'; // 개발용 API
 // const API_URL = 'https://www.medidealer.co.kr/api/v1'; // 실제 API URL로 변경 필요
@@ -58,9 +58,45 @@ export const getConstants = async () => {
   return response.data;
 };
 
-export const searchAuction = async (query: string) => {
-  const response = await axios.get(`${API_URL}${ENDPOINTS.AUCTION_SEARCH}?keyword=${query}`);
-  return response.data;
+interface SearchAuctionParams {
+  deviceTypes?: string[];
+  areas?: string[];
+  departments?: string[];
+  page?: number;
+  limit?: number;
+}
+
+interface SearchAuctionResponse {
+  items: IAuctionItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export const searchAuction = async (params: SearchAuctionParams = {}): Promise<SearchAuctionResponse> => {
+  try {
+    const queryParams = new URLSearchParams();
+
+    if (params.deviceTypes?.length) {
+      params.deviceTypes.forEach(type => queryParams.append('deviceTypes', type));
+    }
+    if (params.areas?.length) {
+      params.areas.forEach(area => queryParams.append('areas', area));
+    }
+    if (params.departments?.length) {
+      params.departments.forEach(dept => queryParams.append('departments', dept));
+    }
+    if (params.page) queryParams.append('page', params.page.toString());
+    if (params.limit) queryParams.append('limit', params.limit.toString());
+
+    const response = await axios.get(`${API_URL}${ENDPOINTS.AUCTION_SEARCH}?${queryParams.toString()}`);
+    console.log('Search response:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('Error in searchAuction:', error);
+    throw error;
+  }
 };
 
 export const getAuctionDetail = async (id: string) => { 

@@ -3,137 +3,92 @@ import { prisma } from '@repo/shared';
 import { convertBigIntToString } from '@/lib/utils';
 
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const keyword = searchParams.get('keyword');
-  console.log('keyword:', keyword);
-
-  const today = new Date();
-  const endDate = new Date(today.getTime() - 24 * 60 * 60 * 1000);
-
   try {
-    if (!keyword) {
-      const items = await prisma.auctionItem.findMany({
-        where: {
-          OR: [
-            {
-              start_timestamp: {
-                lte: endDate
+  // 세션 확인
+    const { searchParams } = new URL(request.url);
+
+    // 필터 파라미터 추출
+    const deviceTypes = searchParams.getAll('deviceTypes');
+    const areas = searchParams.getAll('areas');
+    const departments = searchParams.getAll('departments');
+
+    // 페이징 파라미터 추출
+    const page = parseInt(searchParams.get('page') || '1');
+    const limit = parseInt(searchParams.get('limit') || '10');
+    const skip = (page - 1) * limit;
+
+    // 필터 조건 구성
+    const where = {
+      AND: [
+        // 장비 유형 필터
+        deviceTypes.length > 0 ? {
+          medical_device: {
+            deviceType: {
+              name: {
+                in: deviceTypes
               }
-            },
-            {
-              status: 0
             }
-          ]
-        },
+          }
+        } : {},
+        // 지역 필터
+        areas.length > 0 ? {
+          medical_device: {
+            company: {
+              area: {
+                in: areas
+              }
+            }
+          }
+        } : {},
+        // 진료과 필터
+        departments.length > 0 ? {
+          medical_device: {
+            department: {
+              name: {
+                in: departments
+              }
+            }
+          }
+        } : {},
+        {
+          status: {
+            in: [0, 1]
+          }
+        }
+      ]
+    };
+
+    // 데이터 조회
+    const [auctions, total] = await Promise.all([
+      prisma.auctionItem.findMany({
+        where,
         include: {
           medical_device: {
             include: {
-              department: true,
               deviceType: true,
-              manufacturer: true,
-              company: true
+              company: true,
+              department: true,              
             }
           }
         },
         orderBy: {
           created_at: 'desc'
-        }
-      });
-
-      console.log('Search results:', items);
-      return NextResponse.json(convertBigIntToString(items));
-    } else {
-      const items = await prisma.auctionItem.findMany({
-        where: {
-          OR: [
-            {
-              medical_device: {
-                department: {
-                  name: {
-                    contains: keyword
-                  }
-                }
-              },
-              OR: [
-                {
-                  start_timestamp: {
-                    lte: endDate
-                  }
-                },
-                {
-                  status: 0
-                }
-              ]
-            },
-            {
-              medical_device: { deviceType: { name: { contains: keyword } } },
-              OR: [
-                {
-                  start_timestamp: {
-                    lte: endDate
-                  }
-                },
-                {
-                  status: 0
-                }
-              ]
-            },
-            {
-              medical_device: {
-                company: {
-                  area: {
-                    contains: keyword
-                  }
-                }
-              },
-              OR: [
-                {
-                  start_timestamp: {
-                    lte: endDate
-                  }
-                },
-                {
-                  status: 0
-                }
-              ]
-            },
-            {
-              auction_code: {
-                contains: keyword
-              },
-              OR: [
-                {
-                  start_timestamp: {
-                    lte: endDate
-                  }
-                },
-                {
-                  status: 0
-                }
-              ]
-            }
-          ],
         },
-        include: {
-          medical_device: {
-            include: {
-              department: true,
-              deviceType: true,
-              manufacturer: true,
-              company: true
-            }
-          }
-        },
-        orderBy: {
-          created_at: 'desc'
-        }
-      });
+        skip,
+        take: limit
+      }),
+      prisma.auctionItem.count({ where })
+    ]);
 
-      console.log('Search results:', items);
-      return NextResponse.json(convertBigIntToString(items));
-    }
+    return NextResponse.json({
+      items: convertBigIntToString(auctions),
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit)
+    });
   } catch (error) {
-    console.error('경매 상품 검색 중 오류:', error);
+    console.error('Error in auction search:', error);
     return NextResponse.json(
       { error: '경매 상품 검색 중 오류가 발생했습니다.' },
       { status: 500 }
