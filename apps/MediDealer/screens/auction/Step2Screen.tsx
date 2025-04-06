@@ -14,21 +14,21 @@ import SelectionModal from '../../components/auction/SelectionModal';
 import ImageUploader from '../../components/common/ImageUploader';
 import { deviceTypes } from '../../constants/data';
 
-const formatDate = (date) => {
+const formatDate = (date: any) => {
   if (!date) return '';
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-const Step2Screen = ({ formData, setFormData, errors }) => {
+const Step2Screen = ({ formData, setFormData, errors }: { formData: any, setFormData: any, errors: any }) => {
   const [showEquipmentModal, setShowEquipmentModal] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerDate, setDatePickerDate] = useState(new Date());
 
-  const onDateChange = (event, selectedDate) => {
+  const onDateChange = (event: any, selectedDate: any) => {
     setShowDatePicker(Platform.OS === 'ios');
     if (selectedDate) {
       setDatePickerDate(selectedDate);
-      setFormData(prev => ({ ...prev, transferDate: selectedDate }));
+      setFormData((prev: any) => ({ ...prev, transferDate: selectedDate }));
     }
   };
 
@@ -56,7 +56,7 @@ const Step2Screen = ({ formData, setFormData, errors }) => {
           placeholder="제조년도를 입력해주세요"
           keyboardType="number-pad"
           value={formData.manufacturingYear}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, manufacturingYear: text }))}
+          onChangeText={(text: any) => setFormData((prev: any) => ({ ...prev, manufacturingYear: text }))}
         />
         {errors.manufacturingYear && <Text style={styles.errorText}>{errors.manufacturingYear}</Text>}
       </View>
@@ -68,7 +68,7 @@ const Step2Screen = ({ formData, setFormData, errors }) => {
           placeholder="수량을 입력해주세요"
           keyboardType="number-pad"
           value={formData.quantity}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, quantity: text }))}
+          onChangeText={(text: any) => setFormData((prev: any) => ({ ...prev, quantity: text }))}
         />
         {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
       </View>
@@ -89,8 +89,8 @@ const Step2Screen = ({ formData, setFormData, errors }) => {
       <View style={styles.inputGroup}>
         <ImageUploader
           images={formData.images || []}
-          setImages={(images) => setFormData(prev => ({ ...prev, images }))}
-          onImagesChange={(images) => setFormData(prev => ({ ...prev, images }))}
+          setImages={(images: any) => setFormData((prev: any) => ({ ...prev, images }))}
+          onImagesChange={(images: any) => setFormData((prev: any) => ({ ...prev, images }))}
           maxImages={10}
           label="장비 사진 (최대 10장) *"
           error={errors.images}
@@ -100,8 +100,8 @@ const Step2Screen = ({ formData, setFormData, errors }) => {
       <SelectionModal
         visible={showEquipmentModal}
         onClose={() => setShowEquipmentModal(false)}
-        onSelect={(item) => {
-          setFormData(prev => ({ ...prev, equipmentType: item.id }));
+        onSelect={(item: any) => {
+          setFormData((prev: any) => ({ ...prev, equipmentType: item.id }));
         }}
         items={deviceTypes}
         title="장비 유형 선택"
@@ -144,7 +144,7 @@ const Step2Screen = ({ formData, setFormData, errors }) => {
                 <TouchableOpacity
                   style={[styles.modalButton, styles.modalButtonConfirm]}
                   onPress={() => {
-                    setFormData(prev => ({ ...prev, transferDate: datePickerDate }));
+                    setFormData((prev: any) => ({ ...prev, transferDate: datePickerDate }));
                     setShowDatePicker(false);
                   }}
                 >

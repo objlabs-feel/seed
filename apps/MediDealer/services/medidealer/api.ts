@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENDPOINTS } from './endpoint';
 import '../network';  // 인터셉터가 설정된 axios import
 import { IAuctionItem } from '@repo/shared';
-const API_URL = 'http://192.168.45.187:3000/api/v1'; // 개발용 API
+const API_URL = 'http://192.168.45.219:3000/api/v1'; // 개발용 API
 // const API_URL = 'http://192.168.219.5:3000/api/v1'; // 개발용 API
 // const API_URL = 'https://www.medidealer.co.kr/api/v1'; // 실제 API URL로 변경 필요
 // const API_URL = 'http://16.184.8.234:3000/api/v1'; // 테스트용 API
@@ -224,6 +224,18 @@ export const getMyProfile = async () => {
 
 export const deleteMyProfile = async () => {
   const response = await axios.delete(`${API_URL}${ENDPOINTS.USER}`);
+  return response.data;
+};
+
+// 의료기 등록 API
+export const setProduct = async (productData: any) => {
+  const response = await axios.post(`${API_URL}${ENDPOINTS.MY_DEVICES}`, productData);
+  return response.data;
+};
+
+// 의료기 수정 API
+export const updateProduct = async (id: string, productData: any) => {
+  const response = await axios.put(`${API_URL}${ENDPOINTS.MY_DEVICES}/${id}`, productData);
   return response.data;
 };
 

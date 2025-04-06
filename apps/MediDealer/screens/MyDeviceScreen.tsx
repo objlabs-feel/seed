@@ -459,7 +459,7 @@ const MyDeviceScreen = () => {
       <Text style={styles.emptyText}>등록된 의료기가 없습니다.</Text>
       <TouchableOpacity 
         style={styles.addDeviceButton}
-        onPress={() => navigation.navigate('AddDevice')}
+        onPress={() => navigation.navigate('AddProduct')}
       >
         <Text style={styles.addDeviceButtonText}>의료기 등록하기</Text>
       </TouchableOpacity>
@@ -596,6 +596,20 @@ const MyDeviceScreen = () => {
       </View>
     </Modal>
   );
+
+  // 네비게이션 헤더에 버튼 추가
+  useEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity 
+          style={styles.headerButton}
+          onPress={() => navigation.navigate('AddProduct')}
+        >
+          <Text style={styles.headerButtonText}>의료기 등록하기 (+)</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1039,6 +1053,21 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: '#6c757d',
     marginBottom: 0,
+  },
+  headerButton: {
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    marginRight: 10,
+    backgroundColor: '#007bff',
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerButtonText: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '600',
   },
 });
 

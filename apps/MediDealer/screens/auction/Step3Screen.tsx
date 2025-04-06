@@ -11,14 +11,14 @@ import { locations, departments, deviceTypes } from '../../constants/data';
 
 const { width } = Dimensions.get('window');
 
-const PreviewSection = ({ title, content }) => (
+const PreviewSection = ({ title, content }: { title: any, content: any }) => (
   <View style={styles.section}>
     <Text style={styles.sectionTitle}>{title}</Text>
     <Text style={styles.sectionContent}>{content}</Text>
   </View>
 );
 
-const Step3Screen = ({ formData }) => {
+const Step3Screen = ({ formData }: { formData: any }) => {
   const location = locations.find(item => item.id === formData.location)?.name || '';
   const department = departments.find(item => item.id === formData.department)?.name || '';
   const equipmentType = deviceTypes.find(item => item.id === formData.equipmentType)?.name || '';
@@ -33,7 +33,7 @@ const Step3Screen = ({ formData }) => {
         style={styles.imageSlider}
         contentContainerStyle={{ width: width }}
       >
-        {formData.images?.map((image, index) => (
+        {formData.images?.map((image: any, index: any) => (
           <Image
             key={index}
             source={{ uri: image.uri }}

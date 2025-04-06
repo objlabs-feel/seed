@@ -52,6 +52,8 @@ import MyConsultScreen from './screens/MyConsultScreen';
 import SettingNotificationScreen from './screens/SettingNotificationScreen';
 import SettingsScreen from './screens/SettingsScreen';
 import ProductDetailScreen from './screens/product/ProductDetailScreen';
+import AddProductScreen from './screens/product/AddProductScreen';
+import EditProductScreen from './screens/product/EditProductScreen';
 import ConsultFeatureScreen from './screens/consult/ConsultFeatureScreen';
 import ConsultClosureScreen from './screens/consult/ConsultClosureScreen';
 import ConsultOpeningScreen from './screens/consult/ConsultOpeningScreen';
@@ -109,6 +111,8 @@ type RootStackParamList = {
   ConsultOpening: undefined;
   ConsultRepair: undefined;
   ConsultInspector: undefined;
+  AddProduct: undefined;
+  EditProduct: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -419,6 +423,26 @@ const App = () => {
           options={{
             headerShown: true,
             title: '의료기기 상세',
+            headerBackTitle: '뒤로',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen 
+          name="AddProduct"
+          component={AddProductScreen}
+          options={{
+            headerShown: true,
+            title: '의료기 등록',
+            headerBackTitle: '뒤로',
+            gestureEnabled: true,
+          }}
+        />
+        <Stack.Screen 
+          name="EditProduct"
+          component={EditProductScreen}
+          options={{
+            headerShown: true,
+            title: '의료기 수정',
             headerBackTitle: '뒤로',
             gestureEnabled: true,
           }}

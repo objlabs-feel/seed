@@ -6,13 +6,6 @@ require_relative '../../../node_modules/@react-native-community/cli-platform-ios
 # SDK 경로 명시적 지정 (필요한 경우 경로 수정)
 # ENV['SDKROOT'] = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk'
 
-# 플리퍼 비활성화
-ENV['NO_FLIPPER'] = '1'
-
-# New Architecture 및 Hermes 비활성화
-ENV['RCT_NEW_ARCH_ENABLED'] = '0'
-ENV['USE_HERMES'] = '0'
-
 # C++ 표준 설정
 ENV['RCT_CXXFLAGS'] = '-std=c++20'
 

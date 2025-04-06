@@ -100,15 +100,32 @@ export async function POST(
     const tx = await prisma.$transaction([
       prisma.profile.update({
         where: { id: profile.id },
-        data: profile
+        data: {
+          name: profile.name,
+          email: profile.email,
+          mobile: profile.mobile
+        }
       }),
       prisma.company.update({
         where: { id: company.id },
-        data: company
+        data: {
+          name: company.name,
+          address: company.address,
+          address_detail: company.address_detail,
+          zipcode: company.zipcode,
+          business_no: company.business_no,
+          business_mobile: company.business_mobile,
+          secret_info: company.secret_info
+        }
       }),
       prisma.auctionItem.update({
         where: { id: auctionItem.id },
-        data: auctionItem
+        data: {
+          accept_id: auctionItem.accept_id,
+          status: auctionItem.status,
+          seller_steps: auctionItem.seller_steps,
+          buyer_steps: auctionItem.buyer_steps
+        }
       })
     ]);
 

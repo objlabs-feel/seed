@@ -151,8 +151,26 @@ const HomeScreen = () => {
   const initializePushNotifications = async (): Promise<NotificationCleanup | null> => {
     try {
       console.log('[HomeScreen] 알림 초기화 시작');
-      // FCM 권한 확인 (requestPermission 대신 hasPermission 사용)
+      
+      // FCM 권한 확인
       const authStatus = await messaging().hasPermission();
+      console.log(`[HomeScreen] 권한 상태: ${authStatus} (NOT_DETERMINED=${messaging.AuthorizationStatus.NOT_DETERMINED}, DENIED=${messaging.AuthorizationStatus.DENIED}, AUTHORIZED=${messaging.AuthorizationStatus.AUTHORIZED})`);
+      
+      // 사용자가 이전에 권한 요청을 본 적이 있는지 확인
+      const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
+      console.log(`[HomeScreen] 이전에 권한 요청을 보여줬는지 여부: ${hasShownNotificationRequest}`);
+      
+      // 권한이 결정되지 않은 상태이거나, 
+      // Android에서 DENIED 상태이지만 아직 한 번도 권한 요청을 본 적이 없는 경우
+      // (Android에서는 초기 상태가 NOT_DETERMINED가 아닌 DENIED임)
+      if (authStatus === messaging.AuthorizationStatus.NOT_DETERMINED || 
+          (authStatus === messaging.AuthorizationStatus.DENIED && hasShownNotificationRequest !== 'true')) {
+        console.log('[HomeScreen] 권한 요청이 필요한 상태입니다. RequestNotification 화면으로 이동합니다.');
+        navigation.navigate('RequestNotification');
+        return null;
+      }
+      
+      // 기존 로직 계속 진행
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
         authStatus === messaging.AuthorizationStatus.PROVISIONAL;
@@ -275,56 +293,13 @@ const HomeScreen = () => {
         };
       } else {
         console.log('[HomeScreen] 알림 권한 없음');
-        // 권한이 없는 경우에만 알림 요청 화면으로 이동
-        checkNotificationStatus();
+        // 권한이 없는 경우에는 NotificationScreen으로 이동하지 않음
+        // 이미 거부된 경우 사용자 경험을 위해 알림 화면을 다시 보여주지 않음
         return null;
       }
     } catch (error) {
       console.error('[HomeScreen] 알림 초기화 오류:', error);
-      // 오류 발생 시 알림 요청 화면으로 이동
-      checkNotificationStatus();
       return null;
-    }
-  };
-
-  const checkNotificationStatus = async () => {
-    try {
-      console.log('[HomeScreen] 알림 권한 상태 확인 시작');
-      
-      // 현재 권한 상태 확인
-      const authStatus = await messaging().hasPermission();
-      const enabled = 
-        authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-        authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-      
-      console.log('[HomeScreen] 현재 권한 상태:', enabled ? '허용됨' : '거부됨', authStatus);
-      
-      // AsyncStorage에서 알림 요청을 이미 보여줬는지 확인
-      const hasShownNotificationRequest = await AsyncStorage.getItem('hasShownNotificationRequest');
-      
-      // 권한이 없을 때만 RequestNotification 화면으로 이동
-      if (!enabled) {
-        // 이미 거부됨 상태인지 확인
-        if (authStatus === messaging.AuthorizationStatus.DENIED) {
-          console.log('[HomeScreen] 알림 권한이 명시적으로 거부됨');
-          
-          // 이전에 요청을 보여줬는지에 따라 다른 행동
-          if (hasShownNotificationRequest === 'true') {
-            console.log('[HomeScreen] 이미 알림 요청을 보여줬으므로 무시');
-            return;
-          }
-        }
-        
-        console.log('[HomeScreen] RequestNotification 화면으로 이동');
-        navigation.navigate('RequestNotification');
-        
-        // 요청을 보여줬다고 표시
-        await AsyncStorage.setItem('hasShownNotificationRequest', 'true');
-      } else {
-        console.log('[HomeScreen] 이미 알림 권한이 허용되어 있습니다.');
-      }
-    } catch (error) {
-      console.error('[HomeScreen] 알림 상태 확인 오류:', error);
     }
   };
 

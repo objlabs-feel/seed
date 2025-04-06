@@ -248,20 +248,11 @@ const ProductDetailScreen = () => {
   // 장비 정보 업데이트 함수 (수정 버튼에서 사용)
   const updateDeviceInfo = async () => {
     try {
-      // 추후 구현: 장비 수정 API 호출
-
-      // 데이터 변경 플래그 설정
-      setHasDataChanged(true);
-      
-      // 임시 알림 (실제 구현 시 삭제)
-      Alert.alert(
-        '준비 중',
-        '장비 수정 기능은 현재 개발 중입니다. 이후 버전에서 지원될 예정입니다.',
-        [{ text: '확인', style: 'default' }]
-      );
+      // 수정 화면으로 이동
+      navigation.navigate('EditProduct', { id: id });
     } catch (error) {
       console.error('장비 정보 업데이트 오류:', error);
-      Alert.alert('오류', '장비 정보를 업데이트하는데 실패했습니다.');
+      Alert.alert('오류', '장비 정보 업데이트에 실패했습니다.');
     }
   };
 

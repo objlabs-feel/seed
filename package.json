@@ -10,7 +10,10 @@
     "ios": "cd apps/MediDealer && npx react-native run-ios",
     "web": "cd apps/web && npm run dev",
     "release-android": "cd apps/MediDealer && npx react-native run-android --mode=release",
-    "release-ios": "cd apps/MediDealer && npx react-native run-ios --configuration Release"
+    "release-ios": "cd apps/MediDealer && npx react-native run-ios --configuration Release",
+    "version:patch": "node scripts/version-bump.js patch",
+    "version:minor": "node scripts/version-bump.js minor",
+    "version:major": "node scripts/version-bump.js major"
   },
   "devDependencies": {
     "dotenv-cli": "^8.0.0",

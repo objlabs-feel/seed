@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Switch, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Linking, Platform, Modal } from 'react-native';
 import { getNotification, updateNotification, setNotification } from '../services/medidealer/api';
 import messaging from '@react-native-firebase/messaging';
@@ -10,6 +10,7 @@ import { INotificationInfo } from '@repo/shared';
 import { deviceTypes, initConstants } from '../constants/data';
 import { getAllTopics, createNotificationSet } from '../utils/notification';
 import { subscribeToAllTopics, updateTopicSubscriptions } from '../services/notification';
+import Icon from 'react-native-vector-icons/Ionicons';
 
 interface NotificationSettings {
   permission_status: number;
@@ -39,6 +40,10 @@ const SettingNotificationScreen = () => {
   const [showTopicModal, setShowTopicModal] = useState(false);
   const [tempTopics, setTempTopics] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  // useState 대신 useRef 사용 - 즉시 값 변경 가능
+  const hasDeclinedPermissionRef = useRef<boolean>(false);
+  // 네비게이션 진행 중인지 추적하는 ref 추가
+  const isNavigatingRef = useRef<boolean>(false);
 
   useEffect(() => {
     // 첫 렌더링 시 권한 상태 확인 및 상수 데이터 초기화
@@ -48,13 +53,9 @@ const SettingNotificationScreen = () => {
   // 화면이 포커스될 때마다 실행
   useEffect(() => {
     if (isFocused) {
-      const now = Date.now();
-      // 마지막 포커스 시간과 현재 시간의 차이가 500ms 이상인 경우에만 실행 (중복 호출 방지)
-      if (now - lastFocusTime > 500) {
-        console.log('[SettingNotificationScreen] 화면 포커스 감지, 권한 상태 다시 확인');
-        setLastFocusTime(now);
-        checkDevicePermissionStatus();
-      }
+      console.log('[SettingNotificationScreen] 화면 포커스 감지, 권한 상태 확인');
+      // 바로 권한 상태 확인 실행
+      checkDevicePermissionStatus();
     }
   }, [isFocused]);
 
@@ -373,6 +374,9 @@ const SettingNotificationScreen = () => {
     try {
       console.log('[SettingNotificationScreen] 기기 알림 권한 상태 확인 시작');
       
+      // 먼저 로딩 상태 해제 - 권한 확인은 빠르게 진행되므로 로딩 화면 불필요
+      setLoading(false);
+      
       const authStatus = await messaging().hasPermission();
       const enabled =
         authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -381,119 +385,17 @@ const SettingNotificationScreen = () => {
       console.log('[SettingNotificationScreen] 현재 권한 상태:', enabled ? '허용됨' : '거부됨', authStatus);
       setDevicePermissionEnabled(enabled);
       
-      // 권한이 없는 경우 알림 허용 요청
-      if (!enabled) {
-        console.log('[SettingNotificationScreen] 권한 없음, 팝업 표시');
-        showPermissionRequest(authStatus);
-      } else {
-        // 권한이 있는 경우 설정 로드
+      // 권한이 있는 경우에만 알림 설정 로드
+      if (enabled) {
         console.log('[SettingNotificationScreen] 권한 있음, 설정 로드');
         fetchNotificationSettings();
       }
+      // 권한이 없는 경우에는 아무 작업도 수행하지 않음 - UI에서 버튼을 표시
       
-      // 서버 값이 로드된 후에 실행되어야 하므로 settings가 없으면 업데이트하지 않음
-      if (settings && ((enabled && settings.permission_status === 0) || 
-          (!enabled && settings.permission_status === 1))) {
-        console.log('[SettingNotificationScreen] 서버 상태와 실제 권한 상태 불일치, 업데이트 필요');
-        const updatedSettings: NotificationSettings = { 
-          ...settings, 
-          permission_status: enabled ? 1 : 0 
-        };
-        setSettings(updatedSettings);
-        
-        // 서버에 업데이트
-        await updateNotification({
-          ...updatedSettings,
-          device_type: getDeviceType(),
-          device_os: getOSVersion(),
-        });
-        console.log('[SettingNotificationScreen] 서버 업데이트 완료');
-      }
     } catch (err) {
       console.error('[SettingNotificationScreen] 알림 권한 확인 오류:', err);
-    }
-  };
-
-  // 알림 권한 요청 다이얼로그 표시
-  const showPermissionRequest = (authStatus: number) => {
-    console.log('[SettingNotificationScreen] 권한 요청 팝업 표시, 상태:', authStatus);
-    
-    // iOS와 Android에서 권한 요청 방식 차이 고려
-    if (Platform.OS === 'ios') {
-      // iOS의 경우 DENIED와 NOT_DETERMINED를 구분하여 처리
-      if (authStatus === messaging.AuthorizationStatus.DENIED) {
-        // 이미 명시적으로 거부된 경우 설정 앱으로 이동
-        Alert.alert(
-          '알림 권한 필요',
-          '알림 설정을 관리하려면 알림 권한이 필요합니다. 설정 앱에서 권한을 허용해주세요.',
-          [
-            {
-              text: '취소',
-              style: 'cancel',
-              onPress: () => navigation.goBack()
-            },
-            {
-              text: '설정으로 이동',
-              onPress: () => {
-                console.log('[SettingNotificationScreen] 설정 앱으로 이동');
-                Linking.openSettings();
-              }
-            }
-          ]
-        );
-      } else {
-        // iOS에서는 권한이 NOT_DETERMINED 상태이거나 다른 상태일 때도 RequestNotification 화면으로 이동
-        // iOS는 두 번째 requestPermission()이 시스템 권한 팝업을 표시하지 않기 때문
-        console.log('[SettingNotificationScreen] iOS 권한 요청을 위해 RequestNotification 화면으로 이동');
-        navigation.navigate('RequestNotification' as never);
-      }
-    } else {
-      // Android의 경우
-      if (authStatus === messaging.AuthorizationStatus.DENIED) {
-        // 이미 거부된 경우 설정으로 이동
-        Alert.alert(
-          '알림 권한 필요',
-          '알림 설정을 관리하려면 알림 권한이 필요합니다. 설정 앱에서 권한을 허용해주세요.',
-          [
-            {
-              text: '취소',
-              style: 'cancel',
-              onPress: () => navigation.goBack()
-            },
-            {
-              text: '설정으로 이동',
-              onPress: () => {
-                console.log('[SettingNotificationScreen] 설정 앱으로 이동');
-                Linking.openSettings();
-              }
-            }
-          ]
-        );
-      } else if (authStatus === messaging.AuthorizationStatus.NOT_DETERMINED) {
-        // 아직 결정되지 않은 경우 - RequestNotification 화면으로 이동
-        console.log('[SettingNotificationScreen] 권한 아직 결정되지 않음, RequestNotification 화면으로 이동');
-        navigation.navigate('RequestNotification' as never);
-      } else {
-        // 그 외 상태 - 일반 권한 요청 다이얼로그 표시
-        Alert.alert(
-          '알림 권한 필요',
-          '알림 설정을 관리하려면 알림 권한이 필요합니다. 알림을 허용하시겠습니까?',
-          [
-            {
-              text: '취소',
-              style: 'cancel',
-              onPress: () => navigation.goBack()
-            },
-            {
-              text: '허용하기',
-              onPress: () => {
-                console.log('[SettingNotificationScreen] RequestNotification 화면으로 이동');
-                navigation.navigate('RequestNotification' as never);
-              }
-            }
-          ]
-        );
-      }
+      // 오류 발생 시에도 로딩 상태 해제
+      setLoading(false);
     }
   };
 
@@ -593,19 +495,14 @@ const SettingNotificationScreen = () => {
     return (
       <View style={styles.centerContainer}>
         <Text style={styles.infoText}>알림 설정을 사용하려면 알림 권한이 필요합니다.</Text>
-        <TouchableOpacity 
-          style={styles.setupButton} 
-          onPress={isNewUser ? initializeNotificationSettings : () => navigation.navigate('RequestNotification' as never)}
+        
+        {/* 기기 설정으로 이동하는 버튼만 표시 */}
+        <TouchableOpacity
+          style={styles.settingsButton}
+          onPress={() => Linking.openSettings()}
         >
-          <Text style={styles.setupButtonText}>
-            {isNewUser ? '알림 설정 초기화하기' : '알림 권한 허용하기'}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity 
-          style={styles.cancelButton} 
-          onPress={() => navigation.goBack()}
-        >
-          <Text style={styles.cancelButtonText}>뒤로 가기</Text>
+          <Icon name="settings-outline" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+          <Text style={styles.settingsButtonText}>기기 설정에서 알림 허용하기</Text>
         </TouchableOpacity>
       </View>
     );
@@ -1137,6 +1034,67 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 16,
     fontWeight: '500',
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#212529',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  description: {
+    fontSize: 14,
+    color: '#6c757d',
+    textAlign: 'center',
+  },
+  settingsButton: {
+    backgroundColor: '#28a745',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 14,
+    borderRadius: 10,
+    width: '100%',
+    marginBottom: 8,
+  },
+  settingsButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  buttonContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginTop: 32,
+  },
+  button: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: '#007bff',
+    alignItems: 'center',
+  },
+  buttonIcon: {
+    marginRight: 8,
+  },
+  buttonText: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  hospitalButton: {
+    backgroundColor: '#28a745',
+  },
+  dealerButton: {
+    backgroundColor: '#dc3545',
+  },
+  content: {
+    flex: 1,
+    padding: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

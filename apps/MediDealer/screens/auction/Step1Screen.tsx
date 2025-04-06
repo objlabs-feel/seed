@@ -4,7 +4,7 @@ import { TextInput } from 'react-native-gesture-handler';
 import SelectionModal from '../../components/auction/SelectionModal';
 import { departments, locations } from '../../constants/data';
 
-const Step1Screen = ({ formData, setFormData, errors }) => {
+const Step1Screen = ({ formData, setFormData, errors }: { formData: any, setFormData: any, errors: any }) => {
   const [showLocationModal, setShowLocationModal] = useState(false);
   const [showDepartmentModal, setShowDepartmentModal] = useState(false);
 
@@ -31,7 +31,7 @@ const Step1Screen = ({ formData, setFormData, errors }) => {
           style={[styles.input, errors.hospitalName && styles.inputError]}
           placeholder="병원명을 입력해주세요"
           value={formData.hospitalName}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, hospitalName: text }))}
+          onChangeText={(text: any) => setFormData((prev: any) => ({ ...prev, hospitalName: text }))}
         />
         {errors.hospitalName && <Text style={styles.errorText}>{errors.hospitalName}</Text>}
       </View>
@@ -42,7 +42,7 @@ const Step1Screen = ({ formData, setFormData, errors }) => {
           style={[styles.input, errors.name && styles.inputError]}
           placeholder="성함을 입력해주세요"
           value={formData.name}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, name: text }))}
+          onChangeText={(text: any) => setFormData((prev: any) => ({ ...prev, name: text }))}
         />
         {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
       </View>
@@ -54,7 +54,7 @@ const Step1Screen = ({ formData, setFormData, errors }) => {
           placeholder="휴대폰 번호를 입력해주세요"
           keyboardType="phone-pad"
           value={formData.phone}
-          onChangeText={(text) => setFormData(prev => ({ ...prev, phone: text }))}
+          onChangeText={(text: any) => setFormData((prev: any) => ({ ...prev, phone: text }))}
         />
         {errors.phone && <Text style={styles.errorText}>{errors.phone}</Text>}
       </View>
@@ -77,8 +77,8 @@ const Step1Screen = ({ formData, setFormData, errors }) => {
       <SelectionModal
         visible={showLocationModal}
         onClose={() => setShowLocationModal(false)}
-        onSelect={(item) => {
-          setFormData(prev => ({ ...prev, location: item.id }));
+        onSelect={(item: any) => {
+          setFormData((prev: any) => ({ ...prev, location: item.id }));
         }}
         items={locations}
         title="지역 선택"
@@ -87,8 +87,8 @@ const Step1Screen = ({ formData, setFormData, errors }) => {
       <SelectionModal
         visible={showDepartmentModal}
         onClose={() => setShowDepartmentModal(false)}
-        onSelect={(item) => {
-          setFormData(prev => ({ ...prev, department: item.id }));
+        onSelect={(item: any) => {
+          setFormData((prev: any) => ({ ...prev, department: item.id }));
         }}
         items={departments}
         title="진료과 선택"
