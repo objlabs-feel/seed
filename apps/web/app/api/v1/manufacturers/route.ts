@@ -32,23 +32,23 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
   }
 });
 
-export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
-  try {
-    const data: CreateManufacturerRequestDto = await request.json();
-    const manufacturer = await manufacturerService.create(data);
-    const manufacturerDto = toManufacturerResponseDto(manufacturer);
+// export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
+//   try {
+//     const data: CreateManufacturerRequestDto = await request.json();
+//     const manufacturer = await manufacturerService.create(data);
+//     const manufacturerDto = toManufacturerResponseDto(manufacturer);
 
-    return {
-      success: true,
-      data: manufacturerDto,
-      message: '제조사를 성공적으로 등록했습니다.',
-      meta: {
-        timestamp: Date.now(),
-        path: request.url,
-      }
-    };
-  } catch (error) {
-    console.error('제조사 등록 중 오류:', error);
-    throw createSystemError('INTERNAL_ERROR', 'Failed to create manufacturer');
-  }
-});
+//     return {
+//       success: true,
+//       data: manufacturerDto,
+//       message: '제조사를 성공적으로 등록했습니다.',
+//       meta: {
+//         timestamp: Date.now(),
+//         path: request.url,
+//       }
+//     };
+//   } catch (error) {
+//     console.error('제조사 등록 중 오류:', error);
+//     throw createSystemError('INTERNAL_ERROR', 'Failed to create manufacturer');
+//   }
+// });

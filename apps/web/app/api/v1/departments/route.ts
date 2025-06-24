@@ -16,8 +16,14 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
   if ('error' in authResult) {
     return {
       success: false,
-      error: authResult.error,
-      status: authResult.status,
+      error: {
+        code: 'UNAUTHORIZED',
+        message: authResult.error || 'Unauthorized',
+      },
+      meta: {
+        timestamp: Date.now(),
+        path: request.url,
+      },
     };
   }
 

@@ -5,19 +5,16 @@ import { createValidationError, createSystemError, createAuthError } from '@/lib
 import type { ApiResponse } from '@/types/api';
 import { jwtVerify } from 'jose';
 import { convertBigIntToString } from '@/libs/utils';
+import { authenticateUser } from '@/libs/auth';
 
 export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
-  const { body } = await parseApiRequest<{ token: string }>(request);
-  const { token } = body;
-
-  if (!token) {
-    throw createValidationError('MISSING_REQUIRED', 'Token is required');
-  }
+  const authHeader = request.headers.get('Authorization');
+  const token = authHeader?.replace('Bearer ', '');
 
   try {
     // JWT 토큰 검증
     const { payload } = await jwtVerify(
-      token,
+      token || '',
       new TextEncoder().encode(process.env.USER_JWT_SECRET)
     );
 
