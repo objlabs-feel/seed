@@ -343,7 +343,7 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
     const saleItemsWithSalesType = data as (typeof data[0] & { salesType: any })[];
 
     // Item ID들을 수집하여 배치 조회
-    const serviceNames = [...new Set(saleItemsWithSalesType.map(item => item.salesType?.service_name).filter(Boolean))];
+    const serviceNames = Array.from(new Set(saleItemsWithSalesType.map(item => item.salesType?.service_name).filter(Boolean)));
 
     // 각 서비스별로 배치 조회
     const itemsMap = new Map();
@@ -403,7 +403,7 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
     const saleItemsWithSalesType = data as (typeof data[0] & { salesType: any })[];
 
     // Item ID들을 수집하여 배치 조회
-    const serviceNames = [...new Set(saleItemsWithSalesType.map(item => item.salesType?.service_name).filter(Boolean))];
+    const serviceNames = Array.from(new Set(saleItemsWithSalesType.map(item => item.salesType?.service_name).filter(Boolean)));
 
     // 각 서비스별로 배치 조회
     const itemsMap = new Map();

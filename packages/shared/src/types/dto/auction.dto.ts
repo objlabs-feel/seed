@@ -72,6 +72,7 @@ export interface AuctionItemResponseDto extends BaseResponseDto {
     description?: string | null;
     company?: {
       id: string;
+      name?: string | null;
       area?: string | null;
       owner_id?: string | null;
     };

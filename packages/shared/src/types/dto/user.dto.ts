@@ -38,7 +38,7 @@ export interface UserResponseDto extends BaseResponseDto {
  * 사용자 목록 DTO
  */
 export interface UserListDto extends BaseDto {
-  id: number;
+  id: string;
   device_token: string | null;
   profile_id?: string | null;
   status: number;
@@ -87,7 +87,7 @@ export interface ProfileResponseDto extends BaseResponseDto {
  * 프로필 목록 DTO
  */
 export interface ProfileListDto extends BaseDto {
-  id: number;
+  id: string;
   company_id?: string | null;
   profile_type?: number | null;
   name?: string | null;
@@ -96,7 +96,7 @@ export interface ProfileListDto extends BaseDto {
   status: number;
   created_at: string | null;
   updated_at: string | null;
-  user_id: number;
+  user_id: string;
   company?: CompanyResponseDto | null;
 }
 

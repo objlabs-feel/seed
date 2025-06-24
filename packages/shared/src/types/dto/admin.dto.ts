@@ -41,7 +41,7 @@ export interface AdminResponseDto extends BaseResponseDto {
  * 관리자 목록 응답 DTO (비밀번호 제외)
  */
 export interface AdminListDto extends BaseDto {
-  id: number;
+  id: string;
   username: string;
   level: number;
 }

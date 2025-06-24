@@ -4,7 +4,7 @@ import type {
   AdminListDto,
   AdminLoginResponseDto
 } from '../types/dto';
-import { transformBaseFields, omitSensitiveFields, dateToString } from './common.transformer';
+import { transformBaseFields, omitSensitiveFields, dateToString, bigintToString } from './common.transformer';
 
 /**
  * Admin 모델을 AdminResponseDto로 변환 (비밀번호 제외)
@@ -25,7 +25,7 @@ export function toAdminResponseDto(admin: Admin): AdminResponseDto {
  */
 export function toAdminListDto(admin: Admin): AdminListDto {
   return {
-    id: Number(admin.id),
+    id: bigintToString(admin.id)!,
     username: admin.username,
     level: admin.level,
     created_at: dateToString(admin.created_at),

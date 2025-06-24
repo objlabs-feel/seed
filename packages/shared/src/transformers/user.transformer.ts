@@ -40,6 +40,8 @@ export function toProfileListDto(profile: Profile): ProfileListDto {
     status: profile.status ?? 1,
     created_at: dateToString(profile.created_at),
     updated_at: dateToString(profile.updated_at),
+    user_id: bigintToString(profile.user?.id) || '',
+    company: profile.company ? toCompanyResponseDto(profile.company) : null,
   };
 }
 
@@ -69,6 +71,8 @@ export function toUserListDto(user: User): UserListDto {
     status: user.status ?? 1,
     created_at: dateToString(user.created_at),
     updated_at: dateToString(user.updated_at),
+    email: user.profile?.email || '',
+    profile: user.profile ? toProfileListDto(user.profile) : null,
   };
 }
 
