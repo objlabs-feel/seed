@@ -10,7 +10,8 @@ import { INotificationInfo } from '@repo/shared';
 import { deviceTypes, initConstants } from '../constants/data';
 import { getAllTopics, createNotificationSet } from '../utils/notification';
 import { subscribeToAllTopics, updateTopicSubscriptions } from '../services/notification';
-import Icon from 'react-native-vector-icons/Ionicons';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 interface NotificationSettings {
   permission_status: number;
@@ -48,7 +49,19 @@ const SettingNotificationScreen = () => {
   useEffect(() => {
     // 첫 렌더링 시 권한 상태 확인 및 상수 데이터 초기화
     checkDevicePermissionStatus();
-  }, []);
+    
+    // 네비게이션 헤더 설정
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <AntDesign name="notification" size={20} color="#333" style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>알림설정</Text>
+        </View>
+      ),
+      headerLeft: () => null,
+      headerRight: () => null,
+    });
+  }, [navigation]);
 
   // 화면이 포커스될 때마다 실행
   useEffect(() => {
@@ -501,7 +514,7 @@ const SettingNotificationScreen = () => {
           style={styles.settingsButton}
           onPress={() => Linking.openSettings()}
         >
-          <Icon name="settings-outline" size={20} color="#FFFFFF" style={styles.buttonIcon} />
+          <AntDesign name="settings" size={20} color="#FFFFFF" style={styles.buttonIcon} />
           <Text style={styles.settingsButtonText}>기기 설정에서 알림 허용하기</Text>
         </TouchableOpacity>
       </View>
@@ -1095,6 +1108,16 @@ const styles = StyleSheet.create({
     padding: 24,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  headerIconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  headerIconText: {
+    marginLeft: 8,
+    fontSize: 16,
+    fontWeight: '500',
   },
 });
 

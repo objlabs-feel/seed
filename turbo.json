@@ -5,7 +5,13 @@
     "build": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "apps/MediDealer/android/build/**", "apps/MediDealer/ios/build/**"]
+      "outputs": [
+        ".next/**", 
+        "!.next/cache/**", 
+        "apps/MediDealer/android/build/**", 
+        "apps/MediDealer/ios/build/**",
+        "packages/*/dist/**"
+      ]
     },
     "lint": {
       "dependsOn": ["^lint"]

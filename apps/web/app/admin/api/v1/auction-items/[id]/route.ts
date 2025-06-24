@@ -1,69 +1,76 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
-import { convertBigIntToString } from '@/lib/utils';
+import {
+  getServiceManager,
+  auctionItemService
+} from '@repo/shared/services';
+import { convertBigIntToString } from '@/libs/utils';
+
+// 개별 조회
+export async function GET(
+  request: Request,
+  { params }: { params: { id: string } },
+) {
+  try {
+    const auctionItem = await auctionItemService().findById(params.id);
+
+    if (!auctionItem) {
+      return NextResponse.json(
+        { error: '존재하지 않는 경매 상품입니다.' },
+        { status: 404 },
+      );
+    }
+    return NextResponse.json(convertBigIntToString(auctionItem));
+  } catch (error) {
+    console.error('경매 상품 조회 중 오류:', error);
+    return NextResponse.json(
+      { error: '경매 상품 조회 중 오류가 발생했습니다.' },
+      { status: 500 },
+    );
+  }
+}
 
 // 경매 상품 수정
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const id = parseInt(params.id);
-    const body = await request.json();
+    const id = BigInt(params.id);
+    const body: {
+      device?: UpdateUsedDeviceRequestDto;
+      auction?: UpdateAuctionItemRequestDto;
+    } = await request.json();
 
-    const {
-      medicalDevice: deviceData,
-      auctionCode,
-      status,
-      startTimestamp,
-      expiredCount
-    } = body;
+    const prisma = getServiceManager().getPrismaClient();
 
-    // 트랜잭션으로 medical_device와 auction_item 동시 수정
-    const result = await prisma.$transaction(async (tx) => {
-      // 1. auction_item 조회
+    const result = await prisma.$transaction(async (tx: any) => {
       const auctionItem = await tx.auctionItem.findUnique({
         where: { id },
-        include: {
-          medical_device: true
-        }
       });
 
       if (!auctionItem) {
         throw new Error('존재하지 않는 경매 상품입니다.');
       }
 
-      // 2. medical_device 수정
-      if (deviceData) {
-        await tx.medicalDevice.update({
-          where: { id: auctionItem.medical_device.id },
-          data: {
-            company_id: deviceData.company_id,
-            department: deviceData.department,
-            device_type: deviceData.device_type,
-            manufacturer_id: deviceData.manufacturer_id,
-            manufacture_date: deviceData.manufacture_date,
-            images: deviceData.images,
-            description: deviceData.description
-          }
+      if (body.device) {
+        await tx.usedDevice.update({
+          where: { id: auctionItem.device_id },
+          data: body.device,
         });
       }
 
-      // 3. auction_item 수정
-      const updatedAuctionItem = await tx.auctionItem.update({
-        where: { id },
-        data: {
-          auction_code: auctionCode,
-          status,
-          start_timestamp: startTimestamp,
-          expired_count: expiredCount
-        },
-        include: {
-          medical_device: true
-        }
-      });
+      if (body.auction) {
+        const updatedAuctionItem = await tx.auctionItem.update({
+          where: { id },
+          data: body.auction,
+          include: {
+            device: true,
+          },
+        });
+        return updatedAuctionItem;
+      }
 
-      return updatedAuctionItem;
+      return auctionItem;
     });
 
     return NextResponse.json(convertBigIntToString(result));
@@ -71,40 +78,24 @@ export async function PUT(
     console.error('경매 상품 수정 중 오류:', error);
     return NextResponse.json(
       { error: '경매 상품 수정 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
 
-// GET 메서드 추가
-export async function GET(
+// 경매 상품 삭제
+export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
-    const id = parseInt(params.id);
-
-    const auctionItem = await prisma.auctionItem.findUnique({
-      where: { id },
-      include: {
-        medical_device: true,
-        auction_item_history: true
-      }
-    });
-
-    if (!auctionItem) {
-      return NextResponse.json(
-        { error: '존재하지 않는 경매 상품입니다.' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(convertBigIntToString(auctionItem));
+    await auctionItemService().delete(params.id);
+    return NextResponse.json({ message: 'Auction item deleted successfully' });
   } catch (error) {
-    console.error('경매 상품 조회 중 오류:', error);
+    console.error('경매 상품 삭제 중 오류:', error);
     return NextResponse.json(
-      { error: '경매 상품 조회 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { error: '경매 상품 삭제 중 오류가 발생했습니다.' },
+      { status: 500 },
     );
   }
 }

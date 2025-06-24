@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
+import { auctionItemService } from '@repo/shared/services';
 
 export async function GET(request: Request) {
   try {
@@ -9,13 +9,11 @@ export async function GET(request: Request) {
     const startOfDay = new Date(date + 'T00:00:00Z');
     const endOfDay = new Date(date + 'T23:59:59Z');
 
-    const count = await prisma.auctionItem.count({
-      where: {
-        created_at: {
-          gte: startOfDay,
-          lte: endOfDay
-        }
-      }
+    const count = await auctionItemService().count({
+      created_at: {
+        gte: startOfDay,
+        lte: endOfDay,
+      },
     });
 
     return NextResponse.json({ count });
@@ -23,7 +21,7 @@ export async function GET(request: Request) {
     console.error('경매 건수 조회 중 오류:', error);
     return NextResponse.json(
       { error: '경매 건수 조회 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

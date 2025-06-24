@@ -19,7 +19,7 @@ import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { bidAuction, getAuctionDetail, getAuctionHistory } from '../services/medidealer/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { IAuctionItem, IAuctionHistory } from '@repo/shared/models';
+import { AuctionItemResponseDto, AuctionItemHistoryResponseDto } from '@repo/shared';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { processImageUrl, createImageSource } from '../utils/imageHelper';
@@ -64,11 +64,11 @@ const PreviewSection = ({ title, content }: { title: string, content: string }) 
 
 const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) => {
   const [isLoading, setIsLoading] = useState(true);
-  const [auctionItem, setAuctionItem] = useState<IAuctionItem | null>(null);
+  const [auctionItem, setAuctionItem] = useState<AuctionItemResponseDto | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { id } = route.params;
   const [highestBid, setHighestBid] = useState(0);
-  const [auctionHistory, setAuctionHistory] = useState<IAuctionHistory[]>([]);
+  const [auctionHistory, setAuctionHistory] = useState<AuctionItemHistoryResponseDto[]>([]);
   const [isBidModalVisible, setIsBidModalVisible] = useState(false);
   const [bidAmount, setBidAmount] = useState('');
   const [canAccept, setCanAccept] = useState(false);
@@ -155,9 +155,9 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
     const fetchAuctionItem = async () => {
       try {
         const data = await getAuctionDetail(id as string);
-        console.log('Auction detail data:', data);  // 데이터 구조 확인
-        setAuctionItem(data);
-        setAuctionHistory(data.auction_item_history);
+        console.log('Auction detail data:', data.data.item);  // 데이터 구조 확인
+        setAuctionItem(data.data.item);
+        setAuctionHistory(data.data.item.auction_item_history);
         // updateHighestBid();
       } catch (error) {
         console.error('경매 상세 정보 로딩 중 오류:', error);
@@ -187,7 +187,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
       const history = auctionHistory;
       if (history && history.length > 0) {
         // 입찰 기록을 금액 기준으로 정렬하고 최고가 반환
-        const highestBid = Math.max(...history.map(bid => bid.value));
+        const highestBid = Math.max(...history.map(bid => bid.value || 0));
         setHighestBid(highestBid);
       }
     } catch (error) {
@@ -198,7 +198,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      title: auctionItem?.medical_device?.deviceType?.name || '상세 정보',
+      title: auctionItem?.device?.deviceType?.name || '상세 정보',
       headerBackTitle: '뒤로',
       headerTitleAlign: 'center',
     });
@@ -212,7 +212,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
     );
   }
 
-  if (!auctionItem?.medical_device) {
+  if (!auctionItem?.device) {
     return (
       <View style={styles.errorContainer}>
         <Text>경매 정보를 불러올 수 없습니다.</Text>
@@ -220,18 +220,18 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
     );
   }
 
-  const { medical_device } = auctionItem;
+  const { device } = auctionItem;
 
   // 이미지 배열 생성
-  const deviceImages: DeviceImage[] = medical_device.images && medical_device.images.length > 0
-    ? medical_device.images.map((img, index) => ({
+  const deviceImages: DeviceImage[] = device.images && device.images.length > 0
+    ? device.images.map((img, index) => ({
         url: img.url,
         id: index,
         originalUrl: img.url
       }))
     : [{ url: null, id: 0 }];
 
-  const isOwner = currentUserId === auctionItem?.medical_device.company.owner_id;
+  const isOwner = currentUserId === auctionItem?.device.company.owner_id;
 //   const isOwner = true;
 
   // 이미지 슬라이더 렌더링 함수
@@ -398,7 +398,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           </View>
           
           <Text style={styles.deviceModel}>
-            판매자 정보: {auctionItem.medical_device.company.area}
+            판매자 정보: {auctionItem.device.company.area}
           </Text>
           
           <View style={styles.divider} />
@@ -409,19 +409,19 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           <View style={styles.specContainer}>
             <View style={styles.specItem}>
               <Text style={styles.specLabel}>장비 유형</Text>
-              <Text style={styles.specValue}>{medical_device.deviceType?.name || '정보 없음'}</Text>
+              <Text style={styles.specValue}>{device.deviceType?.name || '정보 없음'}</Text>
             </View>
             <View style={styles.specItem}>
               <Text style={styles.specLabel}>진료과</Text>
-              <Text style={styles.specValue}>{medical_device.department?.name || '정보 없음'}</Text>
+              <Text style={styles.specValue}>{device.department?.name || '정보 없음'}</Text>
             </View>
             <View style={styles.specItem}>
               <Text style={styles.specLabel}>제조사</Text>
-              <Text style={styles.specValue}>{medical_device.manufacturer?.name || '정보 없음'}</Text>
+              <Text style={styles.specValue}>{device.manufacturer?.name || '정보 없음'}</Text>
             </View>
             <View style={styles.specItem}>
               <Text style={styles.specLabel}>제조연도</Text>
-              <Text style={styles.specValue}>{medical_device.manufacture_year ? `${medical_device.manufacture_year}년` : '정보 없음'}</Text>
+              <Text style={styles.specValue}>{device.manufacture_date ? `${device.manufacture_date}년` : '정보 없음'}</Text>
             </View>
           </View>
           
@@ -430,7 +430,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           {/* 장비 설명 */}
           <Text style={styles.sectionTitle}>설명</Text>
           <Text style={styles.description}>
-            {medical_device.description || '장비에 대한 설명이 없습니다.'}
+            {device.description || '장비에 대한 설명이 없습니다.'}
           </Text>
           
           <View style={styles.divider} />

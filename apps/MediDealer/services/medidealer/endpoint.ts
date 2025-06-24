@@ -7,6 +7,7 @@ export const ENDPOINTS = {
   AUCTION_SEARCH: '/auctions/search',
   AUCTION_REGISTER: '/auctions',
   AUCTION_ITEM: '/auctions',
+  SALES_ITEM: '/saleitems',
   COMPANY_LIST: '/companies',
   NOTIFICATION: '/notifications',
   MY_DEVICES: '/products',

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import UserSelectModal from './UserSelectModal';
-import { ICompany, IUser } from '@repo/shared/models';
+import { Company, User } from '@repo/shared/models';
 declare global {
   interface Window {
     daum: any
@@ -21,8 +21,8 @@ interface CompanyFormData {
 }
 
 interface CompanyRegisterFormProps {
-  initialData?: ICompany  // 수정 모드일 때 초기값
-  onSubmit: (company: ICompany) => void
+  initialData?: any  // 수정 모드일 때 초기값
+  onSubmit: (company: any) => void
   onCancel: () => void
 }
 
@@ -98,7 +98,7 @@ export default function CompanyRegisterForm({ initialData, onSubmit, onCancel }:
   };
 
   // 사용자 선택 함수
-  const handleSelectUser = (selectedUser: IUser) => {
+  const handleSelectUser = (selectedUser: any) => {
     console.log(selectedUser);
     setOwnerId(parseInt(selectedUser.id));
     setIsModalOpen(false); // 모달 닫기

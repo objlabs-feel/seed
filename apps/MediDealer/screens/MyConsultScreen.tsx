@@ -2,6 +2,19 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
+import { StackNavigationProp } from '@react-navigation/stack';
+
+type RootStackParamList = {
+  Home: undefined;
+  Notifications: undefined;
+  ConsultFeature: undefined;
+  ConsultClosure: undefined;
+  ConsultOpening: undefined;
+  ConsultRepair: undefined;
+  ConsultInspector: undefined;
+};
+
+type NavigationProp = StackNavigationProp<RootStackParamList>;
 
 const consultOptions = [
   {
@@ -48,13 +61,25 @@ const consultOptions = [
 
 // 로그 정보를 저장할 상태
 const MyConsultScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const [fontInfo, setFontInfo] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadIconInfo();
-  }, []);
+    
+    // 네비게이션 헤더 설정
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <AntDesign name="message1" size={20} color="#333" style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>상담하기</Text>
+        </View>
+      ),
+      headerLeft: () => null,
+      headerRight: () => null,
+    });
+  }, [navigation]);
 
   const loadIconInfo = () => {
     // 컴포넌트 마운트시 아이콘 정보 수집
@@ -258,6 +283,17 @@ const styles = StyleSheet.create({
   emojiIcon: {
     fontSize: 30,
     textAlign: 'center',
+  },
+  headerIconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  headerIconText: {
+    marginLeft: 5,
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
   },
 });
 

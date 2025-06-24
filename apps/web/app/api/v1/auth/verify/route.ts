@@ -1,72 +1,51 @@
+import { userService } from '@repo/shared/services';
 import { NextResponse } from 'next/server';
-import { SignJWT } from 'jose';
-import { prisma } from '@repo/shared';
-import { convertBigIntToString } from '@/lib/utils';
+import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
+import { createValidationError, createSystemError, createAuthError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
+import { jwtVerify } from 'jose';
+import { convertBigIntToString } from '@/libs/utils';
 
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
+  const { body } = await parseApiRequest<{ token: string }>(request);
+  const { token } = body;
+
+  if (!token) {
+    throw createValidationError('MISSING_REQUIRED', 'Token is required');
+  }
+
   try {
-    const body = await request.json();
-    const { device_token, user_id } = body;
+    // JWT 토큰 검증
+    const { payload } = await jwtVerify(
+      token,
+      new TextEncoder().encode(process.env.USER_JWT_SECRET)
+    );
 
-    if (!device_token || !user_id) {
-      return NextResponse.json(
-        { error: 'Device token and user ID are required' },
-        { status: 400 }
-      );
-    }
+    const { userId, deviceToken } = payload as { userId: string; deviceToken: string };
 
-    // 사용자 확인 - device_token과 user_id 모두 일치하는지 확인
-    const user = await prisma.user.findFirst({
-      where: {
-        AND: [
-          { device_token: device_token },
-          { id: BigInt(user_id) }
-        ]
-      }
-    });
+    // 사용자 존재 여부 확인
+    const user = await userService.findByDeviceTokenAndId(deviceToken, BigInt(userId));
 
     if (!user) {
-      return NextResponse.json(
-        { error: 'Invalid user credentials' },
-        { status: 400 }
-      );
+      throw createAuthError('INVALID_TOKEN', 'Invalid token or user not found');
     }
 
-    // JWT 토큰 생성
-    const token = await new SignJWT({
-      userId: user.id.toString(),
-      profileId: user.profile_id ? user.profile_id.toString() : null,
-      status: user.status
-    })
-      .setProtectedHeader({ alg: 'HS256' })
-      .setIssuedAt()
-      .setExpirationTime('24h')
-      .sign(new TextEncoder().encode(process.env.USER_JWT_SECRET || 'fallback-secret'));
-
-    return NextResponse.json(convertBigIntToString({
-      token,
-      user: {
-        id: user.id,
-        created_at: user.created_at,
-        profile_id: user.profile_id,
-        status: user.status
-      }
-    }));
-
+    return {
+      success: true,
+      data: convertBigIntToString({
+        user: {
+          id: user.id,
+          created_at: user.created_at,
+          device_token: user.device_token,
+          profile: user.profile || null,
+        }
+      })
+    };
   } catch (error) {
-    console.error('Verification error:', error);
-
-    // BigInt 변환 에러 처리
-    if (error instanceof Error && error.message.includes('BigInt')) {
-      return NextResponse.json(
-        { error: 'Invalid user ID format' },
-        { status: 400 }
-      );
+    console.error('Token verification error:', error);
+    if (error instanceof Error && error.message.includes('JWT')) {
+      throw createAuthError('INVALID_TOKEN', 'Invalid or expired token');
     }
-
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+    throw createSystemError('INTERNAL_ERROR', 'Failed to verify token');
   }
-}
+});

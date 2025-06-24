@@ -1,30 +1,27 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IDeviceType, IDepartment } from '@repo/shared/models';
+import { DeviceType } from '@repo/shared/models';
 
 export default function DeviceTypeManagement() {
-  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingDeviceType, setEditingDeviceType] = useState<IDeviceType | null>(null);
-  const [departments, setDepartments] = useState<IDepartment[]>([]);
+  const [editingDeviceType, setEditingDeviceType] = useState<DeviceType | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
-    description: '',
-    department_id: '' as string
+    description: ''
   });
 
   useEffect(() => {
     fetchDeviceTypes();
-    fetchDepartments();
   }, []);
 
   const fetchDeviceTypes = async () => {
     try {
-      const response = await fetch('/api/v1/device-types');
+      const response = await fetch('/admin/api/v1/device-types');
       const data = await response.json();
       setDeviceTypes(data);
     } catch (err) {
@@ -34,20 +31,10 @@ export default function DeviceTypeManagement() {
     }
   };
 
-  const fetchDepartments = async () => {
-    try {
-      const response = await fetch('/api/v1/departments');
-      const data = await response.json();
-      setDepartments(data);
-    } catch (err) {
-      console.error('진료과 목록을 불러오는데 실패했습니다.');
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/v1/device-types' + (editingDeviceType ? `/${editingDeviceType.id}` : ''), {
+      const response = await fetch('/admin/api/v1/device-types' + (editingDeviceType ? `/${editingDeviceType.id}` : ''), {
         method: editingDeviceType ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -59,20 +46,19 @@ export default function DeviceTypeManagement() {
         fetchDeviceTypes();
         setShowForm(false);
         setEditingDeviceType(null);
-        setFormData({ code: '', name: '', description: '', department_id: '' });
+        setFormData({ code: '', name: '', description: '' });
       }
     } catch (err) {
       alert('저장 중 오류가 발생했습니다.');
     }
   };
 
-  const handleEdit = (deviceType: IDeviceType) => {
+  const handleEdit = (deviceType: DeviceType) => {
     setEditingDeviceType(deviceType);
     setFormData({
       code: deviceType.code || '',
       name: deviceType.name || '',
-      description: deviceType.description || '',
-      department_id: deviceType.department_id?.toString() || ''
+      description: deviceType.description || ''
     });
     setShowForm(true);
   };
@@ -81,7 +67,7 @@ export default function DeviceTypeManagement() {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      const response = await fetch(`/api/v1/device-types/${id}`, {
+      const response = await fetch(`/admin/api/v1/device-types/${id}`, {
         method: 'DELETE'
       });
 
@@ -121,7 +107,7 @@ export default function DeviceTypeManagement() {
           onClick={() => {
             setShowForm(true);
             setEditingDeviceType(null);
-            setFormData({ code: '', name: '', description: '', department_id: '' });
+            setFormData({ code: '', name: '', description: '' });
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
@@ -135,21 +121,6 @@ export default function DeviceTypeManagement() {
             {editingDeviceType ? '장비 종류 수정' : '장비 종류 등록'}
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">진료과</label>
-              <select
-                value={formData.department_id}
-                onChange={(e) => setFormData({ ...formData, department_id: e.target.value })}
-                className="w-full p-2 border rounded"
-              >
-                <option value="">선택하세요</option>
-                {departments.map(dept => (
-                  <option key={dept.id} value={dept.id}>
-                    {dept.name} ({dept.code})
-                  </option>
-                ))}
-              </select>
-            </div>
             <div>
               <label className="block text-sm font-medium mb-1">코드</label>
               <input
@@ -222,7 +193,7 @@ export default function DeviceTypeManagement() {
                   수정
                 </button>
                 <button
-                  onClick={() => handleDelete(deviceType.id)}
+                  onClick={() => handleDelete(deviceType.id as number)}
                   className="text-red-500 hover:text-red-700"
                 >
                   삭제

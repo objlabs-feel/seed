@@ -6,6 +6,8 @@ import { getMyProfile } from '../services/medidealer/api';
 import { APP_VERSION } from '../constants/app';
 import { OPEN_SOURCE_LIST } from '../constants/opensource';
 import { IUserProfile } from '@repo/shared';
+import AntDesign from 'react-native-vector-icons/AntDesign';
+import { StackNavigationProp } from '@react-navigation/stack';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
@@ -21,7 +23,19 @@ const SettingsScreen = () => {
 
   useEffect(() => {
     fetchProfile();
-  }, []);
+    
+    // 네비게이션 헤더 설정
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <AntDesign name="setting" size={20} color="#333" style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>설정</Text>
+        </View>
+      ),
+      headerLeft: () => null,
+      headerRight: () => null
+    });
+  }, [navigation]);
 
   const fetchProfile = async () => {
     try {
@@ -136,11 +150,11 @@ const SettingsScreen = () => {
             <View style={styles.profileDetails}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>이메일</Text>
-                <Text style={styles.detailValue}>{profile?.profile?.email}zellta@nate.com</Text>
+                <Text style={styles.detailValue}>{profile?.profile?.email}</Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>전화번호</Text>
-                <Text style={styles.detailValue}>{profile?.profile?.mobile}01089531762</Text>
+                <Text style={styles.detailValue}>{profile?.profile?.mobile}</Text>
               </View>
 
               
@@ -186,6 +200,22 @@ const SettingsScreen = () => {
               </View>
             </View>
           </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>이력보기</Text>
+          <TouchableOpacity 
+            style={styles.historyButton}
+            onPress={() => navigation.navigate('SalesHistory' as never)}
+          >
+            <Text style={styles.historyButtonText}>판매이력 보기</Text>
+          </TouchableOpacity>
+          <TouchableOpacity 
+            style={styles.historyButton}
+            onPress={() => navigation.navigate('PurchaseHistory' as never)}
+          >
+            <Text style={styles.historyButtonText}>구매이력 보기</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
@@ -644,6 +674,31 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '500',
+  },
+  historyButton: {
+    backgroundColor: '#f8f9fa',
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  historyButtonText: {
+    color: '#495057',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  headerIconButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 8,
+  },
+  headerIconText: {
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
   },
 });
 

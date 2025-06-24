@@ -13,8 +13,8 @@ import {
   Dimensions,
 } from 'react-native';
 import AuctionItemCard from '../components/auction/AuctionItemCard';
-import { searchAuction } from '../services/medidealer/api';
-import { IAuctionItem } from '@repo/shared';
+import { searchSaleItem } from '../services/medidealer/api';
+import { AuctionItemResponseDto, SaleItemListDto } from '@repo/shared';
 import { useNavigation } from '@react-navigation/native';
 import { deviceTypes, locations, departments, SelectionItem, initConstants } from '../constants/data';
 
@@ -26,7 +26,7 @@ type NavigationProps = {
 
 const AuctionSearchScreen = () => {
   const navigation = useNavigation<NavigationProps>();
-  const [searchResults, setSearchResults] = useState<IAuctionItem[]>([]);
+  const [searchResults, setSearchResults] = useState<SaleItemListDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([]);
@@ -45,22 +45,26 @@ const AuctionSearchScreen = () => {
     }
 
     try {
-      const response = await searchAuction({
-        deviceTypes: selectedDeviceTypes,
-        areas: selectedAreas,
-        departments: selectedDepartments,
+      const response = await searchSaleItem({
+        device_type_id: selectedDeviceTypes.length > 0 ? selectedDeviceTypes.join(',') : undefined,
+        manufacturer_id: selectedAreas.length > 0 ? selectedAreas.join(',') : undefined,
+        department_id: selectedDepartments.length > 0 ? selectedDepartments.join(',') : undefined,
+        sales_type: '1',
+        status: '1',
         page,
         limit: ITEMS_PER_PAGE,
       });
 
+      console.log(response);
+
       if (response) {
         if (page === 1) {
-          setSearchResults(response.items);
+          setSearchResults(response.data || []);
         } else {
-          setSearchResults(prev => [...prev, ...response.items]);
+          setSearchResults(prev => [...prev, ...(response.data || [])]);
         }
-        setTotalItems(response.total);
-        setHasMore(page < response.totalPages);
+        setTotalItems(response.meta?.pagination?.total || 0);
+        setHasMore(response.meta?.pagination?.hasNext || false);
         setCurrentPage(page);
       } else {
         setSearchResults([]);
@@ -110,18 +114,24 @@ const AuctionSearchScreen = () => {
     }
   };
 
-  const renderItem = ({ item }: { item: IAuctionItem }) => (
+  const renderItem = ({ item }: { item: SaleItemListDto }) => (
+    item.salesType?.code === 'AUCTION' ? (
     <View style={styles.listItem}>
       <AuctionItemCard
-        thumbnail={item.medical_device?.images?.[0]?.url || ''}
-        equipmentType={item.medical_device?.deviceType?.name || ''}
-        auction_code={item.auction_code || ''}
-        remainingTime={item.start_timestamp}
-        area={item.medical_device?.company?.area || ''}
-        status={item.status}
+        thumbnail={(item.item as AuctionItemResponseDto)?.device?.images?.[0]?.url || ''}
+        equipmentType={(item.item as AuctionItemResponseDto)?.device?.deviceType?.name || ''}
+        auction_code={(item.item as AuctionItemResponseDto)?.auction_code || ''}
+        remainingTime={(item.item as AuctionItemResponseDto)?.auction_timeout || ''}
+        area={(item.item as AuctionItemResponseDto)?.device?.company?.area || ''} 
+        status={item.status || 0}
         onPress={() => navigation.navigate('AuctionDetail', { id: item.id })}
       />
     </View>
+    ) : (
+      <View style={styles.listItem}>
+        <Text>판매 상품</Text>
+      </View>
+    )
   );
 
   const renderFooter = () => {
@@ -202,34 +212,6 @@ const AuctionSearchScreen = () => {
             </View>
 
             <ScrollView style={styles.filterOptions}>
-              <Text style={styles.filterSectionTitle}>장비 유형</Text>
-              <View style={styles.filterOptionsList}>
-                {deviceTypes.length === 0 ? (
-                  <Text style={styles.emptyText}>장비 유형 정보를 불러오는 중입니다...</Text>
-                ) : (
-                  deviceTypes.map(type => {
-                    const isSelected = selectedDeviceTypes.includes(type.name);
-                    return (
-                      <TouchableOpacity
-                        key={`type-${type.id}`}
-                        style={[
-                          styles.filterOption,
-                          isSelected && styles.filterOptionSelected
-                        ]}
-                        onPress={() => handleFilterToggle(type.name, isSelected, setSelectedDeviceTypes)}
-                      >
-                        <Text style={[
-                          styles.filterOptionText,
-                          isSelected && styles.filterOptionTextSelected
-                        ]}>
-                          {type.name}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })
-                )}
-              </View>
-
               <Text style={styles.filterSectionTitle}>지역</Text>
               <View style={styles.filterOptionsList}>
                 {locations.map(location => {
@@ -276,6 +258,34 @@ const AuctionSearchScreen = () => {
                     </TouchableOpacity>
                   );
                 })}
+              </View>
+
+              <Text style={styles.filterSectionTitle}>장비 유형</Text>
+              <View style={styles.filterOptionsList}>
+                {deviceTypes.length === 0 ? (
+                  <Text style={styles.emptyText}>장비 유형 정보를 불러오는 중입니다...</Text>
+                ) : (
+                  deviceTypes.map(type => {
+                    const isSelected = selectedDeviceTypes.includes(type.name);
+                    return (
+                      <TouchableOpacity
+                        key={`type-${type.id}`}
+                        style={[
+                          styles.filterOption,
+                          isSelected && styles.filterOptionSelected
+                        ]}
+                        onPress={() => handleFilterToggle(type.name, isSelected, setSelectedDeviceTypes)}
+                      >
+                        <Text style={[
+                          styles.filterOptionText,
+                          isSelected && styles.filterOptionTextSelected
+                        ]}>
+                          {type.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })
+                )}
               </View>
             </ScrollView>
 

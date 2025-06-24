@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CompanySelectModal from '../components/CompanySelectModal';
 import ManufacturerSelectModal from '../components/ManufacturerSelectModal';
-import { IDepartment, IDeviceType, ICompany, IManufacturer } from '@repo/shared/models';
+import { Department, DeviceType, Company, Manufacturer } from '@repo/shared/models';
 
 interface FormData {
   start_timestamp: string
@@ -34,12 +34,12 @@ export default function ProductRegister() {
       images: []
     }
   });
-  const [departments, setDepartments] = useState<IDepartment[]>([]);
-  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
+  const [departments, setDepartments] = useState<any[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<any[]>([]);
   const [todayCount, setTodayCount] = useState(0);
-  const [selectedCompany, setSelectedCompany] = useState<ICompany | null>(null);
+  const [selectedCompany, setSelectedCompany] = useState<any>(null);
   const [isCompanyModalOpen, setIsCompanyModalOpen] = useState(false);
-  const [selectedManufacturer, setSelectedManufacturer] = useState<IManufacturer | null>(null);
+  const [selectedManufacturer, setSelectedManufacturer] = useState<any>(null);
   const [isManufacturerModalOpen, setIsManufacturerModalOpen] = useState(false);
 
   useEffect(() => {
@@ -79,7 +79,7 @@ export default function ProductRegister() {
     }));
   };
 
-  const handleCompanySelect = (company: ICompany) => {
+  const handleCompanySelect = (company: any) => {
     setSelectedCompany(company);
     setFormData(prev => ({
       ...prev,
@@ -91,7 +91,7 @@ export default function ProductRegister() {
     setIsCompanyModalOpen(false);
   };
 
-  const handleManufacturerSelect = (manufacturer: IManufacturer) => {
+  const handleManufacturerSelect = (manufacturer: any) => {
     setSelectedManufacturer(manufacturer);
     setFormData(prev => ({
       ...prev,

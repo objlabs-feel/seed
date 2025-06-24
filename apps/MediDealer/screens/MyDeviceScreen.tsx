@@ -6,6 +6,7 @@ import { getMyDevices, getConstants } from '../services/medidealer/api';
 import { IMedicalDevice } from '@repo/shared';
 import { processImageUrl, createImageSource } from '../utils/imageHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 // MyDevice 인터페이스를 IMedicalDevice 기반으로 정의
 interface MyDevice extends IMedicalDevice {
@@ -273,6 +274,27 @@ const MyDeviceScreen = () => {
     fetchConstants();
     fetchMyDevices();
   }, []);
+
+  // 네비게이션 헤더 설정을 위한 새로운 useEffect 추가
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <AntDesign name="medicinebox" size={20} color="#333" style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>내의료기</Text>
+        </View>
+      ),
+      headerLeft: () => null,
+      headerRight: () => (
+        <TouchableOpacity 
+          style={styles.headerIconButton}
+          onPress={() => navigation.navigate('AddProduct' as never)}
+        >
+          <Text style={styles.headerIconText}>의료기 등록하기 (+)</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
 
   // 스크롤 이벤트 핸들러
   const handleScroll = (event: any) => {
@@ -596,20 +618,6 @@ const MyDeviceScreen = () => {
       </View>
     </Modal>
   );
-
-  // 네비게이션 헤더에 버튼 추가
-  useEffect(() => {
-    navigation.setOptions({
-      headerRight: () => (
-        <TouchableOpacity 
-          style={styles.headerButton}
-          onPress={() => navigation.navigate('AddProduct')}
-        >
-          <Text style={styles.headerButtonText}>의료기 등록하기 (+)</Text>
-        </TouchableOpacity>
-      ),
-    });
-  }, [navigation]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -1054,7 +1062,7 @@ const styles = StyleSheet.create({
     color: '#6c757d',
     marginBottom: 0,
   },
-  headerButton: {
+  headerIconButton: {
     paddingHorizontal: 15,
     paddingVertical: 8,
     marginRight: 10,
@@ -1064,7 +1072,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headerButtonText: {
+  headerIconText: {
     fontSize: 14,
     color: '#fff',
     fontWeight: '600',

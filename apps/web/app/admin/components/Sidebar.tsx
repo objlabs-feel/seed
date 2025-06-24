@@ -1,6 +1,10 @@
 import Link from 'next/link';
 
-export default function Sidebar() {
+interface SidebarProps {
+  onClose?: () => void;
+}
+
+export default function Sidebar({ onClose }: SidebarProps) {
   return (
     <aside className="w-64 bg-white shadow-md">
       <nav className="mt-10">

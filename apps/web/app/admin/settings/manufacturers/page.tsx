@@ -1,63 +1,39 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-
-interface DeviceType {
-  id: number
-  code: string
-  name: string
-}
-
-interface Manufacturer {
-  id: number
-  name: string
-  device_types: string  // JSON 문자열로 저장된 장비 종류 ID 배열
-  img: string | null
-  description: string | null
-}
+import { Manufacturer } from '@repo/shared/models';
 
 export default function ManufacturerManagement() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
-  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingManufacturer, setEditingManufacturer] = useState<Manufacturer | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    device_types: [] as number[],
-    description: '',
-    department_id: null as number | null,
+    description: ''
   });
 
   useEffect(() => {
-    const init = async () => {
-      try {
-        setLoading(true);
-        const [manufacturersRes, deviceTypesRes] = await Promise.all([
-          fetch('/api/v1/manufacturers'),
-          fetch('/api/v1/device-types')
-        ]);
-
-        const manufacturersData = await manufacturersRes.json();
-        const deviceTypesData = await deviceTypesRes.json();
-
-        setManufacturers(manufacturersData);
-        setDeviceTypes(deviceTypesData);
-      } catch (err) {
-        setError('데이터를 불러오는데 실패했습니다.');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    init();
+    fetchManufacturers();
   }, []);
+
+  const fetchManufacturers = async () => {
+    try {
+      const response = await fetch('/admin/api/v1/manufacturers');
+      const data = await response.json();
+      setManufacturers(data);
+    } catch (err) {
+      setError('제조사 목록을 불러오는데 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/v1/manufacturers' + (editingManufacturer ? `/${editingManufacturer.id}` : ''), {
+      const response = await fetch('/admin/api/v1/manufacturers' + (editingManufacturer ? `/${editingManufacturer.id}` : ''), {
         method: editingManufacturer ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -69,7 +45,7 @@ export default function ManufacturerManagement() {
         fetchManufacturers();
         setShowForm(false);
         setEditingManufacturer(null);
-        setFormData({ name: '', device_types: [], description: '', department_id: null });
+        setFormData({ name: '', description: '' });
       }
     } catch (err) {
       alert('저장 중 오류가 발생했습니다.');
@@ -80,9 +56,7 @@ export default function ManufacturerManagement() {
     setEditingManufacturer(manufacturer);
     setFormData({
       name: manufacturer.name || '',
-      device_types: JSON.parse(manufacturer.device_types || '[]'),  // JSON 문자열을 배열로 파싱
-      description: manufacturer.description || '',
-      department_id: null,
+      description: manufacturer.description || ''
     });
     setShowForm(true);
   };
@@ -91,7 +65,7 @@ export default function ManufacturerManagement() {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      const response = await fetch(`/api/v1/manufacturers/${id}`, {
+      const response = await fetch(`/admin/api/v1/manufacturers/${id}`, {
         method: 'DELETE'
       });
 
@@ -100,27 +74,6 @@ export default function ManufacturerManagement() {
       }
     } catch (err) {
       alert('삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleDeviceTypeChange = (deviceTypeId: number) => {
-    setFormData(prev => {
-      const newDeviceTypes = prev.device_types.includes(deviceTypeId)
-        ? prev.device_types.filter(id => id !== deviceTypeId)
-        : [...prev.device_types, deviceTypeId];
-      return { ...prev, device_types: newDeviceTypes };
-    });
-  };
-
-  const getDeviceTypeNames = (deviceTypeIds: string) => {
-    try {
-      const ids = JSON.parse(deviceTypeIds || '[]') as number[];
-      return ids
-        .map(id => deviceTypes.find(dt => dt.id === id)?.name)
-        .filter(Boolean)
-        .join(', ');
-    } catch {
-      return '';
     }
   };
 
@@ -135,7 +88,7 @@ export default function ManufacturerManagement() {
           onClick={() => {
             setShowForm(true);
             setEditingManufacturer(null);
-            setFormData({ name: '', device_types: [], description: '', department_id: null });
+            setFormData({ name: '', description: '' });
           }}
           className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
         >
@@ -150,7 +103,7 @@ export default function ManufacturerManagement() {
           </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium mb-1">제조사명</label>
+              <label className="block text-sm font-medium mb-1">이름</label>
               <input
                 type="text"
                 value={formData.name}
@@ -160,28 +113,6 @@ export default function ManufacturerManagement() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium mb-1">취급 장비</label>
-              {deviceTypes.length > 0 ? (
-                <div className="space-y-2">
-                  {deviceTypes.map(deviceType => (
-                    <label key={deviceType.id} className="flex items-center">
-                      <input
-                        type="checkbox"
-                        checked={formData.device_types.includes(deviceType.id)}
-                        onChange={() => handleDeviceTypeChange(deviceType.id)}
-                        className="mr-2"
-                      />
-                      {deviceType.name}
-                    </label>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 text-gray-500 text-center border rounded">
-                  취급 가능한 장비 없음
-                </div>
-              )}
-            </div>
-            <div>
               <label className="block text-sm font-medium mb-1">설명</label>
               <textarea
                 value={formData.description}
@@ -189,22 +120,6 @@ export default function ManufacturerManagement() {
                 className="w-full p-2 border rounded"
                 rows={3}
               />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">진료과 선택</label>
-              <select
-                value={formData.department_id || ''}
-                onChange={(e) => setFormData({ ...formData, department_id: Number(e.target.value) })}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value="" disabled>진료과 선택</option>
-                {deviceTypes.map(deviceType => (
-                  <option key={deviceType.id} value={deviceType.id}>
-                    {deviceType.name}
-                  </option>
-                ))}
-              </select>
             </div>
             <div className="flex justify-end gap-2">
               <button
@@ -228,8 +143,7 @@ export default function ManufacturerManagement() {
       <table className="w-full">
         <thead className="bg-gray-50">
           <tr>
-            <th className="p-4 text-left">제조사명</th>
-            <th className="p-4 text-left">취급 장비</th>
+            <th className="p-4 text-left">이름</th>
             <th className="p-4 text-left">설명</th>
             <th className="p-4 text-left">작업</th>
           </tr>
@@ -238,7 +152,6 @@ export default function ManufacturerManagement() {
           {manufacturers.map((manufacturer) => (
             <tr key={manufacturer.id}>
               <td className="p-4">{manufacturer.name}</td>
-              <td className="p-4">{getDeviceTypeNames(manufacturer.device_types)}</td>
               <td className="p-4">{manufacturer.description}</td>
               <td className="p-4">
                 <button
@@ -248,7 +161,7 @@ export default function ManufacturerManagement() {
                   수정
                 </button>
                 <button
-                  onClick={() => handleDelete(manufacturer.id)}
+                  onClick={() => handleDelete(manufacturer.id as number)}
                   className="text-red-500 hover:text-red-700"
                 >
                   삭제

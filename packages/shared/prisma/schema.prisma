@@ -8,61 +8,186 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model admin {
+/// ===================================
+/// 시스템 관리자 모델
+/// ===================================
+model Admin {
   id         Int       @id(map: "admin_pk") @default(autoincrement())
   username   String    @unique(map: "unique_id") @db.VarChar(20)
   password   String    @db.VarChar(128)
   level      Int       @default(0)
-  created_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status     Int       @default(1)
+
+  @@map("admin")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model auctionItem {
-  id                   BigInt               @id(map: "auction_item_pk") @default(autoincrement())
-  medical_device_id    BigInt
-  auction_code         String               @db.VarChar(12)
-  quantity             Int?                 @default(0) @db.SmallInt
-  status               Int?                 @default(0) @db.SmallInt
-  accept_id            BigInt?
-  seller_steps         Int?                 @default(1) @db.SmallInt
-  buyer_steps          Int?                 @default(1) @db.SmallInt
-  seller_timeout       DateTime?            
-  buyer_timeout        DateTime?            
-  start_timestamp      DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  expired_count        Int?                 @default(0) @db.SmallInt
-  auction_timeout      DateTime?            
-  visit_date           DateTime?            
-  visit_time           String?              @db.VarChar(5)
-  created_at           DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  updated_at           DateTime?            @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  medical_device       medicalDevice        @relation(fields: [medical_device_id], references: [id])
-  auction_item_history auctionItemHistory[]
+/// 시스템 운영에 사용할 관리자 변수값을 위한 데이터 모델
+model SystemEnvironment {
+  id          Int     @id(map: "system_env_pk") @default(autoincrement())
+  parameters  Json    @db.Json @default("{}")
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
 
-  @@index([auction_code, status, start_timestamp, expired_count, updated_at], map: "auction_items_index")
-  @@map("auction_item")
+  @@map("system_environment")
 }
 
-model auctionItemHistory {
-  id              BigInt      @id(map: "action_item_history_pk") @default(autoincrement())
-  auction_item_id BigInt      @default(autoincrement())
-  user_id         BigInt
-  value           Int?
-  created_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  updated_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  auction_item    auctionItem @relation(fields: [auction_item_id], references: [id])
+model SalesType {
+  id          Int       @id(map: "sales_type_pk") @default(autoincrement())
+  code        String    @unique
+  name        String
+  img         String? @db.VarChar(200)
+  service_name String   // "productService" | "auctionService" 등
+  model       String    // "product" | "auction" 등 실제 모델 이름
+  available_version Int? // 1, 2, 3, 4 등
+  description String?
+  sort_key    Int       @default(1000)
+  status      Int       @default(1)
+  created_at  DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at  DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
 
-  @@index([auction_item_id, user_id, value], map: "action_item_history_auction_id_user_id_value_index")
-  @@map("auction_item_history")
+  saleItems   SaleItem[] @relation("SaleItemSalesType")
+
+  @@map("sales_type")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model company {
-  id                Int       @id(map: "company_pk") @default(autoincrement())
+model DeviceType {
+  id          Int     @id(map: "device_type_pk") @default(autoincrement())
+  code        String? @default("BB") @db.VarChar(2)
+  name        String  @db.VarChar(30)
+  description String? @db.VarChar(100)
+  img         String? @db.VarChar(200)
+  sort_key    Int     @default(1000)
+  status      Int     @default(1)
+
+  devices             Device[] @relation("DeviceDviceType")
+  usedDevices     UsedDevice[] @relation("UsedDeviceDeviceType")
+  departments         DepartmentToDeviceType[]
+
+  @@unique([code], map: "device_type_pk_2")
+  @@index([id, code, name, description], map: "device_type_id_code_name_department_id_index")
+  @@map("device_type")
+}
+
+model Department {
+  id          Int     @id(map: "department_pk") @default(autoincrement())
+  code        String? @unique(map: "unique_department") @default("AA") @db.VarChar(2)
+  name        String? @db.VarChar(30)
+  img         String? @db.VarChar(200)
+  description String? @db.VarChar(100)
+  sort_key    Int     @default(1000)
+  status      Int     @default(1)
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+
+  deviceTypes       DepartmentToDeviceType[]
+  usedDevices   UsedDevice[] @relation("UsedDeviceDepartment")
+
+  @@index([id, code, name, description], map: "department_id_code_name_index")
+  @@map("department")
+}
+
+model DepartmentToDeviceType {
+  department_id   Int
+  device_type_id  Int
+  sort_key        Int       @default(0)      // 순서를 나타내는 필드 (order에서 변경)
+  status          Int       @default(1) @db.SmallInt // 상태 (1: 활성, 0: 비활성 등)
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+
+  department      Department @relation(fields: [department_id], references: [id], onDelete: Cascade)
+  deviceType      DeviceType @relation(fields: [device_type_id], references: [id], onDelete: Cascade)
+
+  @@id([department_id, device_type_id])
+  @@index([sort_key, status])                   // 순서와 상태로 조회할 수 있도록 인덱스 추가
+  @@map("department_to_device_type")
+}
+
+model Manufacturer {
+  id           Int     @id(map: "manufacturer_pk") @default(autoincrement())
+  name         String? @db.VarChar(50)
+  device_types Json?   @default("[]") @db.Json
+  img          String? @db.VarChar(200)
+  description  String? @db.VarChar(100)
+  status       Int     @default(1)
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+
+  devices         Device[] @relation("DeviceManufacturer")
+  usedDevices UsedDevice[] @relation("UsedDeviceManufacturer")
+
+  @@index([id, name], map: "manufacturer_id_name_index")
+  @@map("manufacturer")
+}
+
+model Device {
+  id              BigInt       @id(map: "device_pk") @default(autoincrement())
+  manufacturer_id Int?
+  device_type     Int?
+
+  media           Json?        @default("[]") @db.Json
+  info            Json?        @default("{}") @db.Json
+
+  version         Int          @default(1)
+  description     String?      @db.VarChar(200)
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status          Int          @default(1)
+
+  manufacturer     Manufacturer? @relation("DeviceManufacturer", fields: [manufacturer_id], references: [id])
+  deviceType       DeviceType?   @relation("DeviceDviceType", fields: [device_type], references: [id])
+
+  productComponents Product[] @relation("ProductComponents")
+  productDevice     Product[] @relation("ProductDevice")
+
+  @@index([manufacturer_id, device_type], map: "device_index")
+  @@map("device")
+}
+
+/// ===================================
+/// 사용자 관련 모델
+/// ===================================
+model User {
+  id           BigInt    @id(map: "user_pk") @default(autoincrement())
+  device_token String    @db.VarChar(120)
+  profile_id   BigInt?   @unique
+  status       Int       @default(1)
+  created_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  profile      Profile?  @relation("UserProfile", fields: [profile_id], references: [id])
+  company      Company?  @relation("UserCompany")
+
+  @@index([device_token], map: "user_device_token_index")
+  @@index([id], map: "user_id_index")
+  @@index([profile_id], map: "user_profile_id_index")
+  @@map("user")
+}
+
+model Profile {
+  id           BigInt       @id(map: "profile_pk") @default(autoincrement())
+  company_id   BigInt?
+  profile_type Int?
+  created_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  name         String?   @db.VarChar(40)
+  mobile       String?   @db.VarChar(16)
+  email        String?   @db.VarChar(100)
+  company      Company?  @relation("ProfileToCompany", fields: [company_id], references: [id])
+  user         User?     @relation("UserProfile")
+  companies    Company[] @relation("ProfileToCompanies")
+  status       Int       @default(1)
+
+  @@map("profile")
+}
+
+model Company {
+  id                BigInt    @id(map: "company_pk") @default(autoincrement())
   name              String?   @db.VarChar(40)
   business_no       String?   @unique(map: "unique_no") @db.VarChar(15)
   business_tel      String?   @db.VarChar(16)
   license_img       String?   @db.VarChar(200)
-  owner_id          BigInt?
+  owner_id          BigInt?   @unique(map: "unique_comapny_owner")
   related_members   Json?     @default("[]") @db.Json
   institute_members Json?     @default("[]") @db.Json
   created_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
@@ -74,81 +199,199 @@ model company {
   address           String?   @db.VarChar(100)
   address_detail    String?   @db.VarChar(50)
   area              String?   @db.VarChar(10)
-  profile           profile[]
-  medical_devices   medicalDevice[]
+  status            Int       @default(1)
+  
+  owner             User?     @relation("UserCompany", fields: [owner_id], references: [id])
+  devices           UsedDevice[] @relation("UsedDeviceCompany")
+  profiles          Profile[] @relation("ProfileToCompany")
+  manyProfiles      Profile[] @relation("ProfileToCompanies")
+  products          Product[] @relation("ProductCompany")
 
   @@index([company_type], map: "company_company_type_index")
   @@index([id], map: "company_id_index")
   @@index([name, business_no, business_tel], map: "company_name_business_no_business_tel_index")
   @@index([owner_id], map: "company_owner_id_index")
+  @@map("company")
 }
 
-model deviceType {
-  id            Int         @id(map: "device_type_pk") @default(autoincrement()) @db.SmallInt
-  code          String?     @default("BB") @db.VarChar(2)
-  name          String      @db.VarChar(30)
-  description   String?     @db.VarChar(100)
-  img           String?     @db.VarChar(200)
-  department_id Int?        @db.SmallInt
-  department    department? @relation(fields: [department_id], references: [id])
-  medical_devices medicalDevice[]
+model SaleItem {
+  id         BigInt    @id(map: "sales_item_pk") @default(autoincrement())
+  owner_id   BigInt
+  sales_type Int       // sales_type을 item_type으로 활용
+  status     Int?      @default(0) @db.SmallInt
 
-  @@unique([department_id, code], map: "device_type_pk_2")
-  @@index([id, code, name, department_id], map: "device_type_id_code_name_department_id_index")
-  @@map("device_type")
+  // 실제 아이템의 ID
+  item_id    BigInt
+
+  created_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+
+  salesType  SalesType @relation("SaleItemSalesType", fields: [sales_type], references: [id])
+
+  viewHistories SaleItemViewHistory[] @relation("SaleItemViewHistorySaleItem")
+  cartItems     SaleItemCart[] @relation("SaleItemCartSaleItem")
+
+  @@index([sales_type, item_id])
+  @@index([owner_id, sales_type, status, id], map: "sale_items_index")
+  @@map("sale_item")
 }
 
-model department {
-  id           Int          @id(map: "department_pk") @db.SmallInt
-  code         String?      @unique(map: "unique_key") @default("AA") @db.VarChar(2)
-  name         String?      @db.VarChar(30)
-  img          String?      @db.VarChar(200)
-  description  String?      @db.VarChar(100)
-  device_types deviceType[]
-  medical_devices medicalDevice[]
+model SaleItemViewHistory {
+  id         BigInt    @id(map: "sale_item_view_history_pk") @default(autoincrement())
+  owner_id   BigInt
+  
+  item_id    BigInt
 
-  @@index([id, code, name], map: "department_id_code_name_index")
+  created_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status     Int       @default(1)
+
+  saleItem   SaleItem  @relation("SaleItemViewHistorySaleItem", fields: [item_id], references: [id])
+
+  @@index([owner_id, status , id], map: "sale_item_view_history_index")
+  @@map("sale_item_view_history")
 }
 
-model manufacturer {
-  id           Int     @id(map: "manufacturer_pk") @default(autoincrement())
-  name         String? @db.VarChar(50)
-  device_types Json?   @default("[]") @db.Json
-  img          String? @db.VarChar(200)
-  description  String? @db.VarChar(100)
-  medical_devices medicalDevice[]
+model SaleItemCart {
+  id         BigInt    @id(map: "sale_item_cart_pk") @default(autoincrement())
+  owner_id   BigInt
+  
+  item_id    BigInt
 
-  @@index([id, name], map: "manufacturer_id_name_index")
+  created_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status     Int       @default(1)
+
+  saleItem   SaleItem  @relation("SaleItemCartSaleItem", fields: [item_id], references: [id])
+
+  @@index([owner_id, item_id], map: "sale_item_cart_index")
+  @@map("sale_item_cart")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model medicalDevice {
+/// ===================================
+/// 판매업자 관련 모델
+/// ===================================
+model SalesAdmin {
+  id         BigInt    @id(map: "sales_admin_pk") @default(autoincrement())
+  username   String    @unique(map: "sales_admin_unique_id") @db.VarChar(50)
+  password   String    @db.VarChar(128)
+  email      String    @unique(map: "sales_admin_unique_email") @db.VarChar(100)
+  level      Int       @default(0)
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status     Int       @default(1)
+
+  @@map("sales_admin")
+}
+
+model Product {
+  id                 BigInt       @id(map: "product_pk") @default(autoincrement()) // Int에서 BigInt로 변경
+  owner_id           BigInt
+  
+  media              Json?     @default("{}") @db.Json
+  info               Json?     @default("{}") @db.Json
+  
+  device_id          BigInt
+  
+  available_quantity Int       @default(-1) // -1: unlimitted
+  origin_price       Int       @default(0)
+  sale_price         Int       @default(0)
+  discount_type      Int       @default(0)
+  discount_value     Int       @default(0)
+
+  components_ids     Json?     @default("[]") @db.Json // device_id list of Sale Product
+  
+  version            Int       @default(1)
+  description        String?   @db.VarChar(200)
+  created_at         DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at         DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status             Int       @default(1)
+
+  company            Company   @relation("ProductCompany", fields: [owner_id], references: [id])
+  components         Device[]  @relation("ProductComponents")
+  device             Device    @relation("ProductDevice", fields: [device_id], references: [id])
+
+  @@index([owner_id, device_id], map: "product_index")
+  @@map("product")
+}
+
+/// ===================================
+/// 개인판매 관련 모델
+/// ===================================
+model UsedDevice {
   id               BigInt        @id(map: "medical_device_pk") @default(autoincrement())
-  company_id       Int?
+  company_id       BigInt?
   department_id    Int?          @default(0) @db.SmallInt
   device_type_id   Int?          @default(0) @db.SmallInt
   manufacturer_id  Int?
-  manufacture_date DateTime?     @db.Date
-  manufacture_year Int?
+  manufacture_date DateTime?     @db.Timestamp(6)
   images           Json?         @default("[]") @db.Json
   description      String?       @db.VarChar(200)
   created_at       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   updated_at       DateTime?     @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status           Int           @default(1)
   
-  // Optional 관계로 변경하고 양방향 관계 추가
-  company          company?      @relation(fields: [company_id], references: [id])
-  department       department?   @relation(fields: [department_id], references: [id])
-  deviceType       deviceType?   @relation(fields: [device_type_id], references: [id])
-  manufacturer     manufacturer? @relation(fields: [manufacturer_id], references: [id])
-  auction_item     auctionItem[]
+  company          Company?      @relation("UsedDeviceCompany", fields: [company_id], references: [id])
+  department       Department?   @relation("UsedDeviceDepartment", fields: [department_id], references: [id])
+  deviceType       DeviceType?   @relation("UsedDeviceDeviceType", fields: [device_type_id], references: [id])
+  manufacturer     Manufacturer? @relation("UsedDeviceManufacturer", fields: [manufacturer_id], references: [id])
 
-  @@index([company_id], map: "medical_device_company_id_index")
-  @@index([department_id, device_type_id, manufacturer_id, manufacture_date], map: "medical_device_department_device_type_manufacturer_id_manufactu")
-  @@map("medical_device")
+  auctions         AuctionItem[] @relation("AuctionItemDevice")
+
+  @@index([company_id], map: "used_device_company_id_index")
+  @@index([department_id, device_type_id, manufacturer_id], map: "used_device_main_attrs_idx")
+  @@map("used_device")
 }
 
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model notificationInfo {
+/// ===================================
+/// 경매 상품 관련 모델
+/// ===================================
+model AuctionItem {
+  id               BigInt             @id(map: "auction_item_pk") @default(autoincrement())
+  device_id        BigInt
+  auction_code     String             @db.VarChar(12)
+  quantity         Int?               @default(0) @db.SmallInt
+  status           Int?               @default(0) @db.SmallInt
+  accept_id        BigInt?
+  seller_steps     Int?               @default(1) @db.SmallInt
+  buyer_steps      Int?               @default(1) @db.SmallInt
+  seller_timeout   DateTime?          
+  buyer_timeout    DateTime?          
+  start_timestamp  DateTime?          @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  expired_count    Int?               @default(0) @db.SmallInt
+  auction_timeout  DateTime?          
+  visit_date       DateTime?          
+  visit_time       String?            @db.VarChar(5)
+  created_at       DateTime?          @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at       DateTime?          @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  
+  device           UsedDevice?        @relation("AuctionItemDevice", fields: [device_id], references: [id])
+
+  auction_item_history AuctionItemHistory[] @relation("AuctionItemHistoryAuctionItem")
+
+  @@index([auction_code, status, start_timestamp, expired_count, updated_at, device_id], map: "auction_items_index")
+  @@map("auction_item")
+}
+
+model AuctionItemHistory {
+  id              BigInt      @id(map: "action_item_history_pk") @default(autoincrement())
+  auction_item_id BigInt
+  user_id         BigInt
+  value           Int?
+  created_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status          Int         @default(1)
+
+  auction_item    AuctionItem @relation("AuctionItemHistoryAuctionItem", fields: [auction_item_id], references: [id])
+
+  @@index([auction_item_id, user_id, value], map: "action_item_history_auction_id_user_id_value_index")
+  @@map("auction_item_history")
+}
+
+/// ===================================
+/// 알림 관련 모델
+/// ===================================
+model NotificationInfo {
   id                BigInt    @default(autoincrement())
   user_id           BigInt
   device_type       Int       @default(0)
@@ -164,6 +407,7 @@ model notificationInfo {
   noti_set          Json?     @default("{}") @db.Json
   created_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   updated_at        DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status            Int       @default(1)
 
   @@id([user_id, device_type, device_os, device_token], map: "notification_info_pk")
   @@index([user_id, permission_status, noti_notice, noti_event, noti_sms, noti_email, noti_auction, noti_favorite], map: "notification_info_index")
@@ -179,38 +423,10 @@ model NotificationMessage {
   is_read     Boolean   @default(false)
   group_id    BigInt?
   read_at     DateTime?
-  created_at  DateTime  @default(now())
-  updated_at  DateTime  @updatedAt
+  created_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  updated_at      DateTime?    @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  status      Int       @default(1)
 
   @@index([user_id, is_read])
   @@map("notification_messages")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model profile {
-  id           Int       @id(map: "profile_pk") @default(autoincrement())
-  company_id   Int?
-  profile_type Int?
-  created_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  updated_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  name         String?   @db.VarChar(40)
-  mobile       String?   @db.VarChar(16)
-  email        String?   @db.VarChar(100)
-  company      company?  @relation(fields: [company_id], references: [id])
-  user         user?     @relation("UserProfile")
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model user {
-  id           BigInt    @id(map: "user_pk") @default(autoincrement())
-  device_token String    @db.VarChar(120)
-  profile_id   Int?      @unique
-  status       Int       @default(0)
-  created_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  updated_at   DateTime? @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
-  profile      profile?  @relation("UserProfile", fields: [profile_id], references: [id])
-
-  @@index([device_token], map: "user_device_token_index")
-  @@index([id], map: "user_id_index")
-  @@index([profile_id], map: "user_profile_id_index")
 }

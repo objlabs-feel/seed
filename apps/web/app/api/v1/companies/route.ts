@@ -1,29 +1,34 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
+import { companyService } from '@repo/shared/services';
+import { toCompanyResponseDto } from '@repo/shared/transformers';
+import { type CreateCompanyRequestDto } from '@repo/shared/dto';
+import { authenticateUser } from '@/libs/auth';
+import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
+import type { ApiResponse } from '@/types/api';
 
 export async function POST(request: Request) {
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+  const { userId } = auth as { userId: string };
+
   try {
-    const data = await request.json();
+    const body: Omit<CreateCompanyRequestDto, 'owner_id'> = await request.json();
+    const createData: CreateCompanyRequestDto = {
+      ...body,
+      owner_id: userId,
+    };
 
-    const company = await prisma.company.create({
-      data: {
-        name: data.name,
-        business_no: data.business_no,
-        business_tel: data.business_tel,
-        business_mobile: data.business_mobile,
-        company_type: data.company_type,
-        zipcode: data.zipcode,
-        address: data.address,
-        address_detail: data.address_detail
-      }
-    });
+    const company = await companyService.create(createData);
+    const companyDto = toCompanyResponseDto(company);
 
-    return NextResponse.json(company);
+    return NextResponse.json(companyDto, { status: 201 });
   } catch (error) {
     console.error('업체 등록 중 오류:', error);
     return NextResponse.json(
       { error: '업체 등록 중 오류가 발생했습니다.' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

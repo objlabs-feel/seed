@@ -1,14 +1,14 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { IDepartment } from '@repo/shared/models';
+import { Department } from '@repo/shared/models';
 
 export default function DepartmentManagement() {
-  const [departments, setDepartments] = useState<IDepartment[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [editingDepartment, setEditingDepartment] = useState<IDepartment | null>(null);
+  const [editingDepartment, setEditingDepartment] = useState<Department | null>(null);
   const [formData, setFormData] = useState({
     code: '',
     name: '',
@@ -21,7 +21,7 @@ export default function DepartmentManagement() {
 
   const fetchDepartments = async () => {
     try {
-      const response = await fetch('/api/v1/departments');
+      const response = await fetch('/admin/api/v1/departments');
       const data = await response.json();
       setDepartments(data);
     } catch (err) {
@@ -34,7 +34,7 @@ export default function DepartmentManagement() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      const response = await fetch('/api/v1/departments' + (editingDepartment ? `/${editingDepartment.id}` : ''), {
+      const response = await fetch('/admin/api/v1/departments' + (editingDepartment ? `/${editingDepartment.id}` : ''), {
         method: editingDepartment ? 'PUT' : 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -53,7 +53,7 @@ export default function DepartmentManagement() {
     }
   };
 
-  const handleEdit = (department: IDepartment) => {
+  const handleEdit = (department: Department) => {
     setEditingDepartment(department);
     setFormData({
       code: department.code || '',
@@ -67,7 +67,7 @@ export default function DepartmentManagement() {
     if (!confirm('정말 삭제하시겠습니까?')) return;
 
     try {
-      const response = await fetch(`/api/v1/departments/${id}`, {
+      const response = await fetch(`/admin/api/v1/departments/${id}`, {
         method: 'DELETE'
       });
 
@@ -176,7 +176,7 @@ export default function DepartmentManagement() {
                   수정
                 </button>
                 <button
-                  onClick={() => handleDelete(department.id)}
+                  onClick={() => handleDelete(department.id as number)}
                   className="text-red-500 hover:text-red-700"
                 >
                   삭제

@@ -3,9 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "exports": {
-    "./button": "./src/button.tsx",
-    "./card": "./src/card.tsx",
-    "./code": "./src/code.tsx"
+    ".": "./src/index.tsx",
+    "./native": "./src/native/index.tsx"
   },
   "scripts": {
     "lint": "eslint . --max-warnings 0",
@@ -24,6 +23,6 @@
     "typescript": "5.5.4"
   },
   "dependencies": {
-    "react": "^18.2.0"
+    "react": "^18.3.1"
   }
 }

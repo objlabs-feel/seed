@@ -1,91 +1,77 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
-import { convertBigIntToString } from '@/lib/utils';
-import { authenticateUser } from '@/lib/auth';
-import { AuctionStatus, ICompany, IProfile } from '@repo/shared/models';
-import { sendNotification } from '@/lib/notification';
+import { authenticateUser } from '@/libs/auth';
+import { sendNotification } from '@/libs/notification';
+import { auctionItemService, userService, companyService, profileService, notificationService } from '@repo/shared/services';
+import { toAuctionItemResponseDto } from '@repo/shared/transformers';
+import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
+import { createValidationError, createSystemError, createBusinessError, createAuthError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
+import { z } from 'zod';
+import { AuctionStatus } from '@repo/shared/types/models';
 
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+const visitScheduleRequestSchema = z.object({
+  visitDate: z.string().min(1, '방문일은 필수입니다.'),
+  visitTime: z.string().min(1, '방문시간은 필수입니다.'),
+});
+
+const buyerInfoRequestSchema = z.object({
+  companyName: z.string().min(1, '회사명은 필수입니다.'),
+  address: z.string().min(1, '주소는 필수입니다.'),
+  addressDetail: z.string().optional(),
+  zipCode: z.string().min(1, '우편번호는 필수입니다.'),
+  ownerName: z.string().min(1, '대표자명은 필수입니다.'),
+  ownerEmail: z.string().email('올바른 이메일 형식이 아닙니다.'),
+  ownerMobile: z.string().min(1, '연락처는 필수입니다.'),
+  businessNo: z.string().min(1, '사업자등록번호는 필수입니다.'),
+});
+
+interface RouteContext {
+  params: { id: string };
+}
+
+// 입금확인 후 방문일정 교환
+export const PUT = withApiHandler(async (request: Request, context: RouteContext): Promise<ApiResponse> => {
+  // 1. 인증
   const auth = await authenticateUser(request);
   if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    throw createAuthError('UNAUTHORIZED', auth.error || '인증 실패');
   }
-  const { userId } = auth;
+  const { userId } = auth as { userId: string };
 
-  const auctionItemId = parseInt(params.id);
-  const {
-    visitDate,
-    visitTime
-  } = await request.json();
+  // 2. 요청 데이터 검증
+  const { body } = await parseApiRequest(request);
+  const validatedData = visitScheduleRequestSchema.parse(body);
 
-  console.log(visitDate, visitTime);
-
-  const auctionItem = await prisma.auctionItem.findUnique({
-    where: {
-      id: auctionItemId
-    },
-    include: {
-      medical_device: {
-        include: {
-          company: true,
-          department: true,
-          deviceType: true,
-          manufacturer: true
-        }
-      }
-    }
-  });
-
+  // 3. 경매 상품 정보 조회
+  const auctionItem = await auctionItemService.findById(context.params.id);
   if (!auctionItem) {
-    return NextResponse.json({ error: '경매 상품을 찾을 수 없습니다.' }, { status: 404 });
+    throw createBusinessError('NOT_FOUND', '경매 상품을 찾을 수 없습니다.');
   }
 
   if (auctionItem.status !== AuctionStatus.SUCCESS_BID) {
-    return NextResponse.json({ error: '경매 상품이 진행중이 아닙니다.' }, { status: 400 });
+    throw createBusinessError('INVALID_STATE', '경매 상품이 진행중이 아닙니다.');
   }
 
-  if (auctionItem.buyer_steps !== 2) {
-    return NextResponse.json({ error: '경매 상품이 진행중이 아닙니다.' }, { status: 400 });
+  if (auctionItem.buyer_steps !== 3 || auctionItem.seller_steps !== 3) {
+    throw createBusinessError('INVALID_STATE', '경매 상품이 진행중이 아닙니다.');
   }
 
-  if (auctionItem.seller_steps !== 2) {
-    return NextResponse.json({ error: '경매 상품이 진행중이 아닙니다.' }, { status: 400 });
-  }
-
-  const updatedAuctionItem = await prisma.auctionItem.update({
-    where: { id: auctionItem.id },
-    data: {
-      visit_date: new Date(visitDate),
-      visit_time: visitTime,
-      seller_steps: 3,
-      buyer_steps: 3
-    },
-    include: {
-      medical_device: {
-        include: {
-          company: true,
-          department: true,
-          deviceType: true,
-          manufacturer: true
-        }
-      }
-    }
+  // 4. 데이터 업데이트
+  const updatedAuctionItem = await auctionItemService.update(context.params.id, {
+    visit_date: validatedData.visitDate,
+    visit_time: validatedData.visitTime,
+    seller_steps: 3,
+    buyer_steps: 3,
   });
 
-  const history = await prisma.auctionItemHistory.findUnique({
-    where: {
-      id: auctionItem.accept_id
-    }
-  });
-
-  // 방문 일정 교환 알림발송
-  const notificationInfoList = await prisma.notificationInfo.findMany({
+  // 5. 알림 발송
+  const notificationInfoList = await notificationService.findMany({
     where: {
       user_id: {
-        in: [auctionItem.medical_device?.company?.owner_id, userId, history?.user_id]
+        in: [
+          auctionItem.device?.company?.owner_id,
+          userId
+        ]
       }
     }
   });
@@ -94,219 +80,134 @@ export async function PUT(
     await sendNotification({
       type: 'MULTI',
       title: '입금확인',
-      body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`,
+      body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`,
       userTokens: notificationInfoList.map(info => info.device_token),
       data: {
         type: 'AUCTION',
         screen: 'AuctionDetail',
-        targetId: auctionItem.id.toString(),        
+        targetId: auctionItem.id.toString(),
         title: '입금확인',
-        body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`
+        body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`
       }
     });
   }
 
-  return NextResponse.json(convertBigIntToString(updatedAuctionItem));
-}
+  // 6. 응답
+  return {
+    success: true,
+    data: toAuctionItemResponseDto(updatedAuctionItem),
+    message: '방문일정이 성공적으로 등록되었습니다.',
+    meta: {
+      timestamp: Date.now(),
+      path: request.url,
+    }
+  };
+});
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+// 낙찰 후 낙찰자 거래정보 입력
+export const POST = withApiHandler(async (request: Request, context: RouteContext): Promise<ApiResponse> => {
+// 1. 인증
   const auth = await authenticateUser(request);
   if ('error' in auth) {
-    return NextResponse.json({ error: auth.error }, { status: auth.status });
+    throw createAuthError('UNAUTHORIZED', auth.error || '인증 실패');
   }
-  const { userId } = auth;
+  const { userId } = auth as { userId: string };
 
-  try {
-    const auctionItemId = parseInt(params.id);
-    const {
-      companyName,
-      address,
-      addressDetail,
-      zipCode,
-      ownerName,
-      ownerEmail,
-      ownerMobile,
-      businessNo } = await request.json();
+  // 2. 요청 데이터 검증
+  const { body } = await parseApiRequest(request);
+  const validatedData = buyerInfoRequestSchema.parse(body);
 
-    let user = await prisma.user.findUnique({
-      where: {
-        id: BigInt(userId as string)
-      }
+  // 3. 사용자 정보 조회
+  const user = await userService.findById(userId);
+  if (!user) {
+    throw createBusinessError('NOT_FOUND', '사용자를 찾을 수 없습니다.');
+  }
+
+  // 4. 프로필 정보 조회 및 업데이트
+  const profile = await profileService.findById(user.profile_id?.toString() || '');
+  if (!profile) {
+    throw createBusinessError('NOT_FOUND', '프로필을 찾을 수 없습니다.');
+  }
+
+  // 5. 회사 정보 조회 및 업데이트 또는 생성
+  let company = await companyService.findById(profile.company_id?.toString() || '');
+  if (!company) {
+    // 회사가 없는 경우 신규 생성
+    company = await companyService.create({
+      name: validatedData.companyName,
+      address: validatedData.address,
+      address_detail: validatedData.addressDetail,
+      zipcode: validatedData.zipCode,
+      business_no: validatedData.businessNo,
+      business_mobile: validatedData.ownerMobile,
+      owner_id: userId,
     });
 
-    if (!user) {
-      return NextResponse.json({ error: '사용자를 찾을 수 없습니다.' }, { status: 404 });
-    }
-
-    let profile: IProfile = {}
-
-    if (!user.profile_id) {
-      profile = await prisma.profile.create({
-        data: {
-          name: ownerName,
-          email: ownerEmail,
-          mobile: ownerMobile
-        }
-      });
-      user = await prisma.user.update({
-        where: { id: user.id },
-        data: {
-          profile_id: profile.id
-        }
-      });
-    } else {
-      profile = await prisma.profile.findUnique({
-        where: {
-          id: user.profile_id
-        }
-      });
-    }
-
-    let company: ICompany = {}
-
-    if (!profile.company_id) {
-      company = await prisma.company.create({
-        data: {
-          owner_id: profile.id,
-          name: companyName,
-          address: address,
-          address_detail: addressDetail,
-          zipcode: zipCode,
-          business_no: businessNo,
-          business_mobile: ownerMobile
-        }
-      });
-      profile = await prisma.profile.update({
-        where: { id: profile.id },
-        data: {
-          company_id: company.id
-        }
-      });
-    } else {
-      company = await prisma.company.findUnique({
-        where: {
-          id: profile.company_id
-        }
-      });
-    }
-
-    if (!company) {
-      return NextResponse.json({ error: '회사를 찾을 수 없습니다.' }, { status: 404 });
-    }
-
-    const updatedCompany = {
-      id: company.id,
-      name: companyName,
-      address: address,
-      address_detail: addressDetail,
-      zipcode: zipCode,
-      business_no: businessNo,
-      business_mobile: ownerMobile,
-      secret_info: {
-        bankAccount: '',
-        bankCode: '',
-        bankHolder: '',
-        businessEmail: ownerEmail,
-        businessNo,
-        businessTel: '',
-        businessMobile: ownerMobile
-      }
-    };
-
-    company.name = companyName;
-    company.address = address;
-    company.address_detail = addressDetail;
-    company.zipcode = zipCode;
-    company.business_no = businessNo;
-    company.business_mobile = ownerMobile;
-    profile.name = ownerName;
-    profile.email = ownerEmail;
-    profile.mobile = ownerMobile;
-
-    const auctionItem = await prisma.auctionItem.findUnique({
-      where: {
-        id: auctionItemId
-      },
-      include: {
-        medical_device: {
-          include: {
-            company: true,
-            department: true,
-            deviceType: true,
-            manufacturer: true
-          }
-        }
-      }
+    // 프로필에 회사 ID 업데이트
+    await profileService.update(profile.id.toString(), {
+      company_id: company.id.toString(),
     });
-
-    if (!auctionItem) {
-      return NextResponse.json({ error: '경매 상품을 찾을 수 없습니다.' }, { status: 404 });
-    }
-
-    auctionItem.seller_steps = 2;
-    auctionItem.buyer_steps = 2;
-
-    const tx = await prisma.$transaction([
-      prisma.profile.update({
-        where: { id: profile.id },
-        data: {
-          name: profile.name,
-          email: profile.email,
-          mobile: profile.mobile
-        }
-      }),
-      prisma.company.update({
-        where: { id: company.id },
-        data: {
-          name: company.name,
-          address: company.address,
-          address_detail: company.address_detail,
-          zipcode: company.zipcode,
-          business_no: company.business_no,
-          business_mobile: company.business_mobile,
-          secret_info: updatedCompany.secret_info
-        }
-      }),
-      prisma.auctionItem.update({
-        where: { id: auctionItem.id },
-        data: {
-          seller_steps: auctionItem.seller_steps,
-          buyer_steps: auctionItem.buyer_steps
-        }
-      })
-    ]);
-
-    const notificationInfoList = await prisma.notificationInfo.findMany({
-      where: {
-        user_id: auctionItem.medical_device?.company?.owner_id
-      }
+  } else {
+    // 기존 회사 정보 업데이트
+    await companyService.update(company.id.toString(), {
+      name: validatedData.companyName,
+      address: validatedData.address,
+      address_detail: validatedData.addressDetail,
+      zipcode: validatedData.zipCode,
+      business_no: validatedData.businessNo,
+      business_mobile: validatedData.ownerMobile,
     });
+  }
 
-    if (notificationInfoList.length > 0) {
-      await sendNotification({
-        type: 'MULTI',
+  // 6. 경매 상품 정보 조회
+  const auctionItem = await auctionItemService.findById(context.params.id);
+  if (!auctionItem) {
+    throw createBusinessError('NOT_FOUND', '경매 상품을 찾을 수 없습니다.');
+  }
+
+  // 7. 데이터 업데이트
+  const updatedAuctionItem = await auctionItemService.update(context.params.id, {
+    seller_steps: 2,
+    buyer_steps: 2,
+  });
+
+  await profileService.update(profile.id.toString(), {
+    name: validatedData.ownerName,
+    email: validatedData.ownerEmail,
+    mobile: validatedData.ownerMobile,
+  });
+
+  // 8. 알림 발송
+  const notificationInfoList = await notificationService.findMany({
+    where: {
+      user_id: auctionItem.device?.company?.owner_id
+    }
+  });
+
+  if (notificationInfoList.length > 0) {
+    await sendNotification({
+      type: 'MULTI',
+      title: '입금대기',
+      body: `경매상품[${auctionItem.device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+      userTokens: notificationInfoList.map(info => info.device_token),
+      data: {
+        type: 'AUCTION',
+        screen: 'AuctionDetail',
+        targetId: auctionItem.id.toString(),
         title: '입금대기',
-        body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
-        userTokens: notificationInfoList.map(info => info.device_token),
-        data: {
-          type: 'AUCTION',
-          screen: 'AuctionDetail',
-          targetId: auctionItem.id.toString(),          
-          title: '입금대기',
-          body: `경매상품[${auctionItem.medical_device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
-        }
-      });
-    }
-
-    return NextResponse.json(convertBigIntToString(auctionItem));
-  } catch (error) {
-    console.error('입찰 처리 중 오류:', error);
-    return NextResponse.json(
-      { error: '입찰 처리 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+        body: `경매상품[${auctionItem.device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
+      }
+    });
   }
-}
+
+  // 9. 응답
+  return {
+    success: true,
+    data: toAuctionItemResponseDto(updatedAuctionItem),
+    message: '낙찰자 정보가 성공적으로 입력되었습니다.',
+    meta: {
+      timestamp: Date.now(),
+      path: request.url,
+    }
+  };
+});

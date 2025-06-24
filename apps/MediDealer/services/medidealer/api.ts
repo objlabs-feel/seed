@@ -2,13 +2,14 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENDPOINTS } from './endpoint';
 import '../network';  // 인터셉터가 설정된 axios import
-import { IAuctionItem } from '@repo/shared';
-const API_URL = 'http://192.168.45.219:3000/api/v1'; // 개발용 API
+import { AuctionItem, PaginationResponseDto, AuctionItemDto, SaleItemResponseDto, SaleItemListDto } from '@repo/shared';
+const API_URL = 'http://192.168.45.2:3000/api/v1'; // 개발용 API
+// const API_URL = 'http://172.30.1.78:3000/api/v1'; // 개발용 API
 // const API_URL = 'http://192.168.219.5:3000/api/v1'; // 개발용 API
 // const API_URL = 'https://www.medidealer.co.kr/api/v1'; // 실제 API URL로 변경 필요
 // const API_URL = 'http://16.184.8.234:3000/api/v1'; // 테스트용 API
 
-interface AuthResponse {
+export interface AuthResponse {
   token: string;
   user: {
     id: string;          // BigInt가 문자열로 변환됨
@@ -18,20 +19,48 @@ interface AuthResponse {
   };
 }
 
+export interface ApiResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: {
+    code: string;
+    message: string;
+  };
+  meta?: {
+    timestamp: number;
+    path: string;
+    pagination?: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    };
+  };
+}
+
 export const checkIn = async (deviceToken: string): Promise<AuthResponse> => {
   try {
-    const response = await axios.post<AuthResponse>(`${API_URL}${ENDPOINTS.CHECK_IN}`, {
+    const response = await axios.post<ApiResponse<AuthResponse>>(`${API_URL}${ENDPOINTS.CHECK_IN}`, {
       device_token: deviceToken
     });
 
-    if (response.data && response.data.user) {
+    if (response.data && response.data.data?.user) {
       // 사용자 데이터만 저장
-      await AsyncStorage.setItem('@MediDealer:userData', JSON.stringify(response.data.user));
+      await AsyncStorage.setItem('@MediDealer:userData', JSON.stringify(response.data.data.user));
     } else {
       throw new Error('Invalid response data');
     }
 
-    return response.data;
+    const authToken = response.data.data?.token;
+    await AsyncStorage.setItem('@MediDealer:authToken', authToken || '');
+    console.log('Auth token:', authToken);
+
+    axios.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+
+    return response.data.data as AuthResponse;
   } catch (error) {
     console.error('Device checkin error:', error);
     throw error;
@@ -39,13 +68,13 @@ export const checkIn = async (deviceToken: string): Promise<AuthResponse> => {
 };
 
 export const verifyUser = async (userId: string, deviceToken: string): Promise<AuthResponse> => {
-  const response = await axios.post<AuthResponse>(`${API_URL}${ENDPOINTS.USER_VERIFY}`, {
+  const response = await axios.post<ApiResponse<AuthResponse>>(`${API_URL}${ENDPOINTS.USER_VERIFY}`, {
     user_id: userId,
-    device_token: deviceToken
+    device_token: deviceToken,    
   });
   // 토큰 저장 필요
-  await AsyncStorage.setItem('@MediDealer:authToken', response.data.token);
-  return response.data;
+  await AsyncStorage.setItem('@MediDealer:authToken', response.data.data?.token || '');
+  return response.data.data as AuthResponse;
 };
 
 export const registerAuction = async (auctionData: any) => {
@@ -53,46 +82,51 @@ export const registerAuction = async (auctionData: any) => {
   return response.data;
 };
 
+export const createUserSalesItem = async (salesItemData: any) => {
+  const response = await axios.post(`${API_URL}${ENDPOINTS.SALES_ITEM}`, salesItemData);
+  return response.data;
+}
+
 export const getConstants = async () => {
   const response = await axios.get(`${API_URL}${ENDPOINTS.CONSTANTS}`);
-  return response.data;
+  return response.data.data;
 };
 
-interface SearchAuctionParams {
-  deviceTypes?: string[];
-  areas?: string[];
-  departments?: string[];
+interface SearchSaleItemParams {
+  device_type_id?: string;
+  manufacturer_id?: string;
+  department_id?: string;
+  sales_type?: string;
+  status?: string;
+  keyword?: string;
   page?: number;
   limit?: number;
 }
 
 interface SearchAuctionResponse {
-  items: IAuctionItem[];
+  items: AuctionItem[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
 }
 
-export const searchAuction = async (params: SearchAuctionParams = {}): Promise<SearchAuctionResponse> => {
+export const searchSaleItem = async (params: SearchSaleItemParams = {}): Promise<ApiResponse<SaleItemListDto[]>> => {
   try {
     const queryParams = new URLSearchParams();
 
-    if (params.deviceTypes?.length) {
-      params.deviceTypes.forEach(type => queryParams.append('deviceTypes', type));
-    }
-    if (params.areas?.length) {
-      params.areas.forEach(area => queryParams.append('areas', area));
-    }
-    if (params.departments?.length) {
-      params.departments.forEach(dept => queryParams.append('departments', dept));
-    }
+    if (params.manufacturer_id) queryParams.append('manufacturer_id', params.manufacturer_id); // manufacturer_id 리스트로 검색
+    if (params.department_id) queryParams.append('department_id', params.department_id); // department_id 리스트로 검색
+    if (params.device_type_id) queryParams.append('device_type_id', params.device_type_id); // device_type_id 리스트로 검색
+    if (params.sales_type) queryParams.append('sales_type', params.sales_type); // sales_type 리스트로 검색
+    if (params.status) queryParams.append('status', params.status);
+    if (params.keyword) queryParams.append('keyword', params.keyword);
     if (params.page) queryParams.append('page', params.page.toString());
     if (params.limit) queryParams.append('limit', params.limit.toString());
 
-    const response = await axios.get(`${API_URL}${ENDPOINTS.AUCTION_SEARCH}?${queryParams.toString()}`);
+    const response = await axios.get(`${API_URL}${ENDPOINTS.SALES_ITEM}?${queryParams.toString()}`);
     console.log('Search response:', response.data);
-    return response.data;
+    return response.data as ApiResponse<SaleItemListDto[]>;
   } catch (error) {
     console.error('Error in searchAuction:', error);
     throw error;
@@ -100,7 +134,7 @@ export const searchAuction = async (params: SearchAuctionParams = {}): Promise<S
 };
 
 export const getAuctionDetail = async (id: string) => { 
-  const response = await axios.get(`${API_URL}${ENDPOINTS.AUCTION_ITEM}/${id}`);
+  const response = await axios.get(`${API_URL}${ENDPOINTS.SALES_ITEM}/${id}`);
   console.log('Auction detail response:', response.data);
   return response.data;
 };
@@ -236,6 +270,16 @@ export const setProduct = async (productData: any) => {
 // 의료기 수정 API
 export const updateProduct = async (id: string, productData: any) => {
   const response = await axios.put(`${API_URL}${ENDPOINTS.MY_DEVICES}/${id}`, productData);
+  return response.data;
+};
+
+export const getMySaleList = async (page: number = 1, limit: number = 10) => {
+  const response = await axios.get(`${API_URL}${ENDPOINTS.USER}/me/saleitems?page=${page}&limit=${limit}`);
+  return response.data;
+};
+
+export const getMyBuyList = async (page: number = 1, limit: number = 10) => {
+  const response = await axios.get(`${API_URL}${ENDPOINTS.USER}/me/viewhistory?page=${page}&limit=${limit}`);
   return response.data;
 };
 

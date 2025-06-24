@@ -1,56 +1,46 @@
 import { NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { prisma } from '@repo/shared';
-import { convertBigIntToString } from '@/lib/utils';
+import { userService } from '@repo/shared/services';
+import { SignJWT } from 'jose';
+import { convertBigIntToString } from '@/libs/utils';
+import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
+import { createValidationError, createSystemError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
 
-export async function POST(request: Request) {
-  try {
-    const body = await request.json();
-    const { device_token } = body;
+export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
+  const { body } = await parseApiRequest<{ device_token: string }>(request);
+  const { device_token } = body;
 
-    if (!device_token) {
-      return NextResponse.json(
-        { error: 'Device token is required' },
-        { status: 400 }
-      );
-    }
-
-    // 기존 사용자 확인
-    let user = await prisma.user.findFirst({
-      where: {
-        device_token: device_token
-      }
-    });
-
-    // 새 사용자 생성 또는 기존 사용자 토큰 업데이트
-    if (!user) {
-      // 새 사용자 생성
-      user = await prisma.user.create({
-        data: {
-          device_token: device_token,          
-        }
-      });
-    }
-
-    // 응답 데이터 구조 확인
-    const responseData = {
-      token: user.token,
-      user: {
-        id: user.id,
-        created_at: user.createdAt,
-        device_token: user.device_token
-      }
-    };
-
-    console.log('Response data:', responseData); // 디버깅을 위한 로그
-
-    return NextResponse.json(convertBigIntToString(responseData));
-
-  } catch (error) {
-    console.error('User registration error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  if (!device_token) {
+    throw createValidationError('MISSING_REQUIRED', 'Device token is required');
   }
-}
+
+  try {
+    const user = await userService.checkIn(device_token);
+
+    // JWT 토큰 생성
+    const token = await new SignJWT({
+      userId: user.id.toString(),
+      deviceToken: user.device_token,
+    })
+      .setProtectedHeader({ alg: 'HS256' })
+      .setIssuedAt()
+      .setExpirationTime('1d')
+      .sign(new TextEncoder().encode(process.env.USER_JWT_SECRET));
+
+    return {
+      success: true,
+      data: convertBigIntToString({
+        token,
+        user: {
+          id: user.id,
+          created_at: user.created_at,
+          device_token: user.device_token,
+          profile: user.profile || null,
+        }
+      })
+    };
+  } catch (error) {
+    console.error('User check-in error:', error);
+    throw createSystemError('INTERNAL_ERROR', 'Failed to process check-in');
+  }
+});

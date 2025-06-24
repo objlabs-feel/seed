@@ -1,51 +1,75 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
+import {
+  departmentService,
+  deviceTypeService,
+  manufacturerService,
+} from '@repo/shared/services';
+import { createApiResponse, withApiHandler } from '@/libs/api-utils';
+import { createSystemError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
 
-export async function GET() {
+export const GET = withApiHandler(async (request: Request): Promise<ApiResponse> => {
   try {
-    // 병원과, 장비유형, 제조사 정보를 병렬로 조회
+    // 요청 헤더 로깅
+    console.log('Request headers:', Object.fromEntries(request.headers.entries()));
+
     const [departments, deviceTypes, manufacturers] = await Promise.all([
-      prisma.department.findMany({
+      departmentService.findMany({
         select: {
           id: true,
           name: true,
-          code: true
+          code: true,
+          sort_key: true,
+          deviceTypes: true,
         },
         orderBy: {
-          name: 'desc'
+          name: 'desc',
         }
       }),
-      prisma.deviceType.findMany({
+      deviceTypeService.findMany({
         select: {
           id: true,
           name: true,
-          code: true
+          code: true,
+          sort_key: true,
         },
         orderBy: {
-          name: 'desc'
-        }
+          name: 'desc',
+        },
       }),
-      prisma.manufacturer.findMany({
+      manufacturerService.findMany({
         select: {
           id: true,
-          name: true
+          name: true,
         },
         orderBy: {
-          name: 'asc'
-        }
-      })
+          name: 'asc',
+        },
+      }),
     ]);
 
-    return NextResponse.json({
-      departments,
-      deviceTypes,
-      manufacturers
+    // BigInt 또는 number를 string으로 변환
+    const stringifyId = (item: { id: bigint | number, [key: string]: any }) => ({
+      ...item,
+      id: item.id.toString(),
     });
+
+    // console.log('Response data:', {
+    //   departments: departments.map(stringifyId),
+    //   deviceTypes: deviceTypes.map(stringifyId),
+    //   manufacturers: manufacturers.map(stringifyId),
+    // });
+
+    return {
+      success: true,
+      data: {
+        departments: departments.map(stringifyId),
+        deviceTypes: deviceTypes.map(stringifyId),
+        manufacturers: manufacturers.map(stringifyId),
+      }
+    };
   } catch (error) {
     console.error('상수 데이터 조회 중 오류:', error);
-    return NextResponse.json(
-      { error: '상수 데이터 조회 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    throw createSystemError('INTERNAL_ERROR', 'Failed to fetch constants data');
   }
-}
+});

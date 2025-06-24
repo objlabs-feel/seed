@@ -41,12 +41,13 @@ import AuctionSearchScreen from './screens/AuctionSearchScreen';
 import HomeScreen from './screens/HomeScreen';
 import { getOrCreateDeviceId } from './utils/deviceId';
 import { checkIn, verifyUser } from './services/medidealer/api';
-import { IAuthResponse } from '@repo/shared';
+import { UserResponseDto } from '@repo/shared';
 import { initConstants } from './constants/data';
 import AuctionDetailScreen from './screens/AuctionDetailScreen';
 import AuctionSelectBidScreen from './screens/AuctionSelectBidScreen';
 import AuctionBidAcceptScreen from './screens/AuctionBidAcceptScreen';
 import RequestNotificationScreen from './screens/notification/RequestNotificationScreen';
+import NotificationHistoryScreen from './screens/notification/NotificationHistoryScreen';
 import MyDeviceScreen from './screens/MyDeviceScreen';
 import MyConsultScreen from './screens/MyConsultScreen';
 import SettingNotificationScreen from './screens/SettingNotificationScreen';
@@ -59,6 +60,9 @@ import ConsultClosureScreen from './screens/consult/ConsultClosureScreen';
 import ConsultOpeningScreen from './screens/consult/ConsultOpeningScreen';
 import ConsultRepairScreen from './screens/consult/ConsultRepairScreen';
 import ConsultInspectorScreen from './screens/consult/ConsultInspectorScreen';
+import SalesHistoryScreen from './screens/user/SalesHistoryScreen';
+import PurchaseHistoryScreen from './screens/user/PurchaseHistoryScreen';
+import { AuthResponse } from './services/medidealer/api';
 
 type SectionProps = PropsWithChildren<{
   title: string;
@@ -105,6 +109,7 @@ type RootStackParamList = {
   AuctionSelectBid: { id: string };
   AuctionBidAccept: { id: string };
   RequestNotification: undefined;
+  Notifications: undefined;
   DeviceDetail: { id: string };
   ConsultFeature: undefined;
   ConsultClosure: undefined;
@@ -113,13 +118,15 @@ type RootStackParamList = {
   ConsultInspector: undefined;
   AddProduct: undefined;
   EditProduct: undefined;
+  SalesHistory: undefined;
+  PurchaseHistory: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 const Tab = createBottomTabNavigator();
 
 // 스플래시 화면
-const SplashScreen = ({ navigation }) => {
+const SplashScreen = ({ navigation }: { navigation: any }) => {
   useEffect(() => {
     const initializeApp = async () => {
       try {
@@ -131,14 +138,16 @@ const SplashScreen = ({ navigation }) => {
         if (userData) {
           const user = JSON.parse(userData);
           console.log('User data:', user);
-          const verifyResponse: IAuthResponse = await verifyUser(user.id, deviceId);
-          console.log('Verify successful:', verifyResponse);
+          const authResponse: AuthResponse = await checkIn(deviceId);
+          console.log('Checkin successful:', authResponse);
+          // const verifyResponse: AuthResponse = await verifyUser(authResponse.user.id, deviceId);
+          // console.log('Verify successful:', verifyResponse);
           // 상수 데이터 초기화
           await initConstants();
         } else {
-          const authResponse: IAuthResponse = await checkIn(deviceId);
+          const authResponse: AuthResponse = await checkIn(deviceId);
           console.log('Checkin successful:', authResponse);
-          const verifyResponse: IAuthResponse = await verifyUser(authResponse.user.id, deviceId);
+          const verifyResponse: AuthResponse = await verifyUser(authResponse.user.id, deviceId);
           console.log('Verify successful:', verifyResponse);
           // 상수 데이터 초기화
           await initConstants();
@@ -182,7 +191,7 @@ const SplashScreen = ({ navigation }) => {
 };
 
 // 이용자 약관동의 화면
-const UserAgreementScreen = ({ navigation }) => {
+const UserAgreementScreen = ({ navigation }: { navigation: any }) => {
   const handleAgree = async () => {
     try {
       await AsyncStorage.setItem('userAgreement', 'true');
@@ -208,7 +217,7 @@ const UserAgreementScreen = ({ navigation }) => {
 };
 
 // 홈 화면 컴포넌트
-const TabScreen = ({ title }) => (
+const TabScreen = ({ title }: { title: string }) => (
   <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
     <Text>{title}</Text>
   </View>
@@ -361,7 +370,7 @@ const App = () => {
           options={{ 
             headerShown: true,
             title: '이용약관',
-            headerLeft: null 
+            headerLeft: undefined as any 
           }} 
         />
         <Stack.Screen name="Home" component={HomeTabs} />
@@ -485,6 +494,32 @@ const App = () => {
           options={{
             headerShown: true,
             title: '검사원 온라인 신청',
+          }}
+        />
+        <Stack.Screen 
+          name="SalesHistory"
+          component={SalesHistoryScreen}
+          options={{
+            headerShown: true,
+            title: '판매이력',
+          }}
+        />
+        <Stack.Screen 
+          name="PurchaseHistory"
+          component={PurchaseHistoryScreen}
+          options={{
+            headerShown: true,
+            title: '구매이력',
+          }}
+        />
+        <Stack.Screen 
+          name="Notifications"
+          component={NotificationHistoryScreen}
+          options={{
+            headerShown: true,
+            title: '알림',
+            headerBackTitle: '뒤로',
+            gestureEnabled: true,
           }}
         />
       </Stack.Navigator>

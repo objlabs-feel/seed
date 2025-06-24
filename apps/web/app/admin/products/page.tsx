@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { IAuctionItem } from '@repo/shared/models';
+import { AuctionItem } from '@repo/shared/models';
 
 // interface IAuctionResponse {
 //   items: IAuctionItem[]
@@ -22,7 +22,7 @@ interface SearchFilters {
 
 export default function ProductList() {
   const router = useRouter();
-  const [auctionItems, setAuctionItems] = useState<IAuctionItem[]>([]);
+  const [auctionItems, setAuctionItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);

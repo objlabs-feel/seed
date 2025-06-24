@@ -9,6 +9,12 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./*"],
+      "@repo/shared/*": [
+        "../../packages/shared/src/*"
+      ],
+      "@repo/ui/*": [
+        "../../packages/ui/src/*"
+      ]
     }
   },
   "include": [

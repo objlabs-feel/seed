@@ -8,7 +8,7 @@ import Step1Screen from './auction/Step1Screen';
 import Step2Screen from './auction/Step2Screen';
 import Step3Screen from './auction/Step3Screen';
 import NavigationButtons from '../components/auction/NavigationButtons';
-import { registerAuction } from '../services/medidealer/api';
+import { createUserSalesItem, registerAuction } from '../services/medidealer/api';
 import { departments, deviceTypes, locations, manufacturers } from '../constants/data';
 import CreateAuctionStep1 from './auction/CreateAuctionStep1';
 import CreateAuctionStep2 from './auction/CreateAuctionStep2';
@@ -34,6 +34,10 @@ const AuctionRegistrationScreen = ({ navigation }: { navigation: any }) => {
     manufacturingYear: '',
     quantity: '1',  // 수량 기본값 1
     transferDate: new Date(),  // 오늘 날짜로 기본값 설정
+    sales_type: 1,
+    status: 1,
+    description: '',
+    images: []
   });
   const [errors, setErrors] = useState({});
 
@@ -72,7 +76,20 @@ const AuctionRegistrationScreen = ({ navigation }: { navigation: any }) => {
     try {
       // TODO: API 호출하여 데이터 저장
       // const response = await axios.post('YOUR_API_URL/auctions', formData);
-      const response = await registerAuction(formData);
+      const response = await createUserSalesItem({
+        sales_type: Number(formData.sales_type),          
+        status: formData.status,
+        name: formData.name,
+        phone: formData.phone,
+        hospitalName: formData.hospitalName,
+        location: formData.location,
+        department_id: formData.department,
+        device_type_id: formData.equipmentType,
+        manufacturer_id: formData.manufacturer,
+        manufacture_date: formData.manufacturingYear,
+        description: formData.description,
+        images: formData.images,
+      });
       console.log(response);
       Alert.alert('성공', '경매가 등록되었습니다.', [
         {

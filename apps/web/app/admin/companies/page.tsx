@@ -51,7 +51,7 @@ export default function CompanyManagement() {
 
     if (node) {
       observer.current = new IntersectionObserver(entries => {
-        if (entries[0].isIntersecting && hasMore) {
+        if (entries[0]?.isIntersecting && hasMore) {
           setPage(prev => prev + 1);
         }
       });

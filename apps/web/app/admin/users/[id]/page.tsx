@@ -1,21 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import CompanySelectModal from '../../products/components/CompanySelectModal';
 
 interface FormData {
   user: {
-    device_token: string
-    status: number
-  }
+    device_token: string;
+    status: number;
+  };
   profile: {
-    name: string
-    email: string
-    mobile: string
-    profile_type: number
-    company_id?: number
-  }
+    name: string;
+    email: string;
+    mobile: string;
+    profile_type: number;
+    company_id?: string;
+  };
 }
 
 export default function UserEdit({ params }: { params: { id: string } }) {
@@ -43,27 +43,35 @@ export default function UserEdit({ params }: { params: { id: string } }) {
   const fetchUser = async () => {
     try {
       const response = await fetch(`/api/v1/users/${params.id}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || '사용자 정보를 불러오는데 실패했습니다.');
+      }
       const data = await response.json();
 
-      if (data.company) {
-        setSelectedCompany(data.company);
-      }
-
-      setFormData({
-        user: {
-          device_token: data.device_token,
-          status: data.status
-        },
-        profile: {
-          name: data.profile.name,
-          email: data.profile.email,
-          mobile: data.profile.mobile,
-          profile_type: data.profile.profile_type,
-          company_id: data.profile.company_id
+      if (data.success && data.data) {
+        if (data.data.company) {
+          setSelectedCompany(data.data.company);
         }
-      });
+
+        setFormData({
+          user: {
+            device_token: data.data.device_token,
+            status: data.data.status
+          },
+          profile: {
+            name: data.data.profile.name,
+            email: data.data.profile.email,
+            mobile: data.data.profile.mobile,
+            profile_type: data.data.profile.profile_type,
+            company_id: data.data.profile.company_id
+          }
+        });
+      } else {
+        throw new Error(data.error?.message || '데이터를 불러오는데 실패했습니다.');
+      }
     } catch (err) {
-      alert('이용자 정보를 불러오는데 실패했습니다.');
+      alert(err instanceof Error ? err.message : '이용자 정보를 불러오는데 실패했습니다.');
     } finally {
       setLoading(false);
     }
@@ -82,14 +90,20 @@ export default function UserEdit({ params }: { params: { id: string } }) {
         body: JSON.stringify(formData),
       });
 
-      if (response.ok) {
-        alert('이용자 정보가 수정되었습니다.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error?.message || '수정 중 오류가 발생했습니다.');
+      }
+
+      const data = await response.json();
+      if (data.success) {
+        alert(data.message || '이용자 정보가 수정되었습니다.');
         router.push('/admin/users');
       } else {
-        throw new Error('수정 중 오류가 발생했습니다.');
+        throw new Error(data.error?.message || '수정 중 오류가 발생했습니다.');
       }
     } catch (err) {
-      alert('이용자 정보 수정 중 오류가 발생했습니다.');
+      alert(err instanceof Error ? err.message : '이용자 정보 수정 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -107,146 +121,117 @@ export default function UserEdit({ params }: { params: { id: string } }) {
     setIsCompanyModalOpen(false);
   };
 
-  if (loading) return <div>로딩 중...</div>;
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="bg-white rounded-lg shadow p-6">
-      <h2 className="text-lg font-semibold mb-6">이용자 정보 수정</h2>
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <h3 className="font-semibold mb-4">기본 정보</h3>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">이름</label>
-              <input
-                type="text"
-                value={formData.profile.name}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: {
-                    ...formData.profile,
-                    name: e.target.value
-                  }
-                })}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">이메일</label>
-              <input
-                type="email"
-                value={formData.profile.email}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: {
-                    ...formData.profile,
-                    email: e.target.value
-                  }
-                })}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">전화번호</label>
-              <input
-                type="tel"
-                value={formData.profile.mobile}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: {
-                    ...formData.profile,
-                    mobile: e.target.value
-                  }
-                })}
-                className="w-full p-2 border rounded"
-                required
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">프로필 유형</label>
-              <select
-                value={formData.profile.profile_type}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  profile: {
-                    ...formData.profile,
-                    profile_type: parseInt(e.target.value)
-                  }
-                })}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value={0}>병원장</option>
-                <option value={1}>기업</option>
-                <option value={2}>관계자</option>
-                <option value={3}>기관</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">소속 업체</label>
-              <div className="flex gap-2 items-center">
-                <div className="flex-1 p-2 border rounded bg-gray-50">
-                  {selectedCompany ? (
-                    <div>
-                      <span className="font-medium">{selectedCompany.name}</span>
-                      <span className="text-sm text-gray-500 ml-2">
-                        ({selectedCompany.company_type === 0 ? '병원' : '일반사업자'})
-                      </span>
-                    </div>
-                  ) : (
-                    <span className="text-gray-400">업체를 선택해주세요</span>
-                  )}
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsCompanyModalOpen(true)}
-                  className="px-4 py-2 bg-blue-500 text-white rounded"
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-2xl mx-auto">
+        <h1 className="text-2xl font-bold mb-6">이용자 정보 수정</h1>
+        
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="bg-white shadow rounded-lg p-6">
+            <h2 className="text-lg font-semibold mb-4">기본 정보</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">상태</label>
+                <select
+                  value={formData.user.status}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    user: { ...prev.user, status: parseInt(e.target.value) }
+                  }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
-                  업체 선택
-                </button>
+                  <option value="0">정상</option>
+                  <option value="1">정지</option>
+                  <option value="2">탈퇴</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">이름</label>
+                <input
+                  type="text"
+                  value={formData.profile.name}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    profile: { ...prev.profile, name: e.target.value }
+                  }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">이메일</label>
+                <input
+                  type="email"
+                  value={formData.profile.email}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    profile: { ...prev.profile, email: e.target.value }
+                  }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">전화번호</label>
+                <input
+                  type="tel"
+                  value={formData.profile.mobile}
+                  onChange={(e) => setFormData(prev => ({
+                    ...prev,
+                    profile: { ...prev.profile, mobile: e.target.value }
+                  }))}
+                  className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700">회사</label>
+                <div className="mt-1 flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={selectedCompany?.name || ''}
+                    readOnly
+                    className="block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsCompanyModalOpen(true)}
+                    className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200"
+                  >
+                    선택
+                  </button>
+                </div>
               </div>
             </div>
-            <div>
-              <label className="block text-sm font-medium mb-1">상태</label>
-              <select
-                value={formData.user.status}
-                onChange={(e) => setFormData({
-                  ...formData,
-                  user: {
-                    ...formData.user,
-                    status: parseInt(e.target.value)
-                  }
-                })}
-                className="w-full p-2 border rounded"
-                required
-              >
-                <option value={0}>정상</option>
-                <option value={1}>정지</option>
-                <option value={2}>탈퇴</option>
-              </select>
-            </div>
           </div>
-        </div>
 
-        <div className="flex justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => router.back()}
-            className="px-4 py-2 bg-gray-500 text-white rounded"
-          >
-            취소
-          </button>
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-blue-300"
-          >
-            {loading ? '수정 중...' : '수정하기'}
-          </button>
-        </div>
-      </form>
+          <div className="flex justify-end space-x-4">
+            <button
+              type="button"
+              onClick={() => router.back()}
+              className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+            >
+              취소
+            </button>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+            >
+              저장
+            </button>
+          </div>
+        </form>
+      </div>
 
       <CompanySelectModal
         isOpen={isCompanyModalOpen}

@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform, ActivityIndicator, FlatList } from 'react-native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
-import { getNotification, updateNotification, getAuctionCount } from '../services/medidealer/api';
+import { getNotification, updateNotification, getAuctionCount, getMySaleList, getMyBuyList } from '../services/medidealer/api';
 import notifee, { EventType } from '@notifee/react-native';
 import { getDeviceType, getOSVersion } from '../utils/device';
 import { eventEmitter } from '../utils/eventEmitter';
+import AntDesign from 'react-native-vector-icons/AntDesign';
 
 type RootStackParamList = {
   Home: undefined;
@@ -17,6 +18,8 @@ type RootStackParamList = {
   AuctionDetail: { id: string };
   AuctionSelectBid: { id: string };
   AuctionBidAccept: { id: string };
+  Notifications: undefined;
+  Settings: undefined;
 };
 
 type NavigationProp = StackNavigationProp<RootStackParamList, 'Home'>;
@@ -31,6 +34,11 @@ interface NotificationCleanup {
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const [auctionCount, setAuctionCount] = useState(0);
+  const [activeTab, setActiveTab] = useState('sell'); // 'sell' 또는 'buy'
+  const [sellItems, setSellItems] = useState<any[]>([]);
+  const [buyItems, setBuyItems] = useState<any[]>([]);
+  const [isLoadingSell, setIsLoadingSell] = useState(false);
+  const [isLoadingBuy, setIsLoadingBuy] = useState(false);
 
   useEffect(() => {
     console.log('[HomeScreen] 마운트됨');
@@ -120,6 +128,26 @@ const HomeScreen = () => {
       }
     });
 
+    // 네비게이션 헤더 설정
+    navigation.setOptions({
+      headerTitle: () => (
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <AntDesign name="home" size={20} color="#333" style={{ marginRight: 8 }} />
+          <Text style={{ fontSize: 18, fontWeight: 'bold', color: '#333' }}>메디딜러</Text>
+        </View>
+      ),
+      headerLeft: () => null,
+      headerRight: () => (
+        <TouchableOpacity 
+          style={styles.headerIconButton}
+          onPress={() => navigation.navigate('Notifications')}
+        >
+          <AntDesign name="bells" size={20} color="#333" />
+          <Text style={styles.headerIconText}>알림</Text>
+        </TouchableOpacity>
+      ),
+    });
+
     return () => {
       console.log('[HomeScreen] 언마운트됨, 리소스 정리');
       isMounted = false;
@@ -127,7 +155,7 @@ const HomeScreen = () => {
       unsubscribe();
       unsubscribeNotifee();
     };
-  }, []);
+  }, [navigation]);
   
   // 알림 초기화 이벤트 처리 함수
   const handleNotificationInitialized = () => {
@@ -303,6 +331,111 @@ const HomeScreen = () => {
     }
   };
 
+  // 판매 상품 목록 로드 함수
+  const loadSellingItems = async () => {
+    try {
+      setIsLoadingSell(true);
+      
+      const response = await getMySaleList(1, 10);
+      console.log('My sale list:', response);
+      
+      // API 응답 데이터를 화면에 맞는 형태로 변환
+      const transformedItems = response.data?.map((item: any) => ({
+        id: item.id,
+        title: item.item?.device?.deviceType?.name || item.salesType?.name || '제목 없음',
+        price: item.item?.auction_item_history?.[0]?.value || 0,
+        status: item.status === 1 ? '판매중' : item.status === 2 ? '낙찰' : '완료',
+        date: item.created_at ? new Date(item.created_at).toLocaleDateString() : '',
+        bid_count: item.item?.auction_item_history?.length || 0,
+        image_url: item.item?.device?.images?.[0] || null,
+        deadline: item.item?.auction_timeout || null
+      })) || [];
+      
+      console.log('Transformed items:', transformedItems);
+      
+      setSellItems(transformedItems);
+      setIsLoadingSell(false);
+    } catch (error) {
+      console.error('판매 상품 로드 오류:', error);
+      setIsLoadingSell(false);
+    }
+  };
+
+  // 구매/입찰 상품 목록 로드 함수
+  const loadBuyingItems = async () => {
+    try {
+      setIsLoadingBuy(true);
+      
+      const response = await getMyBuyList(1, 10);
+      console.log('My buy list:', response);
+      
+      // API 응답 데이터를 화면에 맞는 형태로 변환
+      const transformedItems = response.data?.map((item: any) => ({
+        id: item.id,
+        title: item.item?.device?.deviceType?.name || '제목 없음',
+        status: item.status === 1 ? '입찰중' : item.status === 2 ? '낙찰' : '완료',
+        bid: item.item?.auction_item_history?.[0]?.value?.toLocaleString() + '원' || '0원',
+        date: item.created_at ? new Date(item.created_at).toLocaleDateString() : '',
+        price: item.item?.auction_item_history?.[0]?.value || 0
+      })) || [];
+      
+      console.log('Transformed buy items:', transformedItems);
+      
+      setBuyItems(transformedItems);
+      setIsLoadingBuy(false);
+    } catch (error) {
+      console.error('구매 상품 로드 오류:', error);
+      setIsLoadingBuy(false);
+    }
+  };
+
+  // 탭 변경 시 관련 데이터 로드
+  useEffect(() => {
+    if (activeTab === 'sell') {
+      loadSellingItems();
+    } else {
+      loadBuyingItems();
+    }
+  }, [activeTab]);
+
+  // 판매 아이템 렌더링 함수
+  const renderSellItem = ({ item }: { item: any }) => (
+    <TouchableOpacity style={styles.listItemContainer}>
+      <View style={styles.listItemHeader}>
+        <Text style={styles.listItemTitle}>{item.title}</Text>
+        <View style={[
+          styles.statusBadge,
+          item.status === '판매중' ? styles.statusOngoing : styles.statusCompleted
+        ]}>
+          <Text style={styles.statusText}>{item.status}</Text>
+        </View>
+      </View>
+      <View style={styles.listItemDetails}>
+        <Text style={styles.listItemPrice}>{item.price?.toLocaleString()}원</Text>
+        <Text style={styles.listItemDate}>{item.date}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
+  // 구매 아이템 렌더링 함수
+  const renderBuyItem = ({ item }: { item: any }) => (
+    <TouchableOpacity style={styles.listItemContainer}>
+      <View style={styles.listItemHeader}>
+        <Text style={styles.listItemTitle}>{item.title}</Text>
+        <View style={[
+          styles.statusBadge,
+          item.status === '입찰중' ? styles.statusOngoing : styles.statusCompleted
+        ]}>
+          <Text style={styles.statusText}>{item.status}</Text>
+        </View>
+      </View>
+      <View style={styles.listItemDetails}>
+        <Text style={styles.listItemPrice}>입찰가: {item.bid}</Text>
+        <Text style={styles.listItemDate}>{item.date}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
@@ -312,47 +445,102 @@ const HomeScreen = () => {
             <Text style={styles.statLabel}>누적 경매 건수</Text>
             <Text style={styles.statNumber}>{2100 + auctionCount}</Text>
           </View>
-          {/* <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statLabel}>Total 구매</Text>
-            <Text style={styles.statNumber}>1,857</Text>
-          </View> */}
         </View>
 
-        {/* 팔기/사기 버튼 영역 */}
-        <View style={styles.buttonContainer}>
+        {/* 탭 메뉴 영역 */}
+        <View style={styles.tabContainer}>
           <TouchableOpacity 
-            style={[styles.button, styles.sellButton]}
-            onPress={() => navigation.navigate('AuctionRegistration')}
+            style={[styles.tabButton, activeTab === 'sell' && styles.activeTabButton]}
+            onPress={() => setActiveTab('sell')}
           >
-            <Text style={styles.buttonText}>팔기</Text>
-            <Text style={styles.buttonSubtext}>의료기기 등록</Text>
+            <Text style={[styles.tabButtonText, activeTab === 'sell' && styles.activeTabButtonText]}>판매하기</Text>
           </TouchableOpacity>
           <TouchableOpacity 
-            style={[styles.button, styles.buyButton]}
-            onPress={() => navigation.navigate('AuctionSearch')}
+            style={[styles.tabButton, activeTab === 'buy' && styles.activeTabButton]}
+            onPress={() => setActiveTab('buy')}
           >
-            <Text style={styles.buttonText}>사기</Text>
-            <Text style={styles.buttonSubtext}>의료기기 구매</Text>
+            <Text style={[styles.tabButtonText, activeTab === 'buy' && styles.activeTabButtonText]}>구매하기</Text>
           </TouchableOpacity>
         </View>
 
-        {/* MOU 체결 현황 */}
-        <View style={styles.mouContainer}>
-          <Text style={styles.sectionTitle}>MOU 체결 현황</Text>
-          <View style={styles.mouContent}>
-            <Text style={styles.mouText}>전국 500여 개 병원과 MOU 체결</Text>
-            <Text style={styles.mouSubtext}>안전한 의료기기 거래를 위한 파트너십</Text>
+        {/* 탭 컨텐츠 영역 */}
+        <View style={styles.tabContentContainer}>
+          {/* 상단 버튼 영역 (공통) */}
+          <View style={styles.actionButtonsContainer}>
+            <TouchableOpacity 
+              style={styles.actionButton}
+              onPress={() => 
+                activeTab === 'sell' 
+                  ? navigation.navigate('AuctionRegistration') 
+                  : navigation.navigate('AuctionSearch')
+              }
+            >
+              <Text style={styles.actionButtonText}>중고경매</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>새의료기</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Text style={styles.actionButtonText}>나눔하기</Text>
+            </TouchableOpacity>
           </View>
-        </View>
-
-        {/* 광고 영역 */}
-        <View style={styles.adContainer}>
-          <Text style={styles.sectionTitle}>공지사항</Text>
-          <View style={styles.adContent}>
-            <Text style={styles.adTitle}>의료기기 거래 수수료 0%</Text>
-            <Text style={styles.adText}>2025년 상반기 프로모션</Text>
-          </View>
+          
+          {/* 하단 현황 영역 (탭에 따라 다름) */}
+          {activeTab === 'sell' ? (
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusTitle}>내 판매현황</Text>
+              {isLoadingSell ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#007bff" />
+                  <Text style={styles.loadingText}>판매 정보를 불러오는 중...</Text>
+                </View>
+              ) : sellItems.length > 0 ? (
+                <FlatList
+                  data={sellItems}
+                  renderItem={renderSellItem}
+                  keyExtractor={(item) => item.id.toString()}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>등록된 판매 상품이 없습니다.</Text>
+                  <TouchableOpacity 
+                    style={styles.emptyButton}
+                    onPress={() => navigation.navigate('AuctionRegistration')}
+                  >
+                    <Text style={styles.emptyButtonText}>의료기기 판매하기</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          ) : (
+            <View style={styles.statusContainer}>
+              <Text style={styles.statusTitle}>내 구매현황</Text>
+              {isLoadingBuy ? (
+                <View style={styles.loadingContainer}>
+                  <ActivityIndicator size="large" color="#007bff" />
+                  <Text style={styles.loadingText}>구매 정보를 불러오는 중...</Text>
+                </View>
+              ) : buyItems.length > 0 ? (
+                <FlatList
+                  data={buyItems}
+                  renderItem={renderBuyItem}
+                  keyExtractor={(item) => item.id.toString()}
+                  scrollEnabled={false}
+                />
+              ) : (
+                <View style={styles.emptyContainer}>
+                  <Text style={styles.emptyText}>입찰 중인 상품이 없습니다.</Text>
+                  <TouchableOpacity 
+                    style={styles.emptyButton}
+                    onPress={() => navigation.navigate('AuctionSearch')}
+                  >
+                    <Text style={styles.emptyButtonText}>의료기기 구매하기</Text>
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -390,12 +578,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: '#dee2e6',
-    marginHorizontal: 20,
-  },
   statLabel: {
     fontSize: 14,
     color: '#6c757d',
@@ -406,124 +588,166 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#007bff',
   },
-  buttonContainer: {
+  tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 16,
-    gap: 16,
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    marginVertical: 16,
   },
-  button: {
+  tabButton: {
     flex: 1,
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    justifyContent: 'center',
+    paddingVertical: 12,
+    marginHorizontal: 8,
+    borderRadius: 8,
+    backgroundColor: '#f1f3f5',
     alignItems: 'center',
-    minWidth: 140,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 4,
-        },
-        shadowOpacity: 0.15,
-        shadowRadius: 8,
-      },
-      android: {
-        elevation: 5,
-      },
-    }),
   },
-  sellButton: {
-    backgroundColor: '#4CAF50',
+  activeTabButton: {
+    backgroundColor: '#007bff',
   },
-  buyButton: {
-    backgroundColor: '#2196F3',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 20,
-    fontWeight: '700',
-    marginBottom: 4,
-  },
-  buttonSubtext: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  mouContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    marginTop: 16,
-    marginHorizontal: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#1a1a1a',
-    marginBottom: 12,
-  },
-  mouContent: {
-    marginTop: 8,
-  },
-  mouText: {
-    fontSize: 16,
-    color: '#1a1a1a',
-    marginBottom: 4,
-  },
-  mouSubtext: {
-    fontSize: 14,
-    color: '#6c757d',
-  },
-  adContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    margin: 16,
-    borderRadius: 12,
-    ...Platform.select({
-      ios: {
-        shadowColor: '#000',
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  adContent: {
-    marginTop: 8,
-  },
-  adTitle: {
+  tabButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1a1a1a',
-    marginBottom: 4,
+    color: '#6c757d',
   },
-  adText: {
+  activeTabButtonText: {
+    color: 'white',
+  },
+  tabContentContainer: {
+    backgroundColor: 'white',
+    borderRadius: 12,
+    margin: 16,
+    padding: 16,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.1,
+        shadowRadius: 3,
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  actionButtonsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  actionButton: {
+    flex: 1,
+    paddingVertical: 10,
+    marginHorizontal: 4,
+    borderRadius: 8,
+    backgroundColor: '#e9ecef',
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#495057',
+  },
+  statusContainer: {
+    marginTop: 16,
+    minHeight: 200,
+  },
+  statusTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginBottom: 12,
+    color: '#343a40',
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    color: '#6c757d',
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 30,
+  },
+  emptyText: {
     fontSize: 14,
     color: '#6c757d',
+    marginBottom: 12,
+  },
+  emptyButton: {
+    backgroundColor: '#007bff',
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  emptyButtonText: {
+    color: 'white',
+    fontWeight: '500',
+  },
+  listItemContainer: {
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+    borderRadius: 8,
+    padding: 12,
+    marginBottom: 8,
+  },
+  listItemHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  listItemTitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#343a40',
+    flex: 1,
+  },
+  statusBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  statusOngoing: {
+    backgroundColor: '#28a745',
+  },
+  statusCompleted: {
+    backgroundColor: '#6c757d',
+  },
+  statusText: {
+    fontSize: 12,
+    color: 'white',
+    fontWeight: '500',
+  },
+  listItemDetails: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  listItemPrice: {
+    fontSize: 14,
+    color: '#495057',
+    fontWeight: '500',
+  },
+  listItemDate: {
+    fontSize: 12,
+    color: '#6c757d',
+  },
+  headerRightContainer: {
+    flexDirection: 'row',
+    marginRight: 10,
+  },
+  headerIconButton: {
+    alignItems: 'center',
+    marginHorizontal: 8,
+    padding: 5,
+  },
+  headerIconText: {
+    fontSize: 10,
+    marginTop: 2,
+    color: '#333',
   },
 });
 

@@ -1,0 +1,1889 @@
+[
+  {
+    "department_code": "HS",
+    "department_name": "내과,검진센터",
+    "department_description": "Health Screening",
+    "department_sort_key": 1001,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "MM",
+        "name": "유방 촬영기",
+        "description": "Mammography",
+        "sort_key": 1002
+      },
+      {
+        "code": "BD",
+        "name": "골밀도 측정기",
+        "description": "Bone Densitimetor",
+        "sort_key": 1003
+      },
+      {
+        "code": "US",
+        "name": "초음파검사기",
+        "description": "Ultrasound",
+        "sort_key": 1004
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Endoscopy System",
+        "sort_key": 1005
+      },
+      {
+        "code": "EC",
+        "name": "심전도검사기",
+        "description": "Electrocardiogram",
+        "sort_key": 1006
+      },
+      {
+        "code": "BP",
+        "name": "혈압계",
+        "description": "Automatic Blood Pressure Monitor",
+        "sort_key": 1007
+      },
+      {
+        "code": "BI",
+        "name": "체지방 분석기",
+        "description": "Bioelectrical Impedance Analysis",
+        "sort_key": 1008
+      },
+      {
+        "code": "SM",
+        "name": "신장계",
+        "description": "Stadiometer",
+        "sort_key": 1009
+      },
+      {
+        "code": "BG",
+        "name": "혈당 측정기",
+        "description": "Blood Glucose Monitor",
+        "sort_key": 1010
+      },
+      {
+        "code": "TM",
+        "name": "체온 측정기",
+        "description": "Thermometer",
+        "sort_key": 1011
+      },
+      {
+        "code": "IO",
+        "name": "안압계",
+        "description": "Intraocular Pressure Monitor",
+        "sort_key": 1012
+      },
+      {
+        "code": "OA",
+        "name": "전자청력계",
+        "description": "Otoacoustic Emission Analyzer",
+        "sort_key": 1013
+      },
+      {
+        "code": "PF",
+        "name": "폐기능 검사기",
+        "description": "Pulmonary Function Test",
+        "sort_key": 1014
+      },
+      {
+        "code": "BA",
+        "name": "혈액 분석기",
+        "description": "Complete Blood Count Analyzer",
+        "sort_key": 1015
+      },
+      {
+        "code": "UA",
+        "name": "소변 분석기",
+        "description": "Urinalysis Analyzer",
+        "sort_key": 1016
+      },
+      {
+        "code": "AU",
+        "name": "청력 검사기",
+        "description": "Audiometer",
+        "sort_key": 1017
+      },
+      {
+        "code": "VT",
+        "name": "시력 검사기",
+        "description": "Vision Tester",
+        "sort_key": 1018
+      },
+      {
+        "code": "AI",
+        "name": "동맥경화 검사기",
+        "description": "Ankle",
+        "sort_key": 1019
+      },
+      {
+        "code": "UC",
+        "name": "요독 측정기",
+        "description": "Uric Acid Analyzer",
+        "sort_key": 1020
+      },
+      {
+        "code": "SP",
+        "name": "산소포화도 측정기",
+        "description": "Pulse Oximeter",
+        "sort_key": 1021
+      },
+      {
+        "code": "CT",
+        "name": "CT",
+        "description": "Computed Tomography",
+        "sort_key": 1022
+      },
+      {
+        "code": "MR",
+        "name": "MRI",
+        "description": "Magnetic Resonance Imaging",
+        "sort_key": 1023
+      },
+      {
+        "code": "AD",
+        "name": "자동제세동기",
+        "description": "Automated External Defibrillator",
+        "sort_key": 1024
+      }
+    ]
+  },
+  {
+    "department_code": "DT",
+    "department_name": "치과",
+    "department_description": "Dentistry",
+    "department_sort_key": 1002,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "Dental X-ray Machine",
+        "sort_key": 1001
+      },
+      {
+        "code": "PX",
+        "name": "파노라마 X-ray",
+        "description": "Panoramic X-ray Machine",
+        "sort_key": 1002
+      },
+      {
+        "code": "CT",
+        "name": "CT",
+        "description": "Dental Cone Beam CT",
+        "sort_key": 1003
+      },
+      {
+        "code": "DC",
+        "name": "치과용 치료용 의자",
+        "description": "Dental Chair",
+        "sort_key": 1004
+      },
+      {
+        "code": "HP",
+        "name": "치과용 고속 핸드피스",
+        "description": "High-Speed Handpiece",
+        "sort_key": 1005
+      },
+      {
+        "code": "LP",
+        "name": "치과용 저속 핸드피스",
+        "description": "Low-Speed Handpiece",
+        "sort_key": 1006
+      },
+      {
+        "code": "FC",
+        "name": "치과용 충전기",
+        "description": "Filling Composite Applicator",
+        "sort_key": 1007
+      },
+      {
+        "code": "LF",
+        "name": "치과용 광중합기",
+        "description": "Light Curing Unit",
+        "sort_key": 1008
+      },
+      {
+        "code": "ID",
+        "name": "치과용 임플란트 드릴",
+        "description": "Implant Drill",
+        "sort_key": 1009
+      },
+      {
+        "code": "VS",
+        "name": "치과용 진공 흡입기",
+        "description": "Vacuum Suction Unit",
+        "sort_key": 1010
+      },
+      {
+        "code": "AB",
+        "name": "치과용 멸균기",
+        "description": "Autoclave Sterilizer",
+        "sort_key": 1011
+      },
+      {
+        "code": "GC",
+        "name": "치과용 석고 커터",
+        "description": "Gypsum Cutter",
+        "sort_key": 1012
+      },
+      {
+        "code": "DS",
+        "name": "치과용 소독기",
+        "description": "Dental Sterilizer",
+        "sort_key": 1013
+      },
+      {
+        "code": "AH",
+        "name": "치과용 공기압축기",
+        "description": "Air Compressor",
+        "sort_key": 1014
+      }
+    ]
+  },
+  {
+    "department_code": "OS",
+    "department_name": "정형외과",
+    "department_description": "Orthopedic Surgery",
+    "department_sort_key": 1003,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X-ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "CT",
+        "name": "CT",
+        "description": "Computed Tomography",
+        "sort_key": 1002
+      },
+      {
+        "code": "MR",
+        "name": "MRI",
+        "description": "Magnetic Resonance Imaging",
+        "sort_key": 1003
+      },
+      {
+        "code": "US",
+        "name": "초음파검사기",
+        "description": "Ultrasound",
+        "sort_key": 1004
+      },
+      {
+        "code": "BD",
+        "name": "골밀도 측정기",
+        "description": "Bone Densitometry",
+        "sort_key": 1005
+      },
+      {
+        "code": "EM",
+        "name": "근전도 검사기",
+        "description": "Electromyography",
+        "sort_key": 1006
+      },
+      {
+        "code": "EL",
+        "name": "체외충격파",
+        "description": "Extracorporeal Shockwave",
+        "sort_key": 1007
+      },
+      {
+        "code": "LT",
+        "name": "레이저 치료기",
+        "description": "Laser Therapy",
+        "sort_key": 1008
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physical Therapy Equipment",
+        "sort_key": 1009
+      },
+      {
+        "code": "CA",
+        "name": "C-arm",
+        "description": "C-arm",
+        "sort_key": 1010
+      },
+      {
+        "code": "CD",
+        "name": "냉각치료기",
+        "description": "Cryotherapy",
+        "sort_key": 1011
+      },
+      {
+        "code": "HT",
+        "name": "온열치료기",
+        "description": "Heat Therapy",
+        "sort_key": 1012
+      },
+      {
+        "code": "AS",
+        "name": "관절내시경",
+        "description": "Arthroscope",
+        "sort_key": 1013
+      },
+      {
+        "code": "PD",
+        "name": "정형외과용 전동 드릴",
+        "description": "Power Drill",
+        "sort_key": 1014
+      },
+      {
+        "code": "SN",
+        "name": "수술용 네비게이션 시스템",
+        "description": "Surgical Navigation",
+        "sort_key": 1015
+      },
+      {
+        "code": "PI",
+        "name": "플레이트 및 금속 임플란트",
+        "description": "Plates & Implants",
+        "sort_key": 1016
+      },
+      {
+        "code": "CP",
+        "name": "CPM 기기",
+        "description": "Continuous Passive Motion",
+        "sort_key": 1017
+      },
+      {
+        "code": "TD",
+        "name": "견인 치료기",
+        "description": "Traction Device",
+        "sort_key": 1018
+      },
+      {
+        "code": "RE",
+        "name": "재활 운동기구",
+        "description": "Rehabilitation Equipment",
+        "sort_key": 1019
+      },
+      {
+        "code": "AM",
+        "name": "마취기",
+        "description": "Anesthesia Machine",
+        "sort_key": 1020
+      },
+      {
+        "code": "DS",
+        "name": "소독기",
+        "description": "Device Sterilizer",
+        "sort_key": 1021
+      },
+      {
+        "code": "UV",
+        "name": "정형외과용 자외선 소독기",
+        "description": "Ultraviolet Sterilizer",
+        "sort_key": 1022
+      },
+      {
+        "code": "ED",
+        "name": "정형외과용 전동 드릴",
+        "description": "Electric Drill",
+        "sort_key": 1023
+      }
+    ]
+  },
+  {
+    "department_code": "GS",
+    "department_name": "외과",
+    "department_description": "General Surgery",
+    "department_sort_key": 1004,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "CA",
+        "name": "C-arm",
+        "description": "C-arm  System",
+        "sort_key": 1002
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Endoscopic Surgery",
+        "sort_key": 1003
+      },
+      {
+        "code": "EL",
+        "name": "체외충격파",
+        "description": "Extracorporeal Shockwave Therapy",
+        "sort_key": 1004
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physical Therapy Equipment",
+        "sort_key": 1005
+      },
+      {
+        "code": "LC",
+        "name": "복강경",
+        "description": "Laparoscope",
+        "sort_key": 1006
+      },
+      {
+        "code": "OT",
+        "name": "수술용 침대",
+        "description": "Operating Table",
+        "sort_key": 1007
+      },
+      {
+        "code": "AM",
+        "name": "마취기",
+        "description": "Anesthesia Machine",
+        "sort_key": 1008
+      },
+      {
+        "code": "EU",
+        "name": "전기 수술기",
+        "description": "Electrosurgical Unit",
+        "sort_key": 1009
+      },
+      {
+        "code": "SL",
+        "name": "수술용 조명",
+        "description": "Surgical Light",
+        "sort_key": 1010
+      },
+      {
+        "code": "EW",
+        "name": "내시경 세척기",
+        "description": "Endoscope Washer",
+        "sort_key": 1011
+      },
+      {
+        "code": "TC",
+        "name": "체온 조절기",
+        "description": "Temperature Controller",
+        "sort_key": 1012
+      }
+    ]
+  },
+  {
+    "department_code": "DM",
+    "department_name": "피부과",
+    "department_description": "Dermatology",
+    "department_sort_key": 1005,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "LG",
+        "name": "레이저 기기",
+        "description": "Laser Generator",
+        "sort_key": 1001
+      },
+      {
+        "code": "IP",
+        "name": "IPL 기기",
+        "description": "Intense Pulsed Light",
+        "sort_key": 1002
+      },
+      {
+        "code": "SE",
+        "name": "피부 내시경",
+        "description": "Skin Endoscope",
+        "sort_key": 1003
+      },
+      {
+        "code": "MD",
+        "name": "미세박피기",
+        "description": "Microdermabrasion",
+        "sort_key": 1004
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1005
+      },
+      {
+        "code": "MH",
+        "name": "피부 보습 기기",
+        "description": "Moisturizer",
+        "sort_key": 1006
+      },
+      {
+        "code": "WR",
+        "name": "주름 개선 기기",
+        "description": "Wrinkle Reducer",
+        "sort_key": 1007
+      },
+      {
+        "code": "PL",
+        "name": "색소 제거 레이저",
+        "description": "Pigment Laser",
+        "sort_key": 1008
+      },
+      {
+        "code": "SA",
+        "name": "피부 리프팅 기기",
+        "description": "Skin Lifter",
+        "sort_key": 1009
+      },
+      {
+        "code": "RR",
+        "name": "피부 재생 장비",
+        "description": "Regenerative Roller",
+        "sort_key": 1010
+      },
+      {
+        "code": "SC",
+        "name": "스킨 케어 기기",
+        "description": "Skin Care",
+        "sort_key": 1011
+      },
+      {
+        "code": "PP",
+        "name": "모공 축소 기기",
+        "description": "Pore Perfect",
+        "sort_key": 1012
+      },
+      {
+        "code": "PA",
+        "name": "색소 분석기",
+        "description": "Pigment Analyzer",
+        "sort_key": 1013
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound Skin",
+        "sort_key": 1014
+      }
+    ]
+  },
+  {
+    "department_code": "RD",
+    "department_name": "방사선과",
+    "department_description": "Radiology",
+    "department_sort_key": 1006,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "MM",
+        "name": "유방 촬영기",
+        "description": "Mammography",
+        "sort_key": 1002
+      },
+      {
+        "code": "BD",
+        "name": "골밀도 측정기",
+        "description": "Bone Densitimetor",
+        "sort_key": 1003
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1004
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Endoscopy System",
+        "sort_key": 1005
+      },
+      {
+        "code": "CT",
+        "name": "CT",
+        "description": "Computed Tomography",
+        "sort_key": 1006
+      },
+      {
+        "code": "MR",
+        "name": "MRI",
+        "description": "Magnetic Resonance",
+        "sort_key": 1007
+      },
+      {
+        "code": "RG",
+        "name": "방사선 치료기",
+        "description": "Radiation Therapy",
+        "sort_key": 1008
+      },
+      {
+        "code": "RD",
+        "name": "방사선 감지기",
+        "description": "Radiation Detector",
+        "sort_key": 1009
+      },
+      {
+        "code": "NM",
+        "name": "핵의학 기기",
+        "description": "Nuclear Medicine",
+        "sort_key": 1010
+      },
+      {
+        "code": "FL",
+        "name": "형광 투시기",
+        "description": "Fluoroscopy",
+        "sort_key": 1011
+      },
+      {
+        "code": "RM",
+        "name": "방사선 측정기",
+        "description": "Radiation Meter",
+        "sort_key": 1012
+      },
+      {
+        "code": "XA",
+        "name": "X선 혈관 조영 장비",
+        "description": "X-ray Angiography",
+        "sort_key": 1013
+      }
+    ]
+  },
+  {
+    "department_code": "OB",
+    "department_name": "산부인과",
+    "department_description": "Obstetrics and Gynecology",
+    "department_sort_key": 1007,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "MM",
+        "name": "유방 촬영기",
+        "description": "Mammography",
+        "sort_key": 1002
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1003
+      },
+      {
+        "code": "VE",
+        "name": "질 내시경",
+        "description": "Vaginoscope",
+        "sort_key": 1004
+      },
+      {
+        "code": "HS",
+        "name": "자궁경",
+        "description": "Hysteroscope",
+        "sort_key": 1005
+      },
+      {
+        "code": "GD",
+        "name": "진단용 기구",
+        "description": "Gynecological Diagnostic",
+        "sort_key": 1006
+      },
+      {
+        "code": "FM",
+        "name": "모니터링",
+        "description": "Fetal Monitor",
+        "sort_key": 1007
+      },
+      {
+        "code": "PN",
+        "name": "산전 검사 장비",
+        "description": "Prenatal",
+        "sort_key": 1008
+      },
+      {
+        "code": "LM",
+        "name": "출산 모니터",
+        "description": "Labor Monitor",
+        "sort_key": 1009
+      },
+      {
+        "code": "GS",
+        "name": "산부인과용 수술 장비",
+        "description": "Gynecological Surgery",
+        "sort_key": 1010
+      },
+      {
+        "code": "HC",
+        "name": "자궁경 검사기",
+        "description": "Hysteroscope",
+        "sort_key": 1011
+      },
+      {
+        "code": "LB",
+        "name": "분만대",
+        "description": "Labor Bed",
+        "sort_key": 1012
+      },
+      {
+        "code": "FS",
+        "name": "태아 심박수 측정기",
+        "description": "Fetal Sound",
+        "sort_key": 1013
+      },
+      {
+        "code": "GL",
+        "name": "산부인과용 레이저",
+        "description": "Gynecological Laser",
+        "sort_key": 1014
+      },
+      {
+        "code": "IL",
+        "name": "분만 유도 기기",
+        "description": "Induction Light",
+        "sort_key": 1015
+      },
+      {
+        "code": "VC",
+        "name": "질경 검사기",
+        "description": "Vaginal Camera",
+        "sort_key": 1016
+      }
+    ]
+  },
+  {
+    "department_code": "ET",
+    "department_name": "이비인후과",
+    "department_description": "Ear, Nose, and Throat",
+    "department_sort_key": 1008,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "EN",
+        "name": "ENT UNIT",
+        "description": "ENT UNIT",
+        "sort_key": 1002
+      },
+      {
+        "code": "AA",
+        "name": "귀 검사 기기",
+        "description": "Audiometer",
+        "sort_key": 1003
+      },
+      {
+        "code": "HA",
+        "name": "청력 측정기",
+        "description": "Hearing Test Equipment",
+        "sort_key": 1004
+      },
+      {
+        "code": "NE",
+        "name": "코 내시경",
+        "description": "Nasal Endoscope",
+        "sort_key": 1005
+      },
+      {
+        "code": "LE",
+        "name": "후두 내시경",
+        "description": "Laryngeal Endoscope",
+        "sort_key": 1006
+      },
+      {
+        "code": "PG",
+        "name": "인두 내시경",
+        "description": "Pharyngeal Endoscope",
+        "sort_key": 1007
+      },
+      {
+        "code": "TE",
+        "name": "편도선 검사기",
+        "description": "Tonsil Examination Device",
+        "sort_key": 1008
+      },
+      {
+        "code": "AF",
+        "name": "알러지 테스트 장비",
+        "description": "Allergy Testing Equipment",
+        "sort_key": 1009
+      },
+      {
+        "code": "EA",
+        "name": "이비인후과용 레이저 기기",
+        "description": "ENT Laser Equipment",
+        "sort_key": 1010
+      }
+    ]
+  },
+  {
+    "department_code": "PS",
+    "department_name": "성형외과",
+    "department_description": "Plastic Surgery",
+    "department_sort_key": 1009,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "LG",
+        "name": "레이저 기기",
+        "description": "Laser Equipment",
+        "sort_key": 1002
+      },
+      {
+        "code": "IP",
+        "name": "IPL 기기",
+        "description": "Intense Pulsed Light Equipment",
+        "sort_key": 1003
+      },
+      {
+        "code": "MD",
+        "name": "미세박피기",
+        "description": "Microdermabrasion Device",
+        "sort_key": 1004
+      },
+      {
+        "code": "RF",
+        "name": "고주파 기기",
+        "description": "Radio Frequency Device",
+        "sort_key": 1005
+      },
+      {
+        "code": "US",
+        "name": "초음파검사기",
+        "description": "Ultrasound Device",
+        "sort_key": 1006
+      },
+      {
+        "code": "LD",
+        "name": "리프팅 기기",
+        "description": "Lifting Device",
+        "sort_key": 1007
+      },
+      {
+        "code": "FD",
+        "name": "지방 분해 기기",
+        "description": "Fat Dissolving Equipment",
+        "sort_key": 1008
+      },
+      {
+        "code": "SL",
+        "name": "피부 리프팅 레이저",
+        "description": "Skin Lifting Laser",
+        "sort_key": 1009
+      },
+      {
+        "code": "ST",
+        "name": "피부 치료 기기",
+        "description": "Skin Treatment Device",
+        "sort_key": 1010
+      },
+      {
+        "code": "WT",
+        "name": "주름 개선 기기",
+        "description": "Wrinkle Treatment Equipment",
+        "sort_key": 1011
+      },
+      {
+        "code": "AT",
+        "name": "여드름 치료 기기",
+        "description": "Acne Treatment Device",
+        "sort_key": 1012
+      },
+      {
+        "code": "PR",
+        "name": "색소 제거 레이저",
+        "description": "Pigment Removal Laser",
+        "sort_key": 1013
+      },
+      {
+        "code": "CS",
+        "name": "미용 수술용 레이저",
+        "description": "Cosmetic Surgery Laser",
+        "sort_key": 1014
+      },
+      {
+        "code": "SR",
+        "name": "피부 재생 장비",
+        "description": "Skin Regeneration Equipment",
+        "sort_key": 1015
+      },
+      {
+        "code": "MN",
+        "name": "미세침 치료 기기",
+        "description": "Microneedling Device",
+        "sort_key": 1016
+      }
+    ]
+  },
+  {
+    "department_code": "FM",
+    "department_name": "가정의학과",
+    "department_description": "Family Medicine",
+    "department_sort_key": 1010,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X_ray",
+        "sort_key": 1001
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physical Therapy Equipment",
+        "sort_key": 1002
+      },
+      {
+        "code": "BP",
+        "name": "혈압계",
+        "description": "Blood Pressure",
+        "sort_key": 1003
+      },
+      {
+        "code": "TT",
+        "name": "체온계",
+        "description": "Thermometer",
+        "sort_key": 1004
+      },
+      {
+        "code": "BG",
+        "name": "혈당 측정기",
+        "description": "Blood Glucose",
+        "sort_key": 1005
+      },
+      {
+        "code": "BW",
+        "name": "체중계",
+        "description": "Body Weight",
+        "sort_key": 1006
+      },
+      {
+        "code": "EC",
+        "name": "심전도검사기",
+        "description": "Electrocardiogram",
+        "sort_key": 1007
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1008
+      },
+      {
+        "code": "SP",
+        "name": "산소포화도 측정기",
+        "description": "Saturation Probe",
+        "sort_key": 1009
+      },
+      {
+        "code": "RB",
+        "name": "호흡기 측정기",
+        "description": "Respiratory Monitor",
+        "sort_key": 1010
+      },
+      {
+        "code": "UE",
+        "name": "소변검사장비",
+        "description": "Urinalysis Equipment",
+        "sort_key": 1011
+      },
+      {
+        "code": "HM",
+        "name": "심장모니터",
+        "description": "Heart Monitor",
+        "sort_key": 1012
+      },
+      {
+        "code": "BP",
+        "name": "혈압계",
+        "description": "Body Pressure",
+        "sort_key": 1013
+      },
+      {
+        "code": "OS",
+        "name": "산소 포화도 측정기",
+        "description": "Oxygen Saturation",
+        "sort_key": 1014
+      },
+      {
+        "code": "PH",
+        "name": "체내 pH 측정기",
+        "description": "pH Meter",
+        "sort_key": 1015
+      },
+      {
+        "code": "BH",
+        "name": "체성분 측정기",
+        "description": "Body Composition",
+        "sort_key": 1016
+      },
+      {
+        "code": "TR",
+        "name": "체온 기록기",
+        "description": "Temperature Recorder",
+        "sort_key": 1017
+      },
+      {
+        "code": "HR",
+        "name": "심박수 모니터",
+        "description": "Heart Rate",
+        "sort_key": 1018
+      },
+      {
+        "code": "BP",
+        "name": "혈압계",
+        "description": "Electronic BP",
+        "sort_key": 1019
+      }
+    ]
+  },
+  {
+    "department_code": "NS",
+    "department_name": "신경외과",
+    "department_description": "Neurosurgery",
+    "department_sort_key": 1011,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X-ray Machine",
+        "sort_key": 1001
+      },
+      {
+        "code": "MR",
+        "name": "MRI",
+        "description": "Magnetic Resonance Imaging",
+        "sort_key": 1002
+      },
+      {
+        "code": "CT",
+        "name": "CT",
+        "description": "Computed Tomography",
+        "sort_key": 1003
+      },
+      {
+        "code": "CA",
+        "name": "C-arm",
+        "description": "C-arm  System",
+        "sort_key": 1004
+      },
+      {
+        "code": "BD",
+        "name": "골밀도촬영기",
+        "description": "Bone Densitimetor",
+        "sort_key": 1005
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physical Therapy Equipment",
+        "sort_key": 1006
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Endoscopic Surgical System",
+        "sort_key": 1007
+      },
+      {
+        "code": "RS",
+        "name": "로봇 수술 시스템",
+        "description": "Robotic Surgery System",
+        "sort_key": 1008
+      },
+      {
+        "code": "US",
+        "name": "초음파검사기",
+        "description": "Ultrasound Device",
+        "sort_key": 1009
+      },
+      {
+        "code": "IN",
+        "name": "신경 모니터링 시스템",
+        "description": "Intraoperative Neurophysiological Monitoring System",
+        "sort_key": 1010
+      },
+      {
+        "code": "IA",
+        "name": "뇌압 측정기",
+        "description": "Intracranial Pressure Monitor",
+        "sort_key": 1011
+      },
+      {
+        "code": "EE",
+        "name": "뇌파 검사기",
+        "description": "Electroencephalogram",
+        "sort_key": 1012
+      },
+      {
+        "code": "AG",
+        "name": "혈관조영기",
+        "description": "Angiography Machine",
+        "sort_key": 1013
+      },
+      {
+        "code": "SS",
+        "name": "수술용 현미경",
+        "description": "Surgical Microscope",
+        "sort_key": 1014
+      },
+      {
+        "code": "PE",
+        "name": "PET 기기",
+        "description": "Positron Emission Tomography",
+        "sort_key": 1015
+      },
+      {
+        "code": "DP",
+        "name": "진단용 PET-CT 기기",
+        "description": "Diagnostic PET-CT Scanner",
+        "sort_key": 1016
+      }
+    ]
+  },
+  {
+    "department_code": "PD",
+    "department_name": "소아청소년과",
+    "department_description": "Pediatrics",
+    "department_sort_key": 1012,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X-ray Machine",
+        "sort_key": 1001
+      },
+      {
+        "code": "AU",
+        "name": "청력 검사기",
+        "description": "Audiometer",
+        "sort_key": 1002
+      },
+      {
+        "code": "BW",
+        "name": "체중계",
+        "description": "Baby Weighing",
+        "sort_key": 1003
+      },
+      {
+        "code": "BP",
+        "name": "혈압계",
+        "description": "Blood Pressure",
+        "sort_key": 1004
+      },
+      {
+        "code": "EC",
+        "name": "심전도검사기",
+        "description": "Electrocardiogram",
+        "sort_key": 1005
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Endoscope",
+        "sort_key": 1006
+      },
+      {
+        "code": "RT",
+        "name": "소아용 호흡기",
+        "description": "Respiratory Therapy",
+        "sort_key": 1007
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1008
+      },
+      {
+        "code": "HM",
+        "name": "심장모니터",
+        "description": "Heart Monitor",
+        "sort_key": 1009
+      },
+      {
+        "code": "DE",
+        "name": "소아용 발달 평가 장비",
+        "description": "Development Evaluator",
+        "sort_key": 1010
+      }
+    ]
+  },
+  {
+    "department_code": "UR",
+    "department_name": "비뇨기과",
+    "department_description": "Urology",
+    "department_sort_key": 1013,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1001
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Urethroscope",
+        "sort_key": 1002
+      },
+      {
+        "code": "PS",
+        "name": "전립선 검사기",
+        "description": "Prostate Scanner",
+        "sort_key": 1003
+      },
+      {
+        "code": "EL",
+        "name": "체외충격파",
+        "description": "Extracorporeal Shockwave",
+        "sort_key": 1004
+      },
+      {
+        "code": "CB",
+        "name": "방광 내시경",
+        "description": "Cystoscope",
+        "sort_key": 1005
+      },
+      {
+        "code": "UD",
+        "name": "요역동학 검사기",
+        "description": "Urodynamics",
+        "sort_key": 1006
+      },
+      {
+        "code": "UG",
+        "name": "요로관 검사기",
+        "description": "Ureteroscope",
+        "sort_key": 1007
+      },
+      {
+        "code": "UE",
+        "name": "소변검사장비",
+        "description": "Urinalysis Equipment",
+        "sort_key": 1008
+      },
+      {
+        "code": "FA",
+        "name": "소변 흐름 측정기",
+        "description": "Flow Meter",
+        "sort_key": 1009
+      },
+      {
+        "code": "PB",
+        "name": "전립선 생검 기기",
+        "description": "Prostate Biopsy",
+        "sort_key": 1010
+      },
+      {
+        "code": "UA",
+        "name": "소변 분석기",
+        "description": "Urine Analyzer",
+        "sort_key": 1011
+      },
+      {
+        "code": "TI",
+        "name": "전립선 열화상 검사기",
+        "description": "Thermal Imaging",
+        "sort_key": 1012
+      },
+      {
+        "code": "BV",
+        "name": "방광 용적 측정기",
+        "description": "Bladder Volume",
+        "sort_key": 1013
+      },
+      {
+        "code": "UR",
+        "name": "요로 내시경",
+        "description": "Ureteroscope",
+        "sort_key": 1014
+      },
+      {
+        "code": "UF",
+        "name": "소변 흐름 분석기",
+        "description": "Urine Flowmeter",
+        "sort_key": 1015
+      },
+      {
+        "code": "BS",
+        "name": "방광 자극기",
+        "description": "Bladder Stimulator",
+        "sort_key": 1016
+      },
+      {
+        "code": "BK",
+        "name": "방광 검사 기기",
+        "description": "Bladder Examiner",
+        "sort_key": 1017
+      },
+      {
+        "code": "UT",
+        "name": "요도 치료 기기",
+        "description": "Urethral Therapy",
+        "sort_key": 1018
+      }
+    ]
+  },
+  {
+    "department_code": "OP",
+    "department_name": "안과",
+    "department_description": "Ophthalmology",
+    "department_sort_key": 1014,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "IO",
+        "name": "안압계",
+        "description": "Intraocular Pressure",
+        "sort_key": 1001
+      },
+      {
+        "code": "FO",
+        "name": "안저 검사기",
+        "description": "Fundus Ophthalmoscope",
+        "sort_key": 1002
+      },
+      {
+        "code": "VA",
+        "name": "시력 검사기",
+        "description": "Visual Acuity",
+        "sort_key": 1003
+      },
+      {
+        "code": "KM",
+        "name": "각막 측정기",
+        "description": "Keratometer",
+        "sort_key": 1004
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1005
+      },
+      {
+        "code": "CF",
+        "name": "안구 촬영기",
+        "description": "Confocal",
+        "sort_key": 1006
+      },
+      {
+        "code": "CC",
+        "name": "색각 검사기",
+        "description": "Color Checker",
+        "sort_key": 1007
+      },
+      {
+        "code": "VF",
+        "name": "시야검사기",
+        "description": "Visual Field",
+        "sort_key": 1008
+      },
+      {
+        "code": "VB",
+        "name": "안과용 비디오 내시경",
+        "description": "Video Endoscope",
+        "sort_key": 1009
+      },
+      {
+        "code": "RC",
+        "name": "체내 망막 촬영기",
+        "description": "Retinal Camera",
+        "sort_key": 1010
+      },
+      {
+        "code": "OD",
+        "name": "안구 진단 기기",
+        "description": "Ocular Diagnostic",
+        "sort_key": 1011
+      },
+      {
+        "code": "OC",
+        "name": "시력 교정 기기",
+        "description": "Optical Correction",
+        "sort_key": 1012
+      },
+      {
+        "code": "HE",
+        "name": "안과용 청력 검사기",
+        "description": "Hearing Evaluator",
+        "sort_key": 1013
+      },
+      {
+        "code": "OL",
+        "name": "안과용 레이저",
+        "description": "Ocular Laser",
+        "sort_key": 1014
+      },
+      {
+        "code": "ML",
+        "name": "다초점 렌즈 검사기",
+        "description": "Multifocal Lens",
+        "sort_key": 1015
+      },
+      {
+        "code": "BF",
+        "name": "안구 혈류 측정기",
+        "description": "Blood Flow",
+        "sort_key": 1016
+      },
+      {
+        "code": "LR",
+        "name": "빛 반사 검사기",
+        "description": "Light Reflector",
+        "sort_key": 1017
+      },
+      {
+        "code": "UB",
+        "name": "안구 초음파 생검 기기",
+        "description": "Ultrasound Biopsy",
+        "sort_key": 1018
+      },
+      {
+        "code": "CL",
+        "name": "시력 교정 렌즈 장비",
+        "description": "Contact Lens",
+        "sort_key": 1019
+      },
+      {
+        "code": "PM",
+        "name": "안구 색소 측정기",
+        "description": "Pigment Meter",
+        "sort_key": 1020
+      },
+      {
+        "code": "RA",
+        "name": "망막검사기",
+        "description": "Retinal Exam",
+        "sort_key": 1021
+      },
+      {
+        "code": "OE",
+        "name": "안과용 광학 장비",
+        "description": "Optical Equipment",
+        "sort_key": 1022
+      },
+      {
+        "code": "IS",
+        "name": "안구 안정성 검사기",
+        "description": "Intraocular Stability",
+        "sort_key": 1023
+      },
+      {
+        "code": "NV",
+        "name": "야간 시력 검사기",
+        "description": "Night Vision",
+        "sort_key": 1024
+      },
+      {
+        "code": "FV",
+        "name": "안구 혈관 촬영기",
+        "description": "Fundus Vessel",
+        "sort_key": 1025
+      },
+      {
+        "code": "TS",
+        "name": "안구 촉감 검사기",
+        "description": "Touch Sensation",
+        "sort_key": 1026
+      }
+    ]
+  },
+  {
+    "department_code": "VH",
+    "department_name": "동물병원",
+    "department_description": "Veterinary Hospital",
+    "department_sort_key": 1015,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X-ray Machine",
+        "sort_key": 1001
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1002
+      },
+      {
+        "code": "BJ",
+        "name": "동물용 혈액 검사기",
+        "description": "Blood Checker",
+        "sort_key": 1003
+      },
+      {
+        "code": "TT",
+        "name": "체온계",
+        "description": "Thermometer",
+        "sort_key": 1004
+      },
+      {
+        "code": "EC",
+        "name": "심전도검사기",
+        "description": "Electrocardiogram",
+        "sort_key": 1005
+      },
+      {
+        "code": "ES",
+        "name": "내시경",
+        "description": "Endoscope",
+        "sort_key": 1006
+      },
+      {
+        "code": "BW",
+        "name": "체중계",
+        "description": "Body Weight",
+        "sort_key": 1007
+      },
+      {
+        "code": "AM",
+        "name": "마취기",
+        "description": "Anesthesia",
+        "sort_key": 1008
+      },
+      {
+        "code": "DL",
+        "name": "동물용 치료 레이저",
+        "description": "Laser Therapy",
+        "sort_key": 1009
+      },
+      {
+        "code": "BP",
+        "name": "혈압계",
+        "description": "Blood Pressure",
+        "sort_key": 1010
+      },
+      {
+        "code": "ST",
+        "name": "동물용 전기 소독기",
+        "description": "Electro Sterilizer",
+        "sort_key": 1011
+      },
+      {
+        "code": "HT",
+        "name": "온열치료기",
+        "description": "Heat Therapy",
+        "sort_key": 1012
+      },
+      {
+        "code": "HM",
+        "name": "심장모니터",
+        "description": "Heart Monitor",
+        "sort_key": 1013
+      }
+    ]
+  },
+  {
+    "department_code": "RM",
+    "department_name": "재활의학과",
+    "department_description": "Rehabilitation Medicine",
+    "department_sort_key": 1016,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X-ray Machine",
+        "sort_key": 1001
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physical Therapy Equipment",
+        "sort_key": 1002
+      },
+      {
+        "code": "ET",
+        "name": "전기 자극기",
+        "description": "Electrical Stimulator",
+        "sort_key": 1003
+      },
+      {
+        "code": "EL",
+        "name": "체외충격파",
+        "description": "Extracorporeal Shockwave Therapy",
+        "sort_key": 1004
+      },
+      {
+        "code": "PC",
+        "name": "자세 교정기",
+        "description": "Posture Corrector",
+        "sort_key": 1005
+      },
+      {
+        "code": "FE",
+        "name": "기능적 근육 자극기",
+        "description": "Functional Electrical Stimulation",
+        "sort_key": 1006
+      },
+      {
+        "code": "RO",
+        "name": "가동 범위 측정기",
+        "description": "Range of Motion",
+        "sort_key": 1007
+      },
+      {
+        "code": "WD",
+        "name": "체중 분산 장치",
+        "description": "Weight Distribution Device",
+        "sort_key": 1008
+      },
+      {
+        "code": "FB",
+        "name": "근력 측정기",
+        "description": "Force Meter",
+        "sort_key": 1009
+      },
+      {
+        "code": "BT",
+        "name": "균형 훈련 장비",
+        "description": "Balance Trainer",
+        "sort_key": 1010
+      },
+      {
+        "code": "AW",
+        "name": "자동 보행 훈련기",
+        "description": "Automated Walker",
+        "sort_key": 1011
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physiotherapy Electrical Device",
+        "sort_key": 1012
+      },
+      {
+        "code": "CH",
+        "name": "냉온 요법 기기",
+        "description": "Cryotherapy/Heat Therapy",
+        "sort_key": 1013
+      },
+      {
+        "code": "LW",
+        "name": "재활용 경량 보조기",
+        "description": "Lightweight Rehabilitation Aid",
+        "sort_key": 1014
+      },
+      {
+        "code": "LA",
+        "name": "경량 기구 보조기",
+        "description": "Lightweight Assistive Device",
+        "sort_key": 1015
+      },
+      {
+        "code": "JA",
+        "name": "관절 운동 기구",
+        "description": "Joint Exercise Apparatus",
+        "sort_key": 1016
+      },
+      {
+        "code": "WB",
+        "name": "체중 부하 장비",
+        "description": "Weight Bearing Device",
+        "sort_key": 1017
+      },
+      {
+        "code": "AC",
+        "name": "가속도계",
+        "description": "Accelerometer",
+        "sort_key": 1018
+      }
+    ]
+  },
+  {
+    "department_code": "OM",
+    "department_name": "한방병원",
+    "department_description": "Oriental Medicine",
+    "department_sort_key": 1017,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "XR",
+        "name": "엑스레이기기",
+        "description": "X-ray Machine",
+        "sort_key": 1001
+      },
+      {
+        "code": "PT",
+        "name": "물리치료장비",
+        "description": "Physical Therapy Equipment",
+        "sort_key": 1002
+      },
+      {
+        "code": "MO",
+        "name": "뜸 치료기",
+        "description": "Moxibustion",
+        "sort_key": 1003
+      },
+      {
+        "code": "US",
+        "name": "초음파 검사기",
+        "description": "Ultrasound",
+        "sort_key": 1004
+      },
+      {
+        "code": "TD",
+        "name": "한방 진단기",
+        "description": "Traditional Diagnostic",
+        "sort_key": 1005
+      },
+      {
+        "code": "HT",
+        "name": "온열치료기",
+        "description": "Heat Therapy",
+        "sort_key": 1006
+      },
+      {
+        "code": "AE",
+        "name": "한방 침 전극 기기",
+        "description": "Acupuncture Electrode",
+        "sort_key": 1007
+      }
+    ]
+  },
+  {
+    "department_code": "BS",
+    "department_name": "유방외과",
+    "department_description": "Breast Surgery",
+    "department_sort_key": 1018,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "BU",
+        "name": "유방 초음파 기기",
+        "description": "Breast Ultrasound",
+        "sort_key": 1001
+      },
+      {
+        "code": "BE",
+        "name": "유방 내시경",
+        "description": "Breast Endoscope",
+        "sort_key": 1002
+      },
+      {
+        "code": "MM",
+        "name": "유방 촬영기",
+        "description": "Mammography",
+        "sort_key": 1003
+      },
+      {
+        "code": "BM",
+        "name": "유방 MRI 스캐너",
+        "description": "Breast MRI",
+        "sort_key": 1004
+      },
+      {
+        "code": "BB",
+        "name": "유방 생검 기기",
+        "description": "Breast Biopsy",
+        "sort_key": 1005
+      },
+      {
+        "code": "BL",
+        "name": "유방 치료 레이저",
+        "description": "Breast Laser",
+        "sort_key": 1006
+      },
+      {
+        "code": "BC",
+        "name": "유방 암 치료 기기",
+        "description": "Breast Cancer",
+        "sort_key": 1007
+      },
+      {
+        "code": "VP",
+        "name": "유방 흡입 기기",
+        "description": "Vacuum Pump",
+        "sort_key": 1008
+      },
+      {
+        "code": "NA",
+        "name": "유방 결절 분석기",
+        "description": "Nodule Analyzer",
+        "sort_key": 1009
+      }
+    ]
+  },
+  {
+    "department_code": "SC",
+    "department_name": "특수분류",
+    "department_description": "Special Classification",
+    "department_sort_key": 1019,
+    "tags": "",
+    "device_types": [
+      {
+        "code": "ME",
+        "name": "교육용 의료 장비",
+        "description": "Medical Education Equipment",
+        "sort_key": 1001
+      },
+      {
+        "code": "IV",
+        "name": "체외 진단 장비",
+        "description": "In Vitro Diagnostic Equipment",
+        "sort_key": 1002
+      },
+      {
+        "code": "IM",
+        "name": "의료 영상 장비",
+        "description": "Imaging Equipment",
+        "sort_key": 1003
+      },
+      {
+        "code": "SD",
+        "name": "특수 검사 장비",
+        "description": "Special Diagnostic Equipment",
+        "sort_key": 1004
+      },
+      {
+        "code": "MT",
+        "name": "의료 기기 유지보수 장비",
+        "description": "Maintenance Tools",
+        "sort_key": 1005
+      },
+      {
+        "code": "CR",
+        "name": "CR",
+        "description": "Computed radiography system",
+        "sort_key": 1006
+      },
+      {
+        "code": "DR",
+        "name": "DR",
+        "description": "Digital radiography system",
+        "sort_key": 1007
+      },
+      {
+        "code": "TU",
+        "name": "TUBE",
+        "description": "TUBE",
+        "sort_key": 1008
+      }
+    ]
+  }
+]

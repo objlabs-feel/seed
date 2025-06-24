@@ -1,101 +1,35 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
+import { userService } from '@repo/shared/services';
+import { toUserResponseDto } from '@repo/shared/transformers';
+import { authenticateUser } from '@/libs/auth';
+import { withApiHandler } from '@/libs/api-utils';
+import { createSystemError, createBusinessError, createAuthError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
+
+interface RouteContext {
+  params: { id: string };
+}
 
 // 이용자 정보 조회
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const id = BigInt(params.id);
+export const GET = withApiHandler(async (request: Request, context: RouteContext): Promise<ApiResponse> => {
+  const auth = await authenticateUser(request);
+  if ('error' in auth) {
+    throw createAuthError('UNAUTHORIZED', auth.error || '인증 실패');
+  }
 
-    const user = await prisma.user.findUnique({
-      where: { id },
-      include: {
-        profile: {
-          include: {
-            company: true
-          }
-        }
-      }
-    });
+  const { id } = context.params;
+  try {
+    const user = await userService.findById(id);
 
     if (!user) {
-      return NextResponse.json(
-        { error: '존재하지 않는 이용자입니다.' },
-        { status: 404 }
-      );
+      throw createBusinessError('NOT_FOUND', '존재하지 않는 이용자입니다.');
     }
 
-    // BigInt를 문자열로 변환
-    const serializedUser = JSON.stringify(user, (key, value) =>
-      typeof value === 'bigint' ? value.toString() : value
-    );
-
-    return NextResponse.json(JSON.parse(serializedUser));
+    return {
+      success: true,
+      data: toUserResponseDto(user)
+    };
   } catch (error) {
-    console.error('이용자 정보 조회 중 오류:', error);
-    return NextResponse.json(
-      { error: '이용자 정보 조회 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    console.error('Error fetching user info:', error);
+    throw createSystemError('INTERNAL_ERROR', 'Failed to fetch user info');
   }
-}
-
-// 이용자 정보 수정
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
-  try {
-    const id = BigInt(params.id);
-    const { user: userData, profile: profileData } = await request.json();
-
-    const result = await prisma.$transaction(async (tx) => {
-
-      // 프로필 정보 수정
-      if (profileData.id) {
-        await tx.profile.update({
-          where: { id: profileData.id },
-          data: profileData
-        });
-      } else {
-        const newProfile = await tx.profile.create({
-          data: profileData
-        });
-        profileData.id = newProfile.id;
-        userData.profile_id = newProfile.id;
-      }
-
-      // 이용자 정보 수정
-      const updatedUser = await tx.user.update({
-        where: { id },
-        data: userData,
-        include: {
-          profile: {
-            include: {
-              company: true
-            }
-          }
-        }
-      });
-
-      // BigInt를 문자열로 변환
-      const responseUser = {
-        ...updatedUser,
-        id: updatedUser.id.toString(), // BigInt 필드를 문자열로 변환
-        profile_id: updatedUser.profile_id ? updatedUser.profile_id.toString() : null
-      };
-
-      return responseUser;
-    });
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error('이용자 정보 수정 중 오류:', error);
-    return NextResponse.json(
-      { error: '이용자 정보 수정 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
-  }
-}
+});

@@ -1,54 +1,62 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
-import crypto from 'crypto';
+import { adminService } from '@repo/shared/services';
+import { toAdminResponseDto } from '@repo/shared/transformers';
+import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
+import { createValidationError, createSystemError, createAuthError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
 import { SignJWT } from 'jose';
-
-// 비밀번호 해시 함수
-function hashPassword(password: string): string {
-  const salt = 'your_salt_value';
-  const hash = Buffer.from(crypto.createHash('sha512').update(password + salt).digest()).toString('base64');
-  return `${hash}`; // salt와 해시를 함께 반환
-}
+import { cookies } from 'next/headers';
 
 // JWT 토큰 생성 함수
-async function generateToken(adminId: number): Promise<string> {
-  return await new SignJWT({ adminId })
+async function generateToken(adminPayload: object): Promise<string> {
+  const secret = new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'fallback-secret');
+  // The payload must be a plain object.
+  const plainPayload = JSON.parse(JSON.stringify(adminPayload));
+  return await new SignJWT(plainPayload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
     .setExpirationTime('1d')
-    .sign(new TextEncoder().encode(process.env.ADMIN_JWT_SECRET || 'fallback-secret'));
+    .sign(secret);
 }
 
-// 로그인
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
+  const { body } = await parseApiRequest<{ username: string; password: string }>(request);
+  const { username, password } = body;
+
+  if (!username || !password) {
+    throw createValidationError('MISSING_REQUIRED', 'Username and password are required');
+  }
+
   try {
-    const { username, password } = await request.json();
+    const admin = await adminService.login(username, password);
 
-    const admin = await prisma.admin.findUnique({
-      where: { username }
-    });
-
-    if (!admin || admin.password !== hashPassword(password)) {
-      return NextResponse.json(
-        { error: '잘못된 사용자명 또는 비밀번호입니다.' },
-        { status: 401 }
-      );
+    if (!admin) {
+      throw createAuthError('INVALID_CREDENTIALS', 'Invalid username or password');
     }
 
-    const token = await generateToken(admin.id);
+    const adminDto = toAdminResponseDto(admin);
+    const token = await generateToken(adminDto);
 
-    return NextResponse.json({
-      success: true,
-      token,
-      admin: {
-        id: admin.id,
-        username: admin.username
-      }
+    // Set the cookie for browser-based navigation (the real app)
+    cookies().set('admin_token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      path: '/',
+      maxAge: 60 * 60, // 1 hour
     });
+
+    return {
+      success: true,
+      data: {
+        token,
+        admin: adminDto,
+      }
+    };
   } catch (error) {
-    return NextResponse.json(
-      { error: '로그인 처리 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    console.error('Admin login error:', error);
+    if (error instanceof Error && error.message.includes('Invalid credentials')) {
+      throw createAuthError('INVALID_CREDENTIALS', 'Invalid username or password');
+    }
+    throw createSystemError('INTERNAL_ERROR', 'Failed to process login');
   }
-}
+});

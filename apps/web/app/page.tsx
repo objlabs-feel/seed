@@ -8,13 +8,13 @@ import './BusinessCard.css';
 const Home = () => {
   const [currentImage, setCurrentImage] = useState(0);
   const [currentScreenshot, setCurrentScreenshot] = useState(0);
-  
+
   const images = [
     '/main_slider_001.webp',
     '/main_slider_002.webp',
     '/main_slider_003.webp'
   ];
-  
+
   const screenshots = [
     '/main_screenshot_001.webp',
     '/main_screenshot_002.webp',

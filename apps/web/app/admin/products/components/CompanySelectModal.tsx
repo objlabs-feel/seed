@@ -2,17 +2,17 @@
 
 import { useState } from 'react';
 import CompanyRegisterForm from './CompanyRegisterForm';
-import { ICompany } from '@repo/shared/models';
+import { Company } from '@repo/shared/models';
 interface CompanySelectModalProps {
   isOpen: boolean
   onClose: () => void
-  onSelect: (company: ICompany) => void
+  onSelect: (company: any) => void
 }
 
 export default function CompanySelectModal({ isOpen, onClose, onSelect }: CompanySelectModalProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchType, setSearchType] = useState('name');
-  const [companies, setCompanies] = useState<ICompany[]>([]);
+  const [companies, setCompanies] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [showRegisterForm, setShowRegisterForm] = useState(false);
 
@@ -32,7 +32,7 @@ export default function CompanySelectModal({ isOpen, onClose, onSelect }: Compan
     }
   };
 
-  const handleRegisterSuccess = (newCompany: ICompany) => {
+  const handleRegisterSuccess = (newCompany: any) => {
     setShowRegisterForm(false);
     onSelect(newCompany);
   };

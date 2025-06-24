@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { IDepartment, IDeviceType } from '@repo/shared/models';
+import { Department, DeviceType } from '@repo/shared/models';
 
 export default function ProductEdit({ params }: { params: { id: string } }) {
   const router = useRouter();
@@ -21,8 +21,8 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
       images: [] as string[]
     }
   });
-  const [departments, setDepartments] = useState<IDepartment[]>([]);
-  const [deviceTypes, setDeviceTypes] = useState<IDeviceType[]>([]);
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
 
   useEffect(() => {
     Promise.all([
@@ -130,12 +130,12 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
             <div>
               <label className="block text-sm font-medium mb-1">진료과</label>
               <select
-                value={formData.medical_device.department}
+                value={formData.medical_device.department_id}
                 onChange={(e) => setFormData(prev => ({
                   ...prev,
                   medical_device: {
                     ...prev.medical_device,
-                    department: e.target.value
+                    department_id: e.target.value
                   }
                 }))}
                 className="w-full p-2 border rounded"
@@ -152,12 +152,12 @@ export default function ProductEdit({ params }: { params: { id: string } }) {
             <div>
               <label className="block text-sm font-medium mb-1">기기 유형</label>
               <select
-                value={formData.medical_device.device_type}
+                value={formData.medical_device.device_type_id}
                 onChange={(e) => setFormData(prev => ({
                   ...prev,
                   medical_device: {
                     ...prev.medical_device,
-                    device_type: e.target.value
+                    device_type_id: e.target.value
                   }
                 }))}
                 className="w-full p-2 border rounded"

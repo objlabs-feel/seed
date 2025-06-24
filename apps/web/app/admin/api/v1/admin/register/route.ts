@@ -1,57 +1,44 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@repo/shared';
-import crypto from 'crypto';
+import { getServiceManager } from '@repo/shared/services';
+import { toAdminResponseDto } from '@repo/shared/transformers';
+import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
+import { createSystemError, createBusinessError, createAuthError } from '@/libs/errors';
+import type { ApiResponse } from '@/types/api';
 
-function hashPassword(password: string, salt: string): string {
-  return Buffer.from(crypto.createHash('sha512').update(password + salt).digest()).toString('base64');
-}
-
-export async function POST(request: Request) {
+export const POST = withApiHandler(async (request: Request): Promise<ApiResponse> => {
   try {
-    const { username, password } = await request.json();
+    const { body } = await parseApiRequest<{ username: string; password: string }>(request);
+    const { username, password } = body;
 
-    // admin 토큰이 존재하지 않거나 admin 계정이 0개 이상인 경우 예외 처리
+    const adminService = getServiceManager().adminService;
+
     const adminToken = request.headers.get('admin_token');
-    const adminCount = await prisma.admin.count();
-
-    if (!adminToken && adminCount !== 0) {
-      return NextResponse.json({ error: '관리자 계정 생성 권한이 없습니다.' }, { status: 403 });
+    const adminCount = await adminService.count();
+    if (!adminToken && adminCount > 0) {
+      throw createAuthError('UNAUTHORIZED', '관리자 계정 생성 권한이 없습니다.');
     }
 
-    // 이미 존재하는 username 체크
-    const existingAdmin = await prisma.admin.findUnique({
-      where: { username }
-    });
-
+    const existingAdmin = await adminService.findByUsername(username);
     if (existingAdmin) {
-      return NextResponse.json(
-        { error: '이미 존재하는 사용자명입니다.' },
-        { status: 400 }
-      );
+      throw createBusinessError('ALREADY_EXISTS', '이미 존재하는 사용자명입니다.');
     }
 
-    console.log(username, password);
-    console.log(hashPassword(password, 'your_salt_value'));
-
-    const admin = await prisma.admin.create({
-      data: {
-        username,
-        password: hashPassword(password, 'your_salt_value')
-      }
+    const admin = await adminService.create({
+      username,
+      password,
+      level: 1, // Default level
     });
 
-    return NextResponse.json({
+    return {
       success: true,
-      admin: {
-        id: admin.id,
-        username: admin.username
+      data: toAdminResponseDto(admin),
+      message: '관리자 계정이 성공적으로 생성되었습니다.',
+      meta: {
+        timestamp: Date.now(),
+        path: request.url
       }
-    });
+    };
   } catch (error) {
-    console.error(error);
-    return NextResponse.json(
-      { error: '계정 생성 중 오류가 발생했습니다.' },
-      { status: 500 }
-    );
+    console.error('Error registering admin:', error);
+    throw createSystemError('INTERNAL_ERROR', 'Failed to register admin');
   }
-}
+}); 

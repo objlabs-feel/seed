@@ -1,9 +1,9 @@
-import { prisma } from '@repo/shared';
+import { auctionItemService } from '@repo/shared/services';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    const count = await prisma.auctionItem.count({});
+    const count = await auctionItemService.count({});
 
     return NextResponse.json({ count });
   } catch (error) {

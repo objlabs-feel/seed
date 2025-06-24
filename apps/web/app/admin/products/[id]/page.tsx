@@ -3,12 +3,12 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import BidModal from '../components/BidModal';
-import { IAuctionItem, IAuctionHistory } from '@repo/shared/models';
+import { AuctionItem, AuctionItemHistory } from '@repo/shared/models';
 
 export default function ProductDetail({ params }: { params: { id: string } }) {
   const router = useRouter();
-  const [auctionItem, setAuctionItem] = useState<IAuctionItem | null>(null);
-  const [highestBidder, setHighestBidder] = useState<IAuctionHistory | null>(null);
+  const [auctionItem, setAuctionItem] = useState<any>(null);
+  const [highestBidder, setHighestBidder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isBidModalOpen, setIsBidModalOpen] = useState(false);
@@ -24,7 +24,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
       setAuctionItem(data);
 
       if (data.auction_item_history.length > 0) {
-        const highestBid = data.auction_item_history.reduce((prev: IAuctionHistory, current: IAuctionHistory) => {
+        const highestBid = data.auction_item_history.reduce((prev: any, current: any) => {
           return prev.value > current.value ? prev : current;
         });
         setHighestBidder(highestBid);
@@ -187,7 +187,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
               <div>
                 <p className="mb-2">이미지:</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {auctionItem.medical_device.images.map((image, index) => (
+                  {auctionItem.medical_device.images.map((image: any, index: any) => (
                     <img
                       key={index}
                       src={image}
@@ -212,7 +212,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
       <div className="mt-6">
         <h3 className="font-semibold mb-4">입찰 내역</h3>
         <div className="space-y-2">
-          {auctionItem.auction_item_history.map((history) => (
+          {auctionItem.auction_item_history.map((history: any) => (
             <p key={history.id}>이용자ID : {history.user_id} 입찰가 : {history.value}</p>
           ))}
         </div>
