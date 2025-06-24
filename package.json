@@ -10,6 +10,7 @@
     "ios": "cd apps/MediDealer && npx react-native run-ios",
     "web": "cd apps/web && npm run dev",
     "release-android": "cd apps/MediDealer && npx react-native run-android --mode=release",
+    "release-android-aab": "cd apps/MediDealer/android && ./gradlew bundleRelease",
     "release-ios": "cd apps/MediDealer && npx react-native run-ios --configuration Release",
     "version:patch": "node scripts/version-bump.js patch",
     "version:minor": "node scripts/version-bump.js minor",

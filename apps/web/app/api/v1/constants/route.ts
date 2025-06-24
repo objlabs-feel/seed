@@ -7,6 +7,7 @@ import {
 import { createApiResponse, withApiHandler } from '@/libs/api-utils';
 import { createSystemError } from '@/libs/errors';
 import type { ApiResponse } from '@/types/api';
+import { convertBigIntToString } from '@/libs/utils';
 
 export const GET = withApiHandler(async (request: Request): Promise<ApiResponse> => {
   try {
@@ -63,9 +64,9 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
     return {
       success: true,
       data: {
-        departments: departments.map(stringifyId),
-        deviceTypes: deviceTypes.map(stringifyId),
-        manufacturers: manufacturers.map(stringifyId),
+        departments: convertBigIntToString(departments),
+        deviceTypes: convertBigIntToString(deviceTypes),
+        manufacturers: convertBigIntToString(manufacturers),
       }
     };
   } catch (error) {

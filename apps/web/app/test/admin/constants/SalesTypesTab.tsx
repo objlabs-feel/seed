@@ -37,7 +37,7 @@ export default function SalesTypesTab({ token }: SalesTypesTabProps) {
       });
       if (!response.ok) throw new Error('데이터를 불러오는데 실패했습니다.');
       const data = await response.json();
-      setSalesTypes(data);
+      setSalesTypes(data.data);
     } catch (e: any) {
       setError(e.message);
     } finally {
