@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@repo/ui/button';
 import { SaleItemDetail } from '../components/SaleItemDetail';
@@ -57,14 +57,13 @@ export default function SaleItemDetailPage() {
   const { data: currentUser, loading: userLoading } = useApi<any>({
     url: '/api/v1/auth/verify',
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: authToken ? { token: authToken } : undefined,
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${authToken}` },
     enabled: !!authToken,
   });
 
   const { data: saleItem, loading, error } = useApi<any>({
     url: `/api/v1/saleitems/${params.id}`,
-    headers: authToken ? { Authorization: `Bearer ${authToken}` } : {},
+    headers: { Authorization: `Bearer ${authToken}` },
     enabled: !!authToken,
   });
 
@@ -172,7 +171,15 @@ export default function SaleItemDetailPage() {
   return (
     <div className="container mx-auto p-4 space-y-4 bg-gray-900 min-h-screen">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-white">판매 아이템 상세</h1>
+        <div className="flex items-center gap-4">
+          <Button
+            onClick={() => router.push('/test/client/saleitems')}
+            className="bg-gray-600 text-white hover:bg-gray-700 px-4 py-2 rounded"
+          >
+            ← 목록으로 돌아가기
+          </Button>
+          <h1 className="text-2xl font-bold text-white">판매 아이템 상세</h1>
+        </div>
         <div className="flex gap-2">
           {isHighestBidder && saleItem.item?.status === 2 && saleItem.item?.buyer_steps ===1 && (
             <Button

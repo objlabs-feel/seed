@@ -44,6 +44,7 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
         ...(sales_type && { sales_type: Number(sales_type) }),
         ...(status && { status: Number(status) }),
       },
+      orderBy: { updated_at: 'desc' },
     });
 
     return {

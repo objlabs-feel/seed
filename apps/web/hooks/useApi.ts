@@ -102,7 +102,7 @@ export function useApi<T>({
         abortControllerRef.current.abort();
       }
     };
-  }, [url, method, JSON.stringify(headers), JSON.stringify(body), enabled]);
+  }, [url, method, enabled, body ? JSON.stringify(body) : null, headers ? Object.keys(headers).sort().join(',') + ':' + Object.values(headers).join(',') : null]);
 
   return {
     data,

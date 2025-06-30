@@ -259,6 +259,7 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
       include: {
         salesType: true,
       },
+      orderBy: { updated_at: 'desc' },
     });
   }
 

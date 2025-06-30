@@ -52,7 +52,7 @@ export const PUT = withApiHandler(async (request: Request, context: RouteContext
     throw createBusinessError('INVALID_STATE', '경매 상품이 진행중이 아닙니다.');
   }
 
-  if (auctionItem.buyer_steps !== 3 || auctionItem.seller_steps !== 3) {
+  if (auctionItem.buyer_steps !== 2 || auctionItem.seller_steps !== 2) {
     throw createBusinessError('INVALID_STATE', '경매 상품이 진행중이 아닙니다.');
   }
 

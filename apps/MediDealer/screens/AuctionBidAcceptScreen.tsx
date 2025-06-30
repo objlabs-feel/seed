@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { getAuctionBidAcceptForBuyer, getAuctionCompleteForBuyer, getAuctionConfirmForBuyer, getAuctionContactForBuyer, getAuctionDetail } from '../services/medidealer/api';
+import { getAuctionCompleteForBuyer, getAuctionConfirmForBuyer, getAuctionDetail, setAuctionBidAcceptForBuyer, setAuctionContactForBuyer } from '../services/medidealer/api';
 import StepIndicator from '../components/auction/StepIndicator';
 import NavigationButtons from '../components/auction/NavigationButtons';
-import { IAuctionHistory, IAuctionItem } from '@repo/shared/models';
 import { WebView } from 'react-native-webview';
 import DateTimePickerAndroid from '@react-native-community/datetimepicker';
+import { AuctionItemHistoryResponseDto, AuctionItemResponseDto } from '@repo/shared/dto';
 
 interface AuctionBidAcceptScreenProps {
   route: {
@@ -34,7 +34,7 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
     visitDate: '',
     visitTime: '',
   });
-  const [auctionDetail, setAuctionDetail] = useState<IAuctionItem | null>(null);
+  const [auctionDetail, setAuctionDetail] = useState<AuctionItemResponseDto | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errors, setErrors] = useState({
     companyName: '',
@@ -102,10 +102,14 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
         if (!validateStep(step)) {
           return;
         }
-        const data = await getAuctionBidAcceptForBuyer(auctionId, formData);
+        const data = await setAuctionBidAcceptForBuyer(auctionId, formData);
         setStep(prev => prev + 1);
       } else if (step === 2) {
-        const data = await getAuctionContactForBuyer(auctionId, formData);
+        if (!validateStep(step)) {
+          return;
+        }
+        console.log('step2', scheduleData);
+        const data = await setAuctionContactForBuyer(auctionId, scheduleData);
         setStep(prev => prev + 1);
       } else if (step === 3) {        
         const data = await getAuctionConfirmForBuyer(auctionId);
@@ -134,7 +138,7 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
     setShowDatePicker(false);
     if (selectedDate && event.type !== 'dismissed') {
       const formattedDate = selectedDate.toISOString().split('T')[0];
-      handleInputChange('visitDate', formattedDate);
+      setScheduleData(prev => ({ ...prev, visitDate: formattedDate }));
     }
   };
 
@@ -146,19 +150,19 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
         minute: '2-digit',
         hour12: false
       });
-      handleInputChange('visitTime', formattedTime);
+      setScheduleData(prev => ({ ...prev, visitTime: formattedTime }));
     }
   };
 
   useEffect(() => {
     const fetchAuctionDetail = async () => {
       try {
-        const data = await getAuctionDetail(auctionId);
-        console.log(data);
-        const bidAccept = data.auction_item_history.filter((bid: IAuctionHistory) => bid.id === data.accept_id);
-        setCurrentUserId(data.medical_device.company.owner_id);
-        setAuctionDetail(data);
-        setStep(data.buyer_steps);
+        const { data } = await getAuctionDetail(auctionId);
+        console.log('data', data);
+        const bidAccept = data.item.auction_item_history.filter((bid: AuctionItemHistoryResponseDto) => bid.id === data.item.accept_id);
+        setCurrentUserId(data.item.device.company.owner_id);
+        setAuctionDetail(data.item);
+        setStep(data.item.buyer_steps);
         setBidAmount(bidAccept[0].value);
       } catch (error) {
         console.error('경매 상세 정보 로딩 중 오류:', error);
@@ -350,9 +354,9 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
             
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>판매자 정보</Text>
-              <Text style={styles.infoText}>판매자명: {auctionDetail?.medical_device.company.name}</Text>
-              {/* <Text style={styles.infoText}>연락처: {auctionDetail?.seller_phone}</Text> */}
-              <Text style={styles.infoText}>주소: {auctionDetail?.medical_device.company.address} {auctionDetail?.medical_device.company.address_detail}</Text>
+              <Text style={styles.infoText}>판매자명: {auctionDetail?.device?.company?.name}</Text>
+              <Text style={styles.infoText}>연락처: {auctionDetail?.device?.company?.business_mobile}</Text>
+              <Text style={styles.infoText}>주소: {auctionDetail?.device?.company?.address || ''} {auctionDetail?.device?.company?.address_detail || ''}</Text>
             </View>
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>양도 확정 알림 안내</Text>

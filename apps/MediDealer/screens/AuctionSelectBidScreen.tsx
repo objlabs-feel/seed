@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { getAuctionCompleteForSeller, getAuctionContactForSeller, getAuctionDetail, getAuctionSelectBidForSeller } from '../services/medidealer/api';
+import { getAuctionCompleteForSeller, getAuctionDetail, setAuctionSelectBidForSeller, setAuctionContactForSeller } from '../services/medidealer/api';
 import StepIndicator from '../components/auction/StepIndicator';
 import NavigationButtons from '../components/auction/NavigationButtons';
 import SelectionModal from '../components/auction/SelectionModal';
-import { IAuctionItem, IAuctionHistory } from '@repo/shared/models';
+import { AuctionItemResponseDto, AuctionItemHistoryResponseDto } from '@repo/shared/dto';
 
 interface AuctionSelectBidScreenProps {
   route: {
@@ -21,7 +21,7 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
-    auction_history_id: '',
+    accept_id: '',
     companyName: '',
     address: '',
     addressDetail: '',
@@ -34,8 +34,8 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
     bankAccount: '',
     bankCode: '',
   });
-  const [auctionItem, setAuctionItem] = useState<IAuctionItem | null>(null);
-  const [auctionHistory, setAuctionHistory] = useState<IAuctionHistory[]>([]);
+  const [auctionItem, setAuctionItem] = useState<AuctionItemResponseDto | null>(null);
+  const [auctionHistory, setAuctionHistory] = useState<AuctionItemHistoryResponseDto[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showWebView, setShowWebView] = useState(false);
   const [showBankModal, setShowBankModal] = useState(false);
@@ -113,7 +113,7 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
           return;
         }
         console.log('step1');
-        const data = await getAuctionSelectBidForSeller(auctionId, formData);
+        const data = await setAuctionSelectBidForSeller(auctionId, formData);
         console.log('data', data);
         setStep(prev => prev + 1);
       } else if (step === 2) {
@@ -121,7 +121,7 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
         setStep(prev => prev + 1);
       } else if (step === 3) {
         console.log('step3');
-        const data = await getAuctionContactForSeller(auctionId, formData);
+        const data = await setAuctionContactForSeller(auctionId, formData);
         console.log('data', data);
         setStep(prev => prev + 1);
       }
@@ -147,25 +147,26 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
   useEffect(() => {
     const fetchAuctionDetail = async () => {
       try {
-        const data = await getAuctionDetail(auctionId);
-        setCurrentUserId(data.medical_device.company.owner_id);
-        setAuctionItem(data);
-        setAuctionHistory(data.auction_item_history);
+        const { data } = await getAuctionDetail(auctionId);
+        console.log('data', data.data);
+        setCurrentUserId(data.item.device.company.owner_id);
+        setAuctionItem(data.item);
+        setAuctionHistory(data.item.auction_item_history);
         setFormData({
           ...formData,
-          companyName: data.medical_device.company.name || '',
-          address: data.medical_device.company.address || '',
-          addressDetail: data.medical_device.company.address_detail || '',
-          zipCode: data.medical_device.company.zipcode || '',
-          ownerName: data.medical_device.company.profile?.name || '',
-          ownerEmail: data.medical_device.company.profile?.email || '',
-          ownerMobile: data.medical_device.company.business_mobile || '',
-          businessNo: data.medical_device.company.business_no || '',
-          bankHolder: data.medical_device.company.secret_info?.bankHolder || '',
-          bankAccount: data.medical_device.company.secret_info?.bankAccount || '',
-          bankCode: data.medical_device.company.secret_info?.bankCode || '',
+          companyName: data.item.device.company.name || '',
+          address: data.item.device.company.address || '',
+          addressDetail: data.item.device.company.address_detail || '',
+          zipCode: data.item.device.company.zipcode || '',
+          ownerName: data.item.device.company.profile?.name || '',
+          ownerEmail: data.item.device.company.profile?.email || '',
+          ownerMobile: data.item.device.company.business_mobile || '',
+          businessNo: data.item.device.company.business_no || '',
+          bankHolder: data.item.device.company.secret_info?.bankHolder || '',
+          bankAccount: data.item.device.company.secret_info?.bankAccount || '',
+          bankCode: data.item.device.company.secret_info?.bankCode || '',
         });
-        setStep(data.seller_steps);        
+        setStep(data.item.seller_steps || 1);        
       } catch (error) {
         console.error('경매 상세 정보 로딩 중 오류:', error);
       } finally {
@@ -185,7 +186,7 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
       setFormData(
         {
           ...formData,
-          auction_history_id: acceptBid[0].id.toString()
+          accept_id: acceptBid[0].id.toString()
         }
       )
     }
@@ -197,16 +198,16 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
       const history = auctionHistory;
       if (history && history.length > 0) {
         // 입찰 기록을 금액 기준으로 정렬하고 최고가 반환
-        const highestBid = Math.max(...history.map(bid => bid.value));
+        const highestBid = Math.max(...history.map(bid => bid.value || 0));
         // 최고 입찰 기록 찾기
         // const acceptBid = history.filter(bid => bid.value === highestBid);
         // 같은 가격일때 가장 빠른 입찰 기록 찾기
-        const acceptBid = history.filter(bid => bid.value === highestBid).sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())[0];
+        const acceptBid = history.filter(bid => bid.value === highestBid).sort((a, b) => new Date(a.created_at || '').getTime() - new Date(b.created_at || '').getTime())[0];
         setHighestBid(highestBid);
         setFormData(
           {
             ...formData,
-            auction_history_id: acceptBid.id.toString()
+            accept_id: acceptBid.id.toString()
           }
         )
       }
@@ -381,7 +382,7 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
               <Text style={styles.infoLabel}>방문일자 및 시간</Text>
               <Text style={styles.infoText}>구매자 입금 완료 확인 후 양도 일자를 협의합니다.</Text>            
               <View style={styles.inputGroup}>
-                <Text style={styles.infoText}>방문일자: {auctionItem?.visit_date ? auctionItem?.visit_date.split('T')[0] : ''}</Text>
+                <Text style={styles.infoText}>방문일자: {auctionItem?.visit_date || ''}</Text>
                 <Text style={styles.infoText}>방문시간: {auctionItem?.visit_time}</Text>
               </View>
             </View>

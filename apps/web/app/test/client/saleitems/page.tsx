@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/ui/PageLayout';
 import { Card } from '@/components/ui/Card';
 import { Input } from '@repo/ui/input';
@@ -56,6 +57,7 @@ interface ApiError {
 }
 
 export default function SaleItemTestPage() {
+  const router = useRouter();
   const [formData, setFormData] = useState<FormData>({
     department: '',
     equipmentType: '',
@@ -293,6 +295,14 @@ export default function SaleItemTestPage() {
     }
   }, [formData.department]);
 
+  /**
+   * 판매 아이템 상세정보 페이지로 이동하는 함수
+   * @param itemId - 이동할 판매 아이템의 ID
+   */
+  const handleItemClick = (itemId: string) => {
+    router.push(`/test/client/saleitems/${itemId}`);
+  };
+
   return (
     <PageLayout title="Client API Test: SaleItems">
       <Card title="인증 토큰 (선행 필요)">
@@ -447,10 +457,63 @@ export default function SaleItemTestPage() {
                 </Button>
               </div>
             </div>
+            
+            {/* 판매 아이템 목록 테이블 */}
+            <div className="overflow-x-auto">
+              <table className="min-w-full bg-white border border-gray-300">
+                <thead>
+                  <tr className="bg-gray-50">
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">ID</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">담당자</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">연락처</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">병원/기관</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">진료과</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">장비타입</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">제조사</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">상태</th>
+                    <th className="px-4 py-2 border-b text-left text-sm font-medium text-gray-700">등록일</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {listResponse.data.map((item: any) => (
+                    <tr 
+                      key={item.id} 
+                      className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
+                      onClick={() => handleItemClick(item.id)}
+                      title="클릭하여 상세정보 보기"
+                    >
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.id}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.name}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.phone}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.hospitalName}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.department?.name || '-'}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.deviceType?.name || '-'}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">{item.manufacturer?.name || '-'}</td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">
+                        <span className={`px-2 py-1 rounded text-xs ${
+                          item.status === 1 
+                            ? 'bg-green-100 text-green-800' 
+                            : 'bg-red-100 text-red-800'
+                        }`}>
+                          {item.status === 1 ? '활성' : '비활성'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-2 border-b text-sm text-gray-900">
+                        {new Date(item.createdAt).toLocaleDateString('ko-KR')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 
-        <ResultDisplay type="info" title="조회 결과:" data={listResponse} />
+        {!listResponse && (
+          <div className="text-center py-8 text-gray-500">
+            검색 버튼을 클릭하여 판매 아이템 목록을 조회하세요.
+          </div>
+        )}
       </Card>
 
       {error && (

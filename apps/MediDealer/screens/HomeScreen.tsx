@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Pla
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import messaging from '@react-native-firebase/messaging';
+import messaging, { FirebaseMessagingTypes } from '@react-native-firebase/messaging';
 import { getNotification, updateNotification, getAuctionCount, getMySaleList, getMyBuyList } from '../services/medidealer/api';
 import notifee, { EventType } from '@notifee/react-native';
 import { getDeviceType, getOSVersion } from '../utils/device';
@@ -342,6 +342,7 @@ const HomeScreen = () => {
       // API 응답 데이터를 화면에 맞는 형태로 변환
       const transformedItems = response.data?.map((item: any) => ({
         id: item.id,
+        salesType: item.salesType,
         title: item.item?.device?.deviceType?.name || item.salesType?.name || '제목 없음',
         price: item.item?.auction_item_history?.[0]?.value || 0,
         status: item.status === 1 ? '판매중' : item.status === 2 ? '낙찰' : '완료',
@@ -400,7 +401,19 @@ const HomeScreen = () => {
 
   // 판매 아이템 렌더링 함수
   const renderSellItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.listItemContainer}>
+    <TouchableOpacity 
+      style={styles.listItemContainer}
+      onPress={() => {
+        // salesType.code에 따라 다른 화면으로 이동
+        console.log('item.salesType?.code:', item.salesType?.code);
+        if (item.salesType?.code === 'AUCTION') {
+          navigation.navigate('AuctionDetail', { id: item.id.toString() });
+        } else {
+          // 다른 salesType에 대한 처리 (추후 확장 가능)
+          console.log('다른 salesType:', item.salesType?.code);
+        }
+      }}
+    >
       <View style={styles.listItemHeader}>
         <Text style={styles.listItemTitle}>{item.title}</Text>
         <View style={[
@@ -419,7 +432,18 @@ const HomeScreen = () => {
 
   // 구매 아이템 렌더링 함수
   const renderBuyItem = ({ item }: { item: any }) => (
-    <TouchableOpacity style={styles.listItemContainer}>
+    <TouchableOpacity 
+      style={styles.listItemContainer}
+      onPress={() => {
+        // salesType.code에 따라 다른 화면으로 이동
+        if (item.salesType?.code === 'AUCTION') {
+          navigation.navigate('AuctionDetail', { id: item.id.toString() });
+        } else {
+          // 다른 salesType에 대한 처리 (추후 확장 가능)
+          console.log('다른 salesType:', item.salesType?.code);
+        }
+      }}
+    >
       <View style={styles.listItemHeader}>
         <Text style={styles.listItemTitle}>{item.title}</Text>
         <View style={[
