@@ -61,7 +61,7 @@ export const PUT = withApiHandler(async (request: Request, context: RouteContext
     visit_date: validatedData.visitDate,
     visit_time: validatedData.visitTime,
     seller_steps: 3,
-    buyer_steps: 3,
+    buyer_steps: 2,
   });
 
   // 5. 알림 발송
@@ -79,15 +79,15 @@ export const PUT = withApiHandler(async (request: Request, context: RouteContext
   if (notificationInfoList.length > 0) {
     await sendNotification({
       type: 'MULTI',
-      title: '입금확인',
-      body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`,
+      title: '입금확인대기',
+      body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 입금확인을 대기중입니다.\n[경매번호: ${auctionItem.auction_code}]`,
       userTokens: notificationInfoList.map(info => info.device_token),
       data: {
         type: 'AUCTION',
         screen: 'AuctionDetail',
         targetId: auctionItem.id.toString(),
-        title: '입금확인',
-        body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 방문일정을 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`
+        title: '입금확인대기',
+        body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 입금확인을 대기중입니다.\n[경매번호: ${auctionItem.auction_code}]`
       }
     });
   }

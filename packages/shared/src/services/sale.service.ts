@@ -254,7 +254,7 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
   }
 
   async findById(id: string | number): Promise<SaleItem | null> {
-    return await this.prisma.saleItem.findUnique({
+    return await this.prisma.saleItem.findFirst({
       where: { id: typeof id === 'string' ? BigInt(id) : BigInt(id) },
       include: {
         salesType: true,
