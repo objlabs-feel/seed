@@ -49,6 +49,9 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
     }
 
     const saleItem = await saleItemService.findByItemId(auctionItem.id.toString());
+    if (!saleItem) {
+      throw createBusinessError('NOT_FOUND', '판매 상품을 찾을 수 없습니다.');
+    }
 
     // 5. 경매 상품 조회 이력 생성
     await saleItemViewHistoryService.create({
@@ -56,7 +59,7 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
       item_id: saleItem?.id?.toString() || '',
     });
 
-    // 5. 알림 발송
+    // 6. 알림 발송
     const ownerId = auctionItem.device?.company?.owner_id;
     if (ownerId) {
       const notificationInfoList: NotificationInfo[] = await notificationService.findMany({
@@ -80,9 +83,7 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
       }
     }
 
-    console.log('history', toAuctionItemHistoryResponseDto(history));
-
-    // 6. 응답
+    // 7. 응답
     return {
       success: true,
       data: toAuctionItemHistoryResponseDto(history),
