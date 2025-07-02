@@ -31,6 +31,8 @@ export async function GET(request: Request) {
 
     const result = await auctionItemService.search(searchOptions);
 
+    console.log(result.data.map(item => item.device));
+
     return NextResponse.json({
       items: toAuctionItemListDtoArray(result.data),
       total: result.total,

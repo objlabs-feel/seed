@@ -313,6 +313,7 @@ export interface AuctionItem extends BaseModel {
   auction_timeout?: Date | null;
   visit_date?: Date | null;
   visit_time?: string | null;
+  description?: string | null;
 
   // 관계형 필드
   device?: UsedDevice;

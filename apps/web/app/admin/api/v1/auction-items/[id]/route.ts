@@ -4,6 +4,7 @@ import {
   auctionItemService
 } from '@repo/shared/services';
 import { convertBigIntToString } from '@/libs/utils';
+import { UpdateUsedDeviceRequestDto, UpdateAuctionItemRequestDto } from '@repo/shared/dto';
 
 // 개별 조회
 export async function GET(
@@ -11,7 +12,7 @@ export async function GET(
   { params }: { params: { id: string } },
 ) {
   try {
-    const auctionItem = await auctionItemService().findById(params.id);
+    const auctionItem = await auctionItemService.findById(params.id);
 
     if (!auctionItem) {
       return NextResponse.json(
@@ -89,7 +90,7 @@ export async function DELETE(
   { params }: { params: { id: string } },
 ) {
   try {
-    await auctionItemService().delete(params.id);
+    await auctionItemService.delete(params.id);
     return NextResponse.json({ message: 'Auction item deleted successfully' });
   } catch (error) {
     console.error('경매 상품 삭제 중 오류:', error);

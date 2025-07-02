@@ -24,9 +24,22 @@ export default function AdminLayout({
           return;
         }
 
+        // 쿠키에서 토큰 추출
+        const cookies = document.cookie.split(';');
+        const adminTokenCookie = cookies.find(cookie => cookie.trim().startsWith('admin_token='));
+        const token = adminTokenCookie ? adminTokenCookie.split('=')[1] : null;
+
+        if (!token) {
+          throw new Error('토큰이 없습니다');
+        }
+
         const response = await fetch('/admin/api/v1/admin/verify', {
-          method: 'GET',
-          credentials: 'include'  // 쿠키 포함
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+          body: JSON.stringify({ token }),
         });
 
         if (!response.ok) {

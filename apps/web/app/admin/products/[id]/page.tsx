@@ -19,7 +19,12 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
   const fetchAuctionItem = async () => {
     try {
-      const response = await fetch(`/admin/api/v1/auction-items/${params.id}`);
+      const response = await fetch(`/admin/api/v1/auction-items/${params.id}`, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
+        },
+      });
       const data = await response.json();
       setAuctionItem(data);
 
@@ -42,6 +47,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
         },
         body: JSON.stringify({
           user_id: userId,
@@ -67,6 +73,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
         },
         body: JSON.stringify({
           status: 1, // 낙찰완료 상태
@@ -90,6 +97,7 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
         },
       });
 

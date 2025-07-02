@@ -63,8 +63,16 @@ export default function ProductList() {
         ...(filters.device_id && { device_id: filters.device_id })
       });
 
-      const response = await fetch(`/admin/api/v1/auction-items?${queryParams}`);
+      const response = await fetch(`/admin/api/v1/auction-items?${queryParams}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
+        },
+      });
       const data = await response.json();
+
+      console.log(data);
 
       if (data.items) {
         setAuctionItems(prev => isNewSearch ? data.items : [...prev, ...data.items]);
@@ -91,10 +99,10 @@ export default function ProductList() {
 
   const getStatusText = (status: number) => {
     switch (status) {
-    case 0: return '입찰중';
-    case 1: return '낙찰완료';
-    case 2: return '거래완료';
-    case 3: return '취소';
+    case 1: return '입찰중';
+    case 2: return '낙찰완료';
+    case 3: return '거래완료';
+    case 4: return '취소';
     default: return '알수없음';
     }
   };
@@ -153,7 +161,7 @@ export default function ProductList() {
                   className="hover:bg-gray-50"
                 >
                   <td className="p-4">{item.auction_code}</td>
-                  <td className="p-4">{item.medical_device.description}</td>
+                  <td className="p-4">{item.device.description}</td>
                   <td className="p-4">
                     {new Date(item.start_timestamp).toLocaleString()}
                   </td>

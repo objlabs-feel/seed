@@ -76,6 +76,8 @@ export function toAuctionItemListDto(auctionItem: AuctionItem): AuctionItemListD
     visit_time: auctionItem.visit_time,
     created_at: dateToString(auctionItem.created_at),
     updated_at: dateToString(auctionItem.updated_at),
+    device: auctionItem.device ? { ...toUsedDeviceResponseDto(auctionItem.device) } : undefined,
+    auction_item_history: auctionItem.auction_item_history ? auctionItem.auction_item_history.map(toAuctionItemHistoryListDto) : [],
   };
 }
 

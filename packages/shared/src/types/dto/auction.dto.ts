@@ -105,6 +105,7 @@ export interface AuctionItemListDto extends BaseDto {
   auction_timeout?: string | null;
   visit_date?: string | null;
   visit_time?: string | null;
+  description?: string | null;
   device?: {
     id: string;
     company_id?: string | null;

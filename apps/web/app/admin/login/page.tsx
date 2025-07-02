@@ -26,7 +26,7 @@ export default function AdminLogin() {
 
       if (data.success) {
         // 토큰을 쿠키에 저장
-        document.cookie = `admin_token=${data.token}; path=/`;
+        document.cookie = `admin_token=${data.data.token}; path=/`;
         router.push('/admin');
       } else {
         setError(data.error || '로그인에 실패했습니다.');

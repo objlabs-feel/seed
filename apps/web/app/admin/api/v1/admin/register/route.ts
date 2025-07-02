@@ -25,6 +25,7 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
     const admin = await adminService.create({
       username,
       password,
+      email: '',
       level: 1, // Default level
     });
 

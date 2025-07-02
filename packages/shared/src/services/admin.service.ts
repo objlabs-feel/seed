@@ -8,6 +8,26 @@ import type {
 import { BaseService, type SearchOptions, type PaginationResult } from './base.service';
 
 /**
+ * 비밀번호 해싱 (PBKDF2 + salt)
+ */
+export function hashPassword(password: string): string {
+  const crypto = require('crypto');
+  const salt = crypto.randomBytes(16).toString('hex');
+  const hash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return `${salt}:${hash}`;
+}
+
+/**
+ * 비밀번호 검증 (PBKDF2)
+ */
+export function verifyPassword(password: string, hashedPassword: string): boolean {
+  const crypto = require('crypto');
+  const [salt, hash] = hashedPassword.split(':');
+  const verifyHash = crypto.pbkdf2Sync(password, salt, 10000, 64, 'sha512').toString('hex');
+  return hash === verifyHash;
+}
+
+/**
  * Admin 서비스 클래스
  */
 export class AdminService extends BaseService<Admin, CreateAdminRequestDto, UpdateAdminRequestDto> {
@@ -21,7 +41,7 @@ export class AdminService extends BaseService<Admin, CreateAdminRequestDto, Upda
    * 관리자 생성
    */
   async create(data: CreateAdminRequestDto): Promise<Admin> {
-    const hashedPassword = bcrypt.hashSync(data.password, 10);
+    const hashedPassword = hashPassword(data.password);
     return await this.prisma.admin.create({
       data: {
         username: data.username,
@@ -42,7 +62,7 @@ export class AdminService extends BaseService<Admin, CreateAdminRequestDto, Upda
       throw new Error('존재하지 않는 관리자입니다.');
     }
 
-    const isPasswordValid = bcrypt.compareSync(password, admin.password);
+    const isPasswordValid = verifyPassword(password, admin.password);
 
     if (!isPasswordValid) {
       throw new Error('비밀번호가 일치하지 않습니다.');
@@ -62,7 +82,7 @@ export class AdminService extends BaseService<Admin, CreateAdminRequestDto, Upda
     const result = await this.prisma.admin.createMany({
       data: data.map(item => ({
         username: item.username,
-        password: bcrypt.hashSync(item.password, 10), // Also hash passwords here
+        password: hashPassword(item.password),
         level: item.level,
         status: item.status || 1,
       })),

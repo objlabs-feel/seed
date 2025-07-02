@@ -34,11 +34,11 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
     }
 
     const adminDto = toAdminResponseDto(admin);
-    const token = await generateToken(adminDto);
+    const token = await generateToken({ adminId: admin.id });
 
     // Set the cookie for browser-based navigation (the real app)
     cookies().set('admin_token', token, {
-      httpOnly: true,
+      httpOnly: false,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
