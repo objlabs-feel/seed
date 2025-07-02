@@ -676,10 +676,7 @@ export class SaleItemViewHistoryService extends BaseService<SaleItemViewHistory,
   }
 
   async create(data: CreateSaleItemViewHistoryRequestDto): Promise<SaleItemViewHistory> {
-    const existingHistory = await this.findUnique({
-      owner_id: BigInt(data.owner_id),
-      item_id: BigInt(data.item_id),
-    });
+    const existingHistory = await this.findFirst({ where: { owner_id: BigInt(data.owner_id), item_id: BigInt(data.item_id) } });
     if (existingHistory) {
       return existingHistory;
     }
