@@ -20,6 +20,7 @@ export async function GET(
         { status: 404 },
       );
     }
+
     return NextResponse.json(convertBigIntToString(auctionItem));
   } catch (error) {
     console.error('경매 상품 조회 중 오류:', error);

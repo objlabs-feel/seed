@@ -142,12 +142,14 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">경매 상품 상세정보</h2>
         <div className="space-x-2">
-          <button
-            onClick={handleConfirm}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            입금확인
-          </button>
+          {auctionItem.status === 2 && auctionItem.accept_id !== null && (            
+            <button
+              onClick={handleConfirm}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              입금확인
+            </button>
+          )}
           <button
             onClick={() => setIsBidModalOpen(true)}
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
@@ -189,13 +191,13 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
         <div>
           <h3 className="font-semibold mb-4">의료기기 정보</h3>
           <div className="space-y-2">
-            <p>설명: {auctionItem.medical_device?.description}</p>
-            <p>제조일: {auctionItem.medical_device?.manufacture_date ? new Date(auctionItem.medical_device.manufacture_date).toLocaleDateString() : ''}</p>
-            {auctionItem.medical_device?.images.length > 0 && (
+            <p>설명: {auctionItem.device?.description}</p>
+            <p>제조일: {auctionItem.device?.manufacture_date ? new Date(auctionItem.device.manufacture_date).toLocaleDateString() : ''}</p>
+            {auctionItem.device?.images.length > 0 && (
               <div>
                 <p className="mb-2">이미지:</p>
                 <div className="grid grid-cols-3 gap-2">
-                  {auctionItem.medical_device.images.map((image: any, index: any) => (
+                  {auctionItem.device.images.map((image: any, index: any) => (
                     <img
                       key={index}
                       src={image}
