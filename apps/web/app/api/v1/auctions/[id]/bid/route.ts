@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser } from '@/libs/auth';
 import { sendNotification } from '@/libs/notification';
-import { auctionItemService, auctionItemHistoryService, notificationService } from '@repo/shared/services';
+import { auctionItemService, auctionItemHistoryService, notificationService, saleItemViewHistoryService, saleItemService } from '@repo/shared/services';
 import { type NotificationInfo } from '@repo/shared';
 import { toAuctionItemHistoryResponseDto } from '@repo/shared/transformers';
 import { CreateAuctionItemHistoryRequestDto } from '@repo/shared/dto';
@@ -20,63 +20,80 @@ interface RouteContext {
 
 // 입찰
 export const POST = withApiHandler(async (request: Request, context: RouteContext): Promise<ApiResponse> => {
-// 1. 인증
-  const auth = await authenticateUser(request);
-  if ('error' in auth) {
-    throw createAuthError('UNAUTHORIZED', auth.error || '인증 실패');
-  }
-  const { userId } = auth as { userId: string };
+  try {
+    // 1. 인증
+    const auth = await authenticateUser(request);
+    if ('error' in auth) {
+      throw createAuthError('UNAUTHORIZED', auth.error || '인증 실패');
+    }
+    const { userId } = auth as { userId: string };
 
-  // 2. 요청 데이터 검증
-  const { body } = await parseApiRequest(request);
-  const validatedData = bidRequestSchema.parse(body);
+    console.log('userId', userId);
 
-  // 3. 입찰 생성
-  const createDto: CreateAuctionItemHistoryRequestDto = {
-    auction_item_id: context.params.id,
-    user_id: userId,
-    value: validatedData.value,
-  };
-  const history = await auctionItemHistoryService.create(createDto);
+    // 2. 요청 데이터 검증
+    const { body } = await parseApiRequest(request);
+    const validatedData = bidRequestSchema.parse(body);
 
-  // 4. 경매 상품 정보 조회
-  const auctionItem = await auctionItemService.findById(context.params.id);
-  if (!auctionItem) {
-    throw createBusinessError('NOT_FOUND', '경매 상품을 찾을 수 없습니다.');
-  }
+    // 3. 입찰 생성
+    const createDto: CreateAuctionItemHistoryRequestDto = {
+      auction_item_id: context.params.id,
+      user_id: userId,
+      value: validatedData.value,
+    };
+    const history = await auctionItemHistoryService.create(createDto);
 
-  // 5. 알림 발송
-  const ownerId = auctionItem.device?.company?.owner_id;
-  if (ownerId) {
-    const notificationInfoList: NotificationInfo[] = await notificationService.findMany({
-      where: { user_id: ownerId }
+    // 4. 경매 상품 정보 조회
+    const auctionItem = await auctionItemService.findById(context.params.id);
+    if (!auctionItem) {
+      throw createBusinessError('NOT_FOUND', '경매 상품을 찾을 수 없습니다.');
+    }
+
+    const saleItem = await saleItemService.findByItemId(auctionItem.id.toString());
+
+    // 5. 경매 상품 조회 이력 생성
+    await saleItemViewHistoryService.create({
+      owner_id: userId,
+      item_id: saleItem?.id?.toString() || '',
     });
 
-    if (notificationInfoList.length > 0) {
-      await sendNotification({
-        type: 'MULTI',
-        title: '경매 입찰',
-        body: `경매상품[${auctionItem.device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
-        userTokens: notificationInfoList.map(info => info.device_token),
-        data: {
-          type: 'AUCTION',
-          screen: 'AuctionDetail',
-          targetId: auctionItem.id.toString(),
-          title: '경매 입찰',
-          body: `경매상품[${auctionItem.device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
-        },
+    // 5. 알림 발송
+    const ownerId = auctionItem.device?.company?.owner_id;
+    if (ownerId) {
+      const notificationInfoList: NotificationInfo[] = await notificationService.findMany({
+        where: { user_id: ownerId }
       });
-    }
-  }
 
-  // 6. 응답
-  return {
-    success: true,
-    data: toAuctionItemHistoryResponseDto(history),
-    message: '입찰이 성공적으로 등록되었습니다.',
-    meta: {
-      timestamp: Date.now(),
-      path: request.url,
+      if (notificationInfoList.length > 0) {
+        await sendNotification({
+          type: 'MULTI',
+          title: '경매 입찰',
+          body: `경매상품[${auctionItem.device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+          userTokens: notificationInfoList.map(info => info.device_token),
+          data: {
+            type: 'AUCTION',
+            screen: 'AuctionDetail',
+            targetId: auctionItem.id.toString(),
+            title: '경매 입찰',
+            body: `경매상품[${auctionItem.device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
+          },
+        });
+      }
     }
-  };
+
+    console.log('history', toAuctionItemHistoryResponseDto(history));
+
+    // 6. 응답
+    return {
+      success: true,
+      data: toAuctionItemHistoryResponseDto(history),
+      message: '입찰이 성공적으로 등록되었습니다.',
+      meta: {
+        timestamp: Date.now(),
+        path: request.url,
+      }
+    };
+  } catch (error) {
+    console.error('입찰 API 오류:', error);
+    throw error;
+  }
 });

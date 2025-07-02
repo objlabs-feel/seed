@@ -344,7 +344,7 @@ const HomeScreen = () => {
         id: item.id,
         salesType: item.salesType,
         title: item.item?.device?.deviceType?.name || item.salesType?.name || '제목 없음',
-        price: item.item?.auction_item_history?.[0]?.value || 0,
+        price: getHighestBid(item).value || 0,
         status: item.status === 1 ? '판매중' : item.status === 2 ? '낙찰' : '완료',
         date: item.created_at ? new Date(item.created_at).toLocaleDateString() : '',
         bid_count: item.item?.auction_item_history?.length || 0,
@@ -373,11 +373,13 @@ const HomeScreen = () => {
       // API 응답 데이터를 화면에 맞는 형태로 변환
       const transformedItems = response.data?.map((item: any) => ({
         id: item.id,
-        title: item.item?.device?.deviceType?.name || '제목 없음',
+        salesType: item.saleItem?.salesType,
+        saleItemId: item.saleItem?.id,
+        title: item.saleItem?.item?.device?.deviceType?.name || '제목 없음',
         status: item.status === 1 ? '입찰중' : item.status === 2 ? '낙찰' : '완료',
-        bid: item.item?.auction_item_history?.[0]?.value?.toLocaleString() + '원' || '0원',
+        bid: getMyHighestBid(item).value?.toLocaleString() + '원' || '0원',
         date: item.created_at ? new Date(item.created_at).toLocaleDateString() : '',
-        price: item.item?.auction_item_history?.[0]?.value || 0
+        price: getMyHighestBid(item)
       })) || [];
       
       console.log('Transformed buy items:', transformedItems);
@@ -388,6 +390,23 @@ const HomeScreen = () => {
       console.error('구매 상품 로드 오류:', error);
       setIsLoadingBuy(false);
     }
+  };
+
+  const getHighestBid = (item: any) => {
+    const highestBid = item.item?.auction_item_history?.reduce((max: any, bid: any) => {
+      return bid.value > max.value ? bid : max;
+    }, { value: 0 });
+    return highestBid;
+  };
+
+  const getMyHighestBid = (item: any) => {
+    const highestBid = item.saleItem?.item?.auction_item_history?.reduce((max: any, bid: any) => {      
+      if (bid.user_id === item.owner_id) {
+        return bid.value > max.value ? bid : max;
+      }
+      return max;
+    }, { user_id: item.owner_id, value: 0 });    
+    return highestBid;
   };
 
   // 탭 변경 시 관련 데이터 로드
@@ -437,7 +456,7 @@ const HomeScreen = () => {
       onPress={() => {
         // salesType.code에 따라 다른 화면으로 이동
         if (item.salesType?.code === 'AUCTION') {
-          navigation.navigate('AuctionDetail', { id: item.id.toString() });
+          navigation.navigate('AuctionDetail', { id: item.saleItemId.toString() });
         } else {
           // 다른 salesType에 대한 처리 (추후 확장 가능)
           console.log('다른 salesType:', item.salesType?.code);

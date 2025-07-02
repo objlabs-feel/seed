@@ -196,7 +196,7 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
             deviceType: true,
             manufacturer: true,
           }
-        }
+        }        
       };
     }
     return await this.prisma.auctionItem.findMany(query);

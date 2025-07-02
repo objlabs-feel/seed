@@ -163,7 +163,7 @@ export class ServiceManager {
    */
   public get saleItemViewHistoryService(): SaleItemViewHistoryService {
     if (!this._saleItemViewHistoryService) {
-      this._saleItemViewHistoryService = new SaleItemViewHistoryService(this.prisma);
+      this._saleItemViewHistoryService = new SaleItemViewHistoryService(this.prisma, this);
     }
     return this._saleItemViewHistoryService;
   }

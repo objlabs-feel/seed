@@ -35,6 +35,13 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
       limit,
       where,
       orderBy: { created_at: 'desc' },
+      include: {
+        saleItem: {
+          include: {
+            salesType: true,
+          },
+        },
+      },
     });
 
     return {

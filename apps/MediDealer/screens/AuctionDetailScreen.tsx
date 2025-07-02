@@ -231,8 +231,39 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
       }))
     : [{ url: null, id: 0 }];
 
-  const isOwner = currentUserId === auctionItem?.device.company.owner_id;
+  const isOwner = currentUserId === auctionItem?.device?.company?.owner_id;
 //   const isOwner = true;
+
+  const remainingTime = auctionItem?.auction_timeout;
+  const addBid = async (amount: number) => {
+    console.log('addBid', amount);
+    console.log('auctionItem.id', auctionItem.id);
+
+    // 입찰 기록에 내가 입찰한 기록이 있는지 확인
+    const isMyBid = auctionHistory.some(bid => bid.user_id === currentUserId && bid.value === amount);
+
+    if (isMyBid) {
+      Alert.alert('이미 입찰한 금액입니다.');
+      setBidAmount('');
+      return;
+    }
+    
+    if (amount > 0 && !isMyBid) {
+      try {
+        console.log('amount', amount);
+        const result = await bidAuction(auctionItem.id.toString(), amount);
+        console.log('result', result);
+        if (result.success) {
+          setAuctionHistory([result.data, ...auctionHistory]);
+        }
+        setIsBidModalVisible(false);
+        setBidAmount('');
+      } catch (error) {
+        console.error('입찰 처리 중 오류:', error);
+        Alert.alert('입찰 처리 중 오류가 발생했습니다.');
+      }
+    }
+  };
 
   // 이미지 슬라이더 렌더링 함수
   const renderImageSlider = () => {
@@ -398,7 +429,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           </View>
           
           <Text style={styles.deviceModel}>
-            판매자 정보: {auctionItem.device.company.area}
+            판매자 정보: {auctionItem.device?.company?.area}
           </Text>
           
           <View style={styles.divider} />
@@ -454,10 +485,10 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
                   .map((bid, index) => (
                     <View key={index} style={styles.bidHistoryItem}>
                       <Text style={styles.bidAmount}>
-                        {bid.value.toLocaleString()}원
+                        {bid.value?.toLocaleString()}원
                       </Text>
-                      <Text style={styles.bidTime}>
-                        {new Date(bid.created_at).toLocaleString()}
+                      <Text style={styles.bidTime}> 
+                        {bid.created_at ? new Date(bid.created_at).toLocaleString() : ''}
                       </Text>
                     </View>
                   ))
@@ -579,15 +610,15 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
               </TouchableOpacity>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.confirmButton]}
-                onPress={() => {
+                onPress={async () => {
                   // 입찰 처리 로직
                   console.log('입찰가격:', bidAmount);
-                  if (parseInt(bidAmount) > 0) {
-                    bidAuction(id as string, parseInt(bidAmount));
-                    setIsBidModalVisible(false);
-                    setBidAmount('');
+                  // 입찰 금액이 0보다 크고 내가 입찰한 기록이 없으면 입찰 처리
+                  // 입력단위는 1000원 단위로 입력
+                  if (parseInt(bidAmount) > 0 && parseInt(bidAmount) % 10000 === 0) {
+                    await addBid(parseInt(bidAmount));                    
                   } else {
-                    Alert.alert('입찰 금액을 입력해주세요.');
+                    Alert.alert('입찰 금액을 10,000원 단위로 입력해주세요.');
                   }
                 }}
               >

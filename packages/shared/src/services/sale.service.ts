@@ -259,7 +259,15 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
       include: {
         salesType: true,
       },
-      orderBy: { updated_at: 'desc' },
+    });
+  }
+
+  async findByItemId(itemId: string | number): Promise<SaleItem | null> {
+    return await this.prisma.saleItem.findFirst({
+      where: { item_id: typeof itemId === 'string' ? BigInt(itemId) : BigInt(itemId) },
+      include: {
+        salesType: true,
+      },
     });
   }
 
@@ -660,12 +668,22 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
  */
 export class SaleItemViewHistoryService extends BaseService<SaleItemViewHistory, CreateSaleItemViewHistoryRequestDto, UpdateSaleItemViewHistoryRequestDto> {
   protected modelName = 'saleItemViewHistory';
+  private readonly serviceManager: ServiceManager;
 
-  constructor(protected prisma: PrismaClient) {
+  constructor(protected prisma: PrismaClient, serviceManager: ServiceManager) {
     super();
+    this.serviceManager = serviceManager;
   }
 
   async create(data: CreateSaleItemViewHistoryRequestDto): Promise<SaleItemViewHistory> {
+    const existingHistory = await this.findUnique({
+      owner_id: BigInt(data.owner_id),
+      item_id: BigInt(data.item_id),
+    });
+    if (existingHistory) {
+      return existingHistory;
+    }
+
     const createData: Prisma.SaleItemViewHistoryUncheckedCreateInput = {
       owner_id: BigInt(data.owner_id),
       item_id: BigInt(data.item_id),
@@ -732,12 +750,26 @@ export class SaleItemViewHistoryService extends BaseService<SaleItemViewHistory,
     const { page, limit, skip, take } = this.getDefaultPagination(options);
     const query = this.buildQuery(options);
 
-    const [data, total] = await Promise.all([
+    const [items, total] = await Promise.all([
       this.prisma.saleItemViewHistory.findMany({ ...query, skip, take }),
-      this.prisma.saleItemViewHistory.count({ where: query.where }),
+      this.prisma.saleItemViewHistory.count({ where: query.where })
     ]);
 
-    return this.createPaginationResult(data, total, page, limit);
+    const data = await Promise.all(
+      items.map(async (saleItemViewHistory: SaleItemViewHistory) => {
+        const service = this.serviceManager.getService(saleItemViewHistory.saleItem?.salesType?.service_name ?? 'auctionItemService');
+        const item = await service.findById(saleItemViewHistory.item_id.toString());
+        return {
+          ...saleItemViewHistory,
+          saleItem: {
+            ...saleItemViewHistory.saleItem,
+            item: item,
+          },
+        };
+      })
+    );
+
+    return this.createPaginationResult(data as unknown as SaleItemViewHistory[], total, page, limit);
   }
 
   async update(id: string | number, data: UpdateSaleItemViewHistoryRequestDto): Promise<SaleItemViewHistory> {
