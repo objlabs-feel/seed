@@ -23,6 +23,7 @@ export default function AdminLogin() {
       });
 
       const data = await response.json();
+      console.log(data);
 
       if (data.success) {
         // 토큰을 쿠키에 저장
