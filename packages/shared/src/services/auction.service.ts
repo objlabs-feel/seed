@@ -114,6 +114,7 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
             ? new Date(data.manufacture_date)
             : undefined,
           description: data.description,
+          images: data.images,
         },
       });
 

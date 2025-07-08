@@ -96,7 +96,6 @@ export const uploadToS3 = async (imageUri: string): Promise<string> => {
     const s3Url = `https://${bucketName}.s3.${region}.amazonaws.com/${filename}`;
     console.log('S3 URL:', s3Url);
     return s3Url;
-
   } catch (error) {
     console.error('S3 upload error:', error);
     throw error;

@@ -18,6 +18,7 @@ export interface CreateAuctionItemRequestDto extends BaseRequestDto {
   manufacturer_id?: string;
   manufacture_date?: string;
   description?: string;
+  images?: string[];
 }
 
 /**
@@ -43,6 +44,7 @@ export interface UpdateAuctionItemRequestDto extends BaseRequestDto {
   manufacturer_id?: string;
   manufacture_date?: string;
   description?: string;
+  images?: string[];
 }
 
 /**
