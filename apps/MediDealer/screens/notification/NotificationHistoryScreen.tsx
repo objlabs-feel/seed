@@ -112,7 +112,7 @@ const NotificationHistoryScreen = () => {
         // 알림 상세 내용이나 관련 화면으로 이동하는 로직 추가 가능
         // Alert.alert(item.title, item.body);
         if (item.data?.type === 'AUCTION') {
-          navigation.navigate('AuctionDetail', { id: item.group_id?.toString() ?? '' });
+          (navigation as any).navigate('ChatRoom', { groupId: item.group_id?.toString() ?? '' });
         }
       }}
     >

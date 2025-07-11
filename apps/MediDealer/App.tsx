@@ -50,6 +50,7 @@ import AuctionSelectBidScreen from './screens/AuctionSelectBidScreen';
 import AuctionBidAcceptScreen from './screens/AuctionBidAcceptScreen';
 import RequestNotificationScreen from './screens/notification/RequestNotificationScreen';
 import NotificationHistoryScreen from './screens/notification/NotificationHistoryScreen';
+import ChatRoomScreen from './screens/notification/ChatRoomScreen';
 import MyDeviceScreen from './screens/MyDeviceScreen';
 import MyConsultScreen from './screens/MyConsultScreen';
 import SettingNotificationScreen from './screens/SettingNotificationScreen';
@@ -112,6 +113,7 @@ type RootStackParamList = {
   AuctionBidAccept: { id: string };
   RequestNotification: undefined;
   Notifications: undefined;
+  ChatRoom: { groupId: string };
   DeviceDetail: { id: string };
   ConsultFeature: undefined;
   ConsultClosure: undefined;
@@ -524,6 +526,13 @@ const App = () => {
               title: '알림',
               headerBackTitle: '뒤로',
               gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen 
+            name="ChatRoom"
+            component={ChatRoomScreen}
+            options={{
+              headerShown: false,
             }}
           />
         </Stack.Navigator>
