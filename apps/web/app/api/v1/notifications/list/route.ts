@@ -28,6 +28,8 @@ export async function GET(request: Request) {
 
     const unreadCount = await notificationMessageService.getUnreadCount(userId);
 
+    console.log(paginationResult);
+
     const response: NotificationMessageListDto = {
       data: transformArray(paginationResult.data, toNotificationMessageResponseDto) || [],
       total: paginationResult.total,

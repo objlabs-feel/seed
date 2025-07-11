@@ -30,7 +30,7 @@ const NotificationHistoryScreen = () => {
       setError(null);
       const data = await getNotificationList();
       console.log('data:', data);
-      setNotifications(data);
+      setNotifications(data.data);
     } catch (error) {
       console.error('알림 목록 조회 오류:', error);
       setError('알림 목록을 불러오는데 실패했습니다.');
@@ -110,7 +110,10 @@ const NotificationHistoryScreen = () => {
       ]}
       onPress={() => {
         // 알림 상세 내용이나 관련 화면으로 이동하는 로직 추가 가능
-        Alert.alert(item.title, item.body);
+        // Alert.alert(item.title, item.body);
+        if (item.data?.type === 'AUCTION') {
+          navigation.navigate('AuctionDetail', { id: item.group_id?.toString() ?? '' });
+        }
       }}
     >
       <View style={styles.notificationHeader}>
