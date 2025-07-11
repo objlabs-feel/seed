@@ -3,7 +3,7 @@ import { sendNotification } from '@/libs/notification';
 import { withApiHandler } from '@/libs/api-utils';
 import { createBusinessError, createSystemError } from '@/libs/errors';
 import type { ApiResponse } from '@/types/api';
-import { auctionItemService, auctionItemHistoryService, notificationService, AuctionStatus } from '@repo/shared';
+import { auctionItemService, auctionItemHistoryService, notificationService, AuctionStatus, notificationMessageService } from '@repo/shared';
 
 /**
  * POST /admin/api/v1/auction-items/[id]/confirm
@@ -31,23 +31,36 @@ export const POST = withApiHandler(async (
     if (auctionItemHistory?.user_id) {
       const notificationInfoList = await notificationService.findMany({
         where: {
-          user_id: auctionItemHistory.user_id
+          user_id: {
+            in: [auctionItemHistory.user_id, auctionItem.device?.company?.owner_id]
+          }
         }
       });
 
       const title = '입금확인';
-      const body = `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 방문일정을 입력하세요.\n[경매번호: ${auctionItem.auction_code}]`;
+      const body = `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 방문일자 및 위치를 확인하세요.\n[경매번호: ${auctionItem.auction_code}]`;
+      const data = {
+        type: 'AUCTION' as const,
+        screen: 'AuctionDetail',
+        targetId: auctionItem.id.toString(),
+        title: title,
+        body: body,
+      }
+
+      const notificationMessageList = await notificationMessageService.createMany(notificationInfoList.map(info => ({
+        user_id: Number(info.user_id),
+        title: title,
+        body: body,
+        data: data,
+        group_id: Number(auctionItem.id),
+      })));
 
       await sendNotification({
         type: 'MULTI',
         title,
         body,
         userTokens: notificationInfoList.map(info => info.device_token),
-        data: {
-          type: 'AUCTION',
-          screen: 'AuctionDetail',
-          targetId: auctionItem.id.toString()
-        }
+        data: data,
       });
     }
 

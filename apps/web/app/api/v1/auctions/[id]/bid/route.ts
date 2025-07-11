@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser } from '@/libs/auth';
 import { sendNotification } from '@/libs/notification';
-import { auctionItemService, auctionItemHistoryService, notificationService, saleItemViewHistoryService, saleItemService } from '@repo/shared/services';
+import { auctionItemService, auctionItemHistoryService, notificationService, saleItemViewHistoryService, saleItemService, notificationMessageService } from '@repo/shared/services';
 import { type NotificationInfo } from '@repo/shared';
 import { toAuctionItemHistoryResponseDto } from '@repo/shared/transformers';
 import { CreateAuctionItemHistoryRequestDto } from '@repo/shared/dto';
@@ -59,7 +59,7 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
       item_id: saleItem?.id?.toString() || '',
     });
 
-    // 6. 알림 발송
+    // 6. 최고가 입찰 갱신의 경우 알림발송
     const ownerId = auctionItem.device?.company?.owner_id;
     if (ownerId) {
       const notificationInfoList: NotificationInfo[] = await notificationService.findMany({
@@ -67,18 +67,30 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
       });
 
       if (notificationInfoList.length > 0) {
+        const title = `경매상품[${auctionItem.device?.deviceType?.name}]에 최고입찰 가격이 갱신되었습니다.`;
+        const message = `[경매번호: ${auctionItem.auction_code}] 입찰가: ${Math.floor(validatedData.value / 1.18).toLocaleString()}원`;
+        const data = {
+          type: 'AUCTION' as const,
+          screen: 'AuctionDetail',
+          targetId: auctionItem.id.toString(),
+          title: title,
+          body: message,
+        }
+
+        const notificationMessageList = await notificationMessageService.createMany(notificationInfoList.map(info => ({
+          user_id: Number(info.user_id),
+          title: title,
+          body: message,
+          data: data,
+          group_id: Number(auctionItem.id),
+        })));
+
         await sendNotification({
           type: 'MULTI',
-          title: '경매 입찰',
-          body: `경매상품[${auctionItem.device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+          title: title,
+          body: message,
           userTokens: notificationInfoList.map(info => info.device_token),
-          data: {
-            type: 'AUCTION',
-            screen: 'AuctionDetail',
-            targetId: auctionItem.id.toString(),
-            title: '경매 입찰',
-            body: `경매상품[${auctionItem.device?.deviceType?.name}]에 입찰이 등록되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
-          },
+          data: data,
         });
       }
     }

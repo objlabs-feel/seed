@@ -204,7 +204,7 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
                 onChangeText={(value) => handleInputChange('companyName', value)}
               />
               {errors.companyName && <Text style={styles.errorText}>{errors.companyName}</Text>}
-            </View>            
+            </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.addressRow}>
@@ -354,9 +354,16 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
             
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>판매자 정보</Text>
-              <Text style={styles.infoText}>판매자명: {auctionDetail?.device?.company?.name}</Text>
-              <Text style={styles.infoText}>연락처: {auctionDetail?.device?.company?.business_mobile}</Text>
-              <Text style={styles.infoText}>주소: {auctionDetail?.device?.company?.address || ''} {auctionDetail?.device?.company?.address_detail || ''}</Text>
+              {auctionDetail?.seller_steps === 2 && (
+                <Text style={styles.infoText}>시스템에서 입금을 확인하고 판매자 정보가 열람됩니다.</Text>
+              )}
+              {auctionDetail?.seller_steps === 3 && (
+                <>                  
+                  <Text style={styles.infoText}>판매자명: {auctionDetail?.device?.company?.name}</Text>
+                  <Text style={styles.infoText}>연락처: {auctionDetail?.device?.company?.business_mobile}</Text>
+                  <Text style={styles.infoText}>주소: {auctionDetail?.device?.company?.address || ''} {auctionDetail?.device?.company?.address_detail || ''}</Text>
+                </>
+              )}
             </View>
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>양도 확정 알림 안내</Text>

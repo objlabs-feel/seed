@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, SafeAreaView, ActivityIndicator, Linking, Modal, TextInput } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator, Linking, Modal, TextInput } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getMyProfile } from '../services/medidealer/api';
@@ -11,6 +12,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const [profile, setProfile] = useState<IUserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showOpenSourceModal, setShowOpenSourceModal] = useState(false);
@@ -133,7 +135,7 @@ const SettingsScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>프로필 정보</Text>

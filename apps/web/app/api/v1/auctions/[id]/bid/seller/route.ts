@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser } from '@/libs/auth';
 import { sendNotification } from '@/libs/notification';
-import { auctionItemService, userService, companyService, profileService, notificationService, auctionItemHistoryService } from '@repo/shared/services';
+import { auctionItemService, userService, companyService, profileService, notificationService, auctionItemHistoryService, notificationMessageService } from '@repo/shared/services';
 import { AuctionStatus } from '@repo/shared/models';
 import { toAuctionItemResponseDto } from '@repo/shared/transformers';
 import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
@@ -104,19 +104,31 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
       where: { user_id: history.user_id }
     });
 
+    const title = `경매상품[${auctionItem.device?.deviceType?.name}]이 낙찰 되었습니다.`;
+    const body = `[경매번호: ${auctionItem.auction_code}] 입금액: ${history.value?.toLocaleString()}원`;
+    const data = {
+      type: 'AUCTION' as const,
+      screen: 'AuctionDetail',
+      targetId: auctionItem.id.toString(),
+      title: title,
+      body: body,
+    }
+
+    const notificationMessageList = await notificationMessageService.createMany(notificationInfoList.map(info => ({
+      user_id: Number(info.user_id),
+      title: title,
+      body: body,
+      data: data,
+      group_id: Number(auctionItem.id),
+    })));
+
     if (notificationInfoList.length > 0) {
       await sendNotification({
         type: 'MULTI',
-        title: '경매 낙찰',
-        body: `경매상품[${auctionItem.device?.deviceType?.name}]이 낙찰 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+        title: title,
+        body: body,
         userTokens: notificationInfoList.map((info: { device_token: string }) => info.device_token),
-        data: {
-          type: 'AUCTION',
-          screen: 'AuctionDetail',
-          targetId: auctionItem.id.toString(),
-          title: '경매 낙찰',
-          body: `경매상품[${auctionItem.device?.deviceType?.name}]이 낙찰 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
-        }
+        data: data,
       });
     }
   }

@@ -6,7 +6,6 @@ import {
   StyleSheet,
   ScrollView,
   ActivityIndicator,
-  SafeAreaView,
   Dimensions,
   TouchableOpacity,
   Modal,
@@ -15,14 +14,16 @@ import {
   Animated,
   Platform,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { bidAuction, getAuctionDetail, getAuctionHistory } from '../services/medidealer/api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AuctionItemResponseDto, AuctionItemHistoryResponseDto } from '@repo/shared';
+import { AuctionItemResponseDto, AuctionItemHistoryResponseDto, AuctionStatus } from '@repo/shared';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { processImageUrl, createImageSource } from '../utils/imageHelper';
+import { PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
 
 const { width } = Dimensions.get('window');
 
@@ -63,7 +64,13 @@ const PreviewSection = ({ title, content }: { title: string, content: string }) 
 );
 
 const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) => {
+  const insets = useSafeAreaInsets();
   const [isLoading, setIsLoading] = useState(true);
+  
+  // 금액을 표시하는 함수
+  const formatAmount = (amount: number) => {
+    return `${amount.toLocaleString()}원`;
+  };
   const [auctionItem, setAuctionItem] = useState<AuctionItemResponseDto | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const { id } = route.params;
@@ -82,11 +89,26 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
   const [selectedImage, setSelectedImage] = useState<DeviceImage | null>(null);
   const [viewingFullScreen, setViewingFullScreen] = useState(false);
   
+  // 줌 관련 상태 (reanimated 사용)
+  const scale = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const savedScale = useRef(1);
+  const savedTranslateX = useRef(0);
+  const savedTranslateY = useRef(0);
+  
   // 이미지 확대 모드 토글
   const toggleFullScreenMode = useCallback((image: DeviceImage) => {
     setSelectedImage(image);
     setViewingFullScreen(true);
-  }, []);
+    // 줌 상태 초기화
+    scale.setValue(1);
+    translateX.setValue(0);
+    translateY.setValue(0);
+    savedScale.current = 1;
+    savedTranslateX.current = 0;
+    savedTranslateY.current = 0;
+  }, [scale, translateX, translateY]);
 
   // 특정 이미지로 스크롤하는 함수
   const scrollToImage = useCallback((index: number) => {
@@ -171,11 +193,11 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
 
   useEffect(() => {
     updateHighestBid();
-    console.log('AuctionItem?.accept_id', auctionItem?.accept_id);
-    if (auctionItem?.accept_id && auctionItem?.accept_id !== 0) {      
+    // console.log('AuctionItem?.accept_id', auctionItem?.accept_id);
+    if (auctionItem?.accept_id && auctionItem?.accept_id !== '0') {      
       const acceptBid = auctionHistory.filter(bid => bid.id === auctionItem?.accept_id && bid.user_id === currentUserId);
       if (acceptBid && acceptBid.length > 0) {
-        console.log('낙찰 처리');
+        // console.log('낙찰 처리');
         setCanAccept(true);
       }
     }
@@ -224,12 +246,13 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
 
   // 이미지 배열 생성
   const deviceImages: DeviceImage[] = device.images && device.images.length > 0
-    ? device.images.map((img, index) => ({
+    ? device.images.map((img: any, index: number) => ({
         url: img.url,
         id: index,
-        originalUrl: img.url
+        originalUrl: img.url,
+        description: img.description
       }))
-    : [{ url: null, id: 0 }];
+    : [{ url: null, id: 0, originalUrl: null, description: null }];
 
   const isOwner = currentUserId === auctionItem?.device?.company?.owner_id;
 //   const isOwner = true;
@@ -373,6 +396,76 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
     );
   };
 
+  // 핀치 제스처 핸들러
+  const onPinchGestureEvent = (event: any) => {
+    console.log('=== PINCH GESTURE EVENT ===');
+    console.log('Event:', event.nativeEvent);
+    console.log('Scale:', event.nativeEvent.scale);
+    console.log('State:', event.nativeEvent.state);
+    
+    const newScale = savedScale.current * event.nativeEvent.scale;
+    const finalScale = Math.min(Math.max(newScale, 0.5), 3);
+    console.log('Calculated scale:', finalScale);
+    scale.setValue(finalScale);
+  };
+
+  // 팬 제스처 핸들러
+  const onPanGestureEvent = (event: any) => {
+    console.log('=== PAN GESTURE EVENT ===');
+    console.log('Translation X:', event.nativeEvent.translationX);
+    console.log('Translation Y:', event.nativeEvent.translationY);
+    
+    const newTranslateX = savedTranslateX.current + event.nativeEvent.translationX;
+    const newTranslateY = savedTranslateY.current + event.nativeEvent.translationY;
+    translateX.setValue(newTranslateX);
+    translateY.setValue(newTranslateY);
+  };
+
+  // 핀치 제스처 상태 변경 핸들러
+  const onPinchHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      const newScale = savedScale.current * event.nativeEvent.scale;
+      const finalScale = Math.min(Math.max(newScale, 0.5), 3);
+      savedScale.current = finalScale;
+      scale.setValue(1);
+    }
+  };
+
+  // 팬 제스처 상태 변경 핸들러
+  const onPanHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      savedTranslateX.current += event.nativeEvent.translationX;
+      savedTranslateY.current += event.nativeEvent.translationY;
+      translateX.setValue(0);
+      translateY.setValue(0);
+    }
+  };
+
+  // 더블 탭으로 줌 리셋
+  const handleDoubleTap = () => {
+    Animated.parallel([
+      Animated.timing(scale, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateX, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      savedScale.current = 1;
+      savedTranslateX.current = 0;
+      savedTranslateY.current = 0;
+    });
+  };
+
   // 전체 화면 이미지 뷰어 렌더링
   const renderFullScreenImageViewer = () => {
     if (!viewingFullScreen || !selectedImage) return null;
@@ -393,19 +486,44 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           </TouchableOpacity>
           
           <View style={styles.fullScreenImageContainer}>
-            {selectedImage.url ? (
-              <Image
-                source={createImageSource(selectedImage.url)}
-                style={styles.fullScreenImage}
-                resizeMode="contain"
-              />
-            ) : (
-              <Image
-                source={DEFAULT_IMAGE}
-                style={styles.fullScreenImage}
-                resizeMode="contain"
-              />
-            )}
+            <PinchGestureHandler
+              onGestureEvent={onPinchGestureEvent}
+              onHandlerStateChange={onPinchHandlerStateChange}
+            >
+              <Animated.View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                {selectedImage?.url ? (
+                  <Animated.Image
+                    source={createImageSource(selectedImage.url)}
+                    style={[
+                      { width: width, height: width * 0.8 },
+                      {
+                        transform: [
+                          { scale: scale },
+                          { translateX: translateX },
+                          { translateY: translateY },
+                        ],
+                      },
+                    ]}
+                    resizeMode="contain"
+                  />
+                ) : (
+                  <Animated.Image
+                    source={DEFAULT_IMAGE}
+                    style={[
+                      { width: width, height: width * 0.8 },
+                      {
+                        transform: [
+                          { scale: scale },
+                          { translateX: translateX },
+                          { translateY: translateY },
+                        ],
+                      },
+                    ]}
+                    resizeMode="contain"
+                  />
+                )}
+              </Animated.View>
+            </PinchGestureHandler>
           </View>
         </View>
       </Modal>
@@ -413,7 +531,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView style={[styles.scrollView, { marginBottom: 80 }]}>
         {/* 이미지 슬라이더 */}
         {renderImageSlider()}
@@ -472,7 +590,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
             {isOwner && (
               <View style={styles.specItem}>
                 <Text style={styles.specLabel}>현재 최고 입찰가</Text>
-                <Text style={styles.specValue}>{`${highestBid || 0}원`}</Text>
+                <Text style={styles.specValue}>{`${highestBid ? formatAmount(Math.floor(highestBid / 1.18)) : 0}`}</Text>
               </View>
             )}
             
@@ -509,8 +627,8 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
       {renderFullScreenImageViewer()}
 
       {!isOwner && (
-        <View style={styles.bottomButtonContainer}>
-          {canAccept ? (
+        <View style={styles.bottomButtonContainer}>          
+          {canAccept && auctionItem?.status === 2 ? (
             <TouchableOpacity 
               style={styles.bidNextButton}
               onPress={() => navigation.navigate('AuctionBidAccept', { 
@@ -520,19 +638,21 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
               <Text style={styles.bidButtonText}>인도절차 진행하기</Text>
             </TouchableOpacity>
           ) : (
+            auctionItem?.status === 1 || auctionItem?.status === 2 ? (
             <TouchableOpacity 
               style={styles.bidButton}
               onPress={() => setIsBidModalVisible(true)}
             >
               <Text style={styles.bidButtonText}>입찰하기</Text>
             </TouchableOpacity>
+            ) : null
           )}
         </View>
       )}
 
       {isOwner && (
         <View style={styles.bottomButtonContainer}>
-          <View style={styles.buttonRow}>
+          <View style={styles.buttonRow}>            
             <TouchableOpacity 
               style={[
                 styles.ownerButton, 
@@ -584,20 +704,33 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
               keyboardType="numeric"
               autoFocus={true}
             />
-            <View style={styles.feeContainer}>              
-              <View style={styles.feeRow}>
-                <Text style={styles.feeLabel}>부가세:</Text>
-                <Text style={styles.feeAmount}>{parseInt(bidAmount ? bidAmount : '0') * 0.1} 원</Text>
+                          <View style={styles.feeContainer}>
+                <Text style={styles.feeTitle}>💰 가격 상세 내역</Text>
+                
+                <View style={styles.feeRow}>
+                  <Text style={styles.feeLabel}>상품가격:</Text>
+                  <Text style={styles.feeAmount}>{formatAmount(Math.floor(parseInt(bidAmount ? bidAmount : '0') / 1.18))}</Text>
+                </View>
+                
+                <View style={styles.feeDivider} />
+                
+                <View style={styles.feeSubRow}>
+                  <Text style={styles.feeSubLabel}>부가세 (10%):</Text>
+                  <Text style={styles.feeSubAmount}>{formatAmount(Math.floor(parseInt(bidAmount ? bidAmount : '0') / 1.18 * 0.1))}</Text>
+                </View>
+                
+                <View style={styles.feeSubRow}>
+                  <Text style={styles.feeSubLabel}>수수료 (8%):</Text>
+                  <Text style={styles.feeSubAmount}>{formatAmount(Math.floor(parseInt(bidAmount ? bidAmount : '0') / 1.18 * 0.08))}</Text>
+                </View>
+                
+                <View style={styles.feeDivider} />
+                
+                <View style={styles.feeTotalRow}>
+                  <Text style={styles.feeTotalLabel}>🎯 입찰금액:</Text>
+                  <Text style={styles.feeTotalAmount}>{formatAmount(parseInt(bidAmount ? bidAmount : '0'))}</Text>
+                </View>
               </View>
-              <View style={styles.feeRow}>
-                <Text style={styles.feeLabel}>수수료:</Text>
-                <Text style={styles.feeAmount}>{parseInt(bidAmount ? bidAmount : '0') * 0.08} 원</Text>
-              </View>
-              <View style={styles.feeRow}>
-                <Text style={styles.feeLabel}>예상 총금액:</Text>
-                <Text style={styles.feeAmount}>{parseInt(bidAmount ? bidAmount : '0') + parseInt(bidAmount ? bidAmount : '0') * 0.08 + parseInt(bidAmount ? bidAmount : '0' ) * 0.1} 원</Text>
-              </View>
-            </View>
             <View style={styles.modalButtons}>
               <TouchableOpacity 
                 style={[styles.modalButton, styles.cancelButton]}
@@ -759,6 +892,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  fullScreenImageTouchable: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   contentContainer: {
     padding: 20,
@@ -997,21 +1136,88 @@ const styles = StyleSheet.create({
   feeContainer: {
     width: '100%',
     marginVertical: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: '#e9ecef',
+  },
+  feeTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#495057',
+    marginBottom: 12,
+    textAlign: 'center',
   },
   feeRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 5,
+    marginBottom: 8,
   },
   feeLabel: {
-    fontSize: 16,
-    textAlign: 'left',
+    fontSize: 15,
+    color: '#6c757d',
+    fontWeight: '500',
+    flex: 1,
+    marginRight: 10,
   },
   feeAmount: {
-    fontSize: 16,
-    fontWeight: '500',
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#212529',
     textAlign: 'right',
+    flex: 1,
+    minWidth: 0,
+  },
+  feeDivider: {
+    height: 1,
+    backgroundColor: '#dee2e6',
+    marginVertical: 8,
+  },
+  feeSubRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+    marginLeft: 10,
+  },
+  feeSubLabel: {
+    fontSize: 13,
+    color: '#adb5bd',
+    fontWeight: '400',
+    flex: 1,
+  },
+  feeSubAmount: {
+    fontSize: 13,
+    color: '#adb5bd',
+    fontWeight: '400',
+    textAlign: 'right',
+    flex: 1,
+    minWidth: 0,
+  },
+  feeTotalRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 8,
+    paddingTop: 12,
+    borderTopWidth: 2,
+    borderTopColor: '#007bff',
+  },
+  feeTotalLabel: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#007bff',
+    flex: 1,
+  },
+  feeTotalAmount: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#007bff',
+    textAlign: 'right',
+    flex: 1,
+    minWidth: 0,
   },
 });
 

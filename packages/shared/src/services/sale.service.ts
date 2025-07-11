@@ -185,6 +185,7 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
   async create(data: CreateSaleItemRequestDto): Promise<SaleItem> {
     // item_id가 없으면 sales_type에 따라 아이템 생성
     let itemId = data.item_id;
+    let item: any = null;
     if (!itemId) {
       const salesType = await this.prisma.salesType.findUnique({
         where: { id: data.sales_type }
@@ -194,10 +195,12 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
         throw new Error('존재하지 않는 판매 유형입니다.');
       }
 
+      console.log('saleItem:', data);
+
       const service = this.serviceManager.getService(salesType.service_name);
-      const item = await service.create({
+      item = await service.create({
         ...data,
-        owner_id: data.owner_id,
+        status: 1,        
       });
       itemId = item.id.toString();
     }
@@ -206,15 +209,17 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
       owner_id: BigInt(data.owner_id),
       sales_type: data.sales_type,
       item_id: BigInt(itemId),
-      status: data.status ?? 1,
+      status: 1,
     };
 
-    return await this.prisma.saleItem.create({
+    const result = await this.prisma.saleItem.create({
       data: createData,
       include: {
         salesType: true,
       },
     });
+
+    return { ...result, item: item };
   }
 
   async createMany(data: CreateSaleItemRequestDto[]): Promise<{ count: number; data: SaleItem[] }> {

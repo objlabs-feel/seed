@@ -6,18 +6,19 @@ import {
   FlatList, 
   TouchableOpacity, 
   ActivityIndicator, 
-  SafeAreaView, 
   RefreshControl,
   Alert 
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { getNotificationList, setReadAllNotification } from '../../services/medidealer/api';
-import { INotificationMessage } from '@repo/shared';
+import { NotificationMessage } from '@repo/shared';
 
 const NotificationHistoryScreen = () => {
   const navigation = useNavigation();
-  const [notifications, setNotifications] = useState<INotificationMessage[]>([]);
+  const insets = useSafeAreaInsets();
+  const [notifications, setNotifications] = useState<NotificationMessage[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +29,7 @@ const NotificationHistoryScreen = () => {
       setLoading(true);
       setError(null);
       const data = await getNotificationList();
+      console.log('data:', data);
       setNotifications(data);
     } catch (error) {
       console.error('알림 목록 조회 오류:', error);
@@ -100,7 +102,7 @@ const NotificationHistoryScreen = () => {
   };
 
   // 각 알림 항목 렌더링
-  const renderNotificationItem = ({ item }: { item: INotificationMessage }) => (
+  const renderNotificationItem = ({ item }: { item: NotificationMessage }) => (
     <TouchableOpacity 
       style={[
         styles.notificationItem,
@@ -108,15 +110,15 @@ const NotificationHistoryScreen = () => {
       ]}
       onPress={() => {
         // 알림 상세 내용이나 관련 화면으로 이동하는 로직 추가 가능
-        Alert.alert(item.title, item.content);
+        Alert.alert(item.title, item.body);
       }}
     >
       <View style={styles.notificationHeader}>
         <Text style={styles.notificationTitle}>{item.title}</Text>
         {!item.is_read && <View style={styles.unreadIndicator} />}
       </View>
-      <Text style={styles.notificationContent} numberOfLines={2}>{item.content}</Text>
-      <Text style={styles.notificationDate}>{formatDate(item.created_at)}</Text>
+      <Text style={styles.notificationContent} numberOfLines={2}>{item.body}</Text>
+      <Text style={styles.notificationDate}>{formatDate(item.created_at?.toString() ?? '')}</Text>
     </TouchableOpacity>
   );
 
@@ -133,7 +135,7 @@ const NotificationHistoryScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       {loading && !refreshing ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#007bff" />

@@ -50,7 +50,7 @@ export async function sendNotification(options: NotificationOptions) {
 }
 
 // 브로드캐스트 알림 추가
-export async function sendBroadcastNotification(title: string, body: string, data?: Record<string, any>) {
+export async function sendBroadcastNotification(options: NotificationOptions) {
   console.log('AWS Credentials:', {
     accessKeyId: process.env.AWS_ACCESS_KEY_ID ? '***' + process.env.AWS_ACCESS_KEY_ID.slice(-4) : 'not set',
     secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ? '***' + process.env.AWS_SECRET_ACCESS_KEY.slice(-4) : 'not set'
@@ -58,16 +58,7 @@ export async function sendBroadcastNotification(title: string, body: string, dat
 
   const command = new SendMessageCommand({
     QueueUrl: 'https://sqs.ap-northeast-2.amazonaws.com/682033503274/notification-queue',
-    MessageBody: JSON.stringify({
-      type: 'BROADCAST',
-      title,
-      body,
-      data: {
-        type: 'SYSTEM',
-        screen: 'HOME',
-        ...data
-      }
-    })
+    MessageBody: JSON.stringify(options)
   });
 
   try {

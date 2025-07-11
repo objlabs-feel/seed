@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
-import { saleItemService } from '@repo/shared/services';
+import { notificationMessageService, notificationService, saleItemService } from '@repo/shared/services';
 import { type CreateSaleItemRequestDto } from '@repo/shared/dto';
 import { authenticateUser } from '@/libs/auth';
 import { createApiResponse, withApiHandler } from '@/libs/api-utils';
 import { createSystemError } from '@/libs/errors';
 import type { ApiResponse } from '@/types/api';
 import { toSaleItemResponseDto, toSaleItemListDtoArray } from '@repo/shared';
+import { sendBroadcastNotification } from '@/libs/notification';
 
 // GET 요청 핸들러 (목록 조회 및 검색)
 export const GET = withApiHandler(async (request: Request): Promise<ApiResponse> => {
@@ -88,6 +89,41 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
       ...data,
       owner_id: userId,
     });
+
+    // topic all에 대한 푸시발송 진행
+    if (saleItem.salesType?.code === 'AUCTION') {
+      // 이용자별 푸시발송 메세지 생성
+      const title = `새로운 [${saleItem.item?.device?.deviceType?.name}]이 등록되었습니다.`;
+      const message = `[경매번호: ${saleItem.item?.auction_code}]`;
+      const data = {
+        type: saleItem.salesType?.code as 'AUCTION',
+        screen: 'AuctionDetail',
+        targetId: saleItem.id.toString(),
+        title: title,
+        body: message,
+      }
+
+      const notificationInfoList = await notificationService.findMany({
+        where: {
+          user_id: { not: userId },
+        }
+      });
+
+      const notificationMessageList = await notificationMessageService.createMany(notificationInfoList.map(info => ({
+        user_id: Number(info.user_id),
+        title: title,
+        body: message,
+        data: data,
+        group_id: Number(saleItem.item_id),
+      })));
+
+      await sendBroadcastNotification({
+        type: 'BROADCAST',
+        title: title,
+        body: message,
+        data: data,
+      });
+    }
 
     return {
       success: true,

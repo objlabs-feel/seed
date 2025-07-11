@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser } from '@/libs/auth';
-import { auctionItemService } from '@repo/shared/services';
+import { auctionItemService, notificationService } from '@repo/shared/services';
 import { toAuctionItemResponseDto } from '@repo/shared/transformers';
 import { AuctionStatus } from '@repo/shared/types/models';
 import { z } from 'zod';
+import { sendNotification } from '@/libs/notification';
 
 // 거래완료 처리
 export async function POST(
@@ -37,6 +38,29 @@ export async function POST(
       seller_steps: 4,
       buyer_steps: 4,
     });
+
+    // 4. 알림 발송
+    const notificationInfoList = await notificationService.findMany({
+      where: {
+        user_id: auctionItem.device?.company?.owner_id
+      }
+    });
+
+    if (notificationInfoList.length > 0) {
+      await sendNotification({
+        type: 'MULTI',
+        title: '거래완료',
+        body: `경매상품[${auctionItem.device?.deviceType?.name}]의 거래가 완료되었습니다.\n[경매번호: ${auctionItem.auction_code}] 영업일로 1일 이내에 입금이 완료됩니다.`,
+        userTokens: notificationInfoList.map(info => info.device_token),
+        data: {
+          type: 'AUCTION',
+          screen: 'AuctionDetail',
+          targetId: auctionItem.id.toString(),
+          title: '거래완료',
+          body: `경매상품[${auctionItem.device?.deviceType?.name}]의 거래가 완료되었습니다.\n[경매번호: ${auctionItem.auction_code}] 영업일로 1일 이내에 입금이 완료됩니다.`
+        }
+      });
+    }
 
     // 4. 응답
     return NextResponse.json(toAuctionItemResponseDto(updatedAuctionItem));

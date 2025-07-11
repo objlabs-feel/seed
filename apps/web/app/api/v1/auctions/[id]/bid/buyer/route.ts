@@ -60,37 +60,40 @@ export const PUT = withApiHandler(async (request: Request, context: RouteContext
   const updatedAuctionItem = await auctionItemService.update(context.params.id, {
     visit_date: validatedData.visitDate,
     visit_time: validatedData.visitTime,
-    seller_steps: 3,
-    buyer_steps: 2,
+    seller_steps: 2,
+    buyer_steps: 3,
+    income_request: 1,
+    income_request_date: new Date().toISOString(),
+    income_confirm: 0,
   });
 
   // 5. 알림 발송
-  const notificationInfoList = await notificationService.findMany({
-    where: {
-      user_id: {
-        in: [
-          auctionItem.device?.company?.owner_id,
-          userId
-        ]
-      }
-    }
-  });
+  // const notificationInfoList = await notificationService.findMany({
+  //   where: {
+  //     user_id: {
+  //       in: [
+  //         auctionItem.device?.company?.owner_id,
+  //         userId
+  //       ]
+  //     }
+  //   }
+  // });
 
-  if (notificationInfoList.length > 0) {
-    await sendNotification({
-      type: 'MULTI',
-      title: '입금확인대기',
-      body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 입금확인을 대기중입니다.\n[경매번호: ${auctionItem.auction_code}]`,
-      userTokens: notificationInfoList.map(info => info.device_token),
-      data: {
-        type: 'AUCTION',
-        screen: 'AuctionDetail',
-        targetId: auctionItem.id.toString(),
-        title: '입금확인대기',
-        body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 입금확인을 대기중입니다.\n[경매번호: ${auctionItem.auction_code}]`
-      }
-    });
-  }
+  // if (notificationInfoList.length > 0) {
+  //   await sendNotification({
+  //     type: 'MULTI',
+  //     title: '입금확인대기',
+  //     body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 입금확인을 대기중입니다.\n[경매번호: ${auctionItem.auction_code}]`,
+  //     userTokens: notificationInfoList.map(info => info.device_token),
+  //     data: {
+  //       type: 'AUCTION',
+  //       screen: 'AuctionDetail',
+  //       targetId: auctionItem.id.toString(),
+  //       title: '입금확인대기',
+  //       body: `경매상품[${auctionItem.device?.deviceType?.name}]에 대한 입금확인을 대기중입니다.\n[경매번호: ${auctionItem.auction_code}]`
+  //     }
+  //   });
+  // }
 
   // 6. 응답
   return {
@@ -178,27 +181,27 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
   });
 
   // 8. 알림 발송
-  const notificationInfoList = await notificationService.findMany({
-    where: {
-      user_id: auctionItem.device?.company?.owner_id
-    }
-  });
+  // const notificationInfoList = await notificationService.findMany({
+  //   where: {
+  //     user_id: auctionItem.device?.company?.owner_id
+  //   }
+  // });
 
-  if (notificationInfoList.length > 0) {
-    await sendNotification({
-      type: 'MULTI',
-      title: '입금대기',
-      body: `경매상품[${auctionItem.device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
-      userTokens: notificationInfoList.map(info => info.device_token),
-      data: {
-        type: 'AUCTION',
-        screen: 'AuctionDetail',
-        targetId: auctionItem.id.toString(),
-        title: '입금대기',
-        body: `경매상품[${auctionItem.device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
-      }
-    });
-  }
+  // if (notificationInfoList.length > 0) {
+  //   await sendNotification({
+  //     type: 'MULTI',
+  //     title: '입금대기',
+  //     body: `경매상품[${auctionItem.device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`,
+  //     userTokens: notificationInfoList.map(info => info.device_token),
+  //     data: {
+  //       type: 'AUCTION',
+  //       screen: 'AuctionDetail',
+  //       targetId: auctionItem.id.toString(),
+  //       title: '입금대기',
+  //       body: `경매상품[${auctionItem.device?.deviceType?.name}]이 입금대기 상태가 되었습니다.\n[경매번호: ${auctionItem.auction_code}]`
+  //     }
+  //   });
+  // }
 
   // 9. 응답
   return {

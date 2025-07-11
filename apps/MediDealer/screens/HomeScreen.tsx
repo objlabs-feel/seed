@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, SafeAreaView, ScrollView, Platform, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator, FlatList } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -33,6 +34,7 @@ interface NotificationCleanup {
 
 const HomeScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
   const [auctionCount, setAuctionCount] = useState(0);
   const [activeTab, setActiveTab] = useState('sell'); // 'sell' 또는 'buy'
   const [sellItems, setSellItems] = useState<any[]>([]);
@@ -124,6 +126,29 @@ const HomeScreen = () => {
         case EventType.PRESS:
           console.log('알림을 눌렀습니다:', detail.notification);
           // 알림 클릭 시 처리 로직
+          console.log('Notification detail:', detail);
+          if (detail.notification?.data?.screen) {
+            const screenName = detail.notification.data?.screen as keyof RootStackParamList;
+            const screenId = String(detail.notification.data?.targetId || detail.notification.data?.id || '');
+            
+            console.log('Navigating to:', screenName, 'with id:', screenId);
+            
+            switch(screenName) {
+              case 'AuctionDetail':
+              case 'AuctionSelectBid':
+              case 'AuctionBidAccept':
+                if (screenId && screenId !== '') {
+                  navigation.navigate('AuctionDetail', { id: screenId });
+                } else {
+                  console.log('Screen ID is missing for navigation');
+                }
+                break;
+              default:
+                navigation.navigate(screenName);
+            }
+          } else {
+            console.log('Screen name is missing in notification data');
+          }
           break;
       }
     });
@@ -276,13 +301,19 @@ const HomeScreen = () => {
         const unsubscribeNotificationOpen = messaging().onNotificationOpenedApp(remoteMessage => {
           console.log('[HomeScreen] 알림으로 앱 실행:', remoteMessage);
           const screenName = remoteMessage.data?.screen as keyof RootStackParamList;
-          const screenId = remoteMessage.data?.targetId as string;
+          const screenId = String(remoteMessage.data?.targetId || remoteMessage.data?.id || '');
+          
+          console.log('[HomeScreen] Navigating to:', screenName, 'with id:', screenId);
           
           switch(screenName) {
             case 'AuctionDetail':
             case 'AuctionSelectBid':
             case 'AuctionBidAccept':
-              navigation.navigate('AuctionDetail', { id: screenId });
+              if (screenId && screenId !== '') {
+                navigation.navigate('AuctionDetail', { id: screenId });
+              } else {
+                console.log('[HomeScreen] Screen ID is missing for navigation');
+              }
               break;
             default:
               navigation.navigate(screenName);
@@ -293,22 +324,25 @@ const HomeScreen = () => {
         const initialNotification = await messaging().getInitialNotification();
         if (initialNotification) {
           console.log('Initial notification:', initialNotification);
-          if (initialNotification.data?.screen && initialNotification.data?.id) {
+          if (initialNotification.data?.screen) {
             const screenName = initialNotification.data?.screen as keyof RootStackParamList;
-            const screenId = initialNotification.data?.targetId as string;
+            const screenId = String(initialNotification.data?.targetId || initialNotification.data?.id || '');
+            
+            console.log('Initial navigation to:', screenName, 'with id:', screenId);
             
             switch(screenName) {
               case 'AuctionDetail':
               case 'AuctionSelectBid':
               case 'AuctionBidAccept':
-                navigation.navigate('AuctionDetail', { id: screenId });
+                if (screenId && screenId !== '') {
+                  navigation.navigate('AuctionDetail', { id: screenId });
+                } else {
+                  console.log('Initial Screen ID is missing for navigation');
+                }
                 break;
               default:
                 navigation.navigate(screenName);
             }
-            // navigation.navigate(initialNotification.data.screen as keyof RootStackParamList, {
-            //   id: initialNotification.data.id
-            // });
           }
         }
 
@@ -480,7 +514,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView>
         {/* Total 통계 영역 */}
         <View style={styles.statsContainer}>

@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Switch, ScrollView, TouchableOpacity, ActivityIndicator, SafeAreaView, Alert, Linking, Platform, Modal } from 'react-native';
+import { View, Text, StyleSheet, Switch, ScrollView, TouchableOpacity, ActivityIndicator, Alert, Linking, Platform, Modal } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { getNotification, updateNotification, setNotification } from '../services/medidealer/api';
 import messaging from '@react-native-firebase/messaging';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -29,6 +30,7 @@ interface TopicSubscription {
 
 const SettingNotificationScreen = () => {
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const isFocused = useIsFocused(); // 화면 포커스 상태 감지 훅
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
   const [notiSet, setNotiSet] = useState<INotificationInfo['noti_set'] | null>(null);
@@ -522,7 +524,7 @@ const SettingNotificationScreen = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>알림 권한</Text>

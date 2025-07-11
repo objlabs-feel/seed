@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, SafeAreaView, Button, Modal, ScrollView, Alert, Platform, Animated } from 'react-native';
+import { View, Text, StyleSheet, FlatList, TouchableOpacity, ActivityIndicator, Image, Button, Modal, ScrollView, Alert, Platform, Animated } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, ParamListBase, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { getMyDevices, getConstants } from '../services/medidealer/api';
@@ -156,6 +157,7 @@ const DeviceImage = ({ imageUrl }: { imageUrl?: string }) => {
 
 const MyDeviceScreen = () => {
   const navigation = useNavigation<StackNavigationProp<ParamListBase>>();
+  const insets = useSafeAreaInsets();
   const [devices, setDevices] = useState<IMedicalDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -620,7 +622,7 @@ const MyDeviceScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       {/* 필터 버튼 */}
       <View style={styles.filterBar}>
         <TouchableOpacity 

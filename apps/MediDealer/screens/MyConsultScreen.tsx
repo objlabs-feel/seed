@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, SafeAreaView, Image, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, RefreshControl } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import { StackNavigationProp } from '@react-navigation/stack';
@@ -62,6 +63,7 @@ const consultOptions = [
 // 로그 정보를 저장할 상태
 const MyConsultScreen = () => {
   const navigation = useNavigation<NavigationProp>();
+  const insets = useSafeAreaInsets();
   const [fontInfo, setFontInfo] = useState('');
   const [refreshing, setRefreshing] = useState(false);
 
@@ -125,7 +127,7 @@ const MyConsultScreen = () => {
   // };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       <ScrollView 
         contentContainerStyle={styles.scrollContent}
         refreshControl={

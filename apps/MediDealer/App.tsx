@@ -26,6 +26,8 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { enableScreens } from 'react-native-screens';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import AuctionRegistrationScreen from './screens/AuctionRegistrationScreen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import IconTestScreen from './screens/IconTestScreen';
@@ -336,194 +338,198 @@ const App = () => {
   }, []);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator 
-        initialRouteName="Splash"
-        screenOptions={({ navigation }: { navigation: any }) => ({
-          headerShown: false,
-          headerLeft: () => (
-            navigation.canGoBack() ? (
-              <TouchableOpacity 
-                onPress={() => navigation.goBack()} 
-                style={{ 
-                  marginLeft: Platform.OS === 'ios' ? 8 : 0,
-                  padding: 8,
-                  flexDirection: 'row',
-                  alignItems: 'center'
-                }}
-              >
-                <AntDesign 
-                  name={Platform.OS === 'ios' ? 'left' : 'arrowleft'} 
-                  size={Platform.OS === 'ios' ? 22 : 24} 
-                  color="#007bff" 
-                />
-                {Platform.OS === 'ios' && <Text style={{ marginLeft: 5, color: '#007bff', fontSize: 17 }}>뒤로</Text>}
-              </TouchableOpacity>
-            ) : undefined
-          )
-        })}
-      >
-        <Stack.Screen name="Splash" component={SplashScreen} />
-        <Stack.Screen 
-          name="UserAgreement" 
-          component={UserAgreementScreen}
-          options={{ 
-            headerShown: true,
-            title: '이용약관',
-            headerLeft: undefined as any 
-          }} 
-        />
-        <Stack.Screen name="Home" component={HomeTabs} />
-        <Stack.Screen 
-          name="AuctionRegistration" 
-          component={AuctionRegistrationScreen}
-          options={{ 
-            headerShown: true,
-            title: '팔기'
-          }} 
-        />
-        <Stack.Screen 
-          name="AuctionSearch" 
-          component={AuctionSearchScreen}
-          options={{
-            headerShown: true,
-            title: '사기',
-            headerBackTitle: '뒤로',
-          }}
-        />
-        <Stack.Screen 
-          name="AuctionDetail" 
-          component={AuctionDetailScreen}
-          options={{
-            headerShown: true,
-            title: '경매 상세정보',
-            headerBackTitle: '뒤로',
-          }}
-        />
-        <Stack.Screen 
-          name="AuctionSelectBid" 
-          component={AuctionSelectBidScreen}
-          options={{
-            headerShown: true,
-            title: '낙찰하기',
-            headerBackTitle: '뒤로',
-          }}
-        />
-        <Stack.Screen 
-          name="AuctionBidAccept" 
-          component={AuctionBidAcceptScreen}
-          options={{
-            headerShown: true,
-            title: '낙찰하기',
-            headerBackTitle: '뒤로',
-          }}
-        />
-        <Stack.Screen 
-          name="RequestNotification" 
-          component={RequestNotificationScreen}
-          options={{
-            presentation: 'modal',
-            headerShown: false,
-          }}
-        />
-        <Stack.Screen 
-          name="DeviceDetail"
-          component={ProductDetailScreen}
-          options={{
-            headerShown: true,
-            title: '의료기기 상세',
-            headerBackTitle: '뒤로',
-            gestureEnabled: true,
-          }}
-        />
-        <Stack.Screen 
-          name="AddProduct"
-          component={AddProductScreen}
-          options={{
-            headerShown: true,
-            title: '의료기 등록',
-            headerBackTitle: '뒤로',
-            gestureEnabled: true,
-          }}
-        />
-        <Stack.Screen 
-          name="EditProduct"
-          component={EditProductScreen}
-          options={{
-            headerShown: true,
-            title: '의료기 수정',
-            headerBackTitle: '뒤로',
-            gestureEnabled: true,
-          }}
-        />
-        <Stack.Screen 
-          name="ConsultFeature"
-          component={ConsultFeatureScreen}
-          options={{
-            headerShown: true,
-            title: '기능 건의/문의하기',
-          }}
-        />
-        <Stack.Screen 
-          name="ConsultClosure"
-          component={ConsultClosureScreen}
-          options={{
-            headerShown: true,
-            title: '폐업 상담하기',
-          }}
-        />
-        <Stack.Screen 
-          name="ConsultOpening"
-          component={ConsultOpeningScreen}
-          options={{
-            headerShown: true,
-            title: '개업 상담하기',
-          }}
-        />
-        <Stack.Screen 
-          name="ConsultRepair"
-          component={ConsultRepairScreen}
-          options={{
-            headerShown: true,
-            title: '의료기 수리 상담하기',
-          }}
-        />
-        <Stack.Screen 
-          name="ConsultInspector"
-          component={ConsultInspectorScreen}
-          options={{
-            headerShown: true,
-            title: '검사원 온라인 신청',
-          }}
-        />
-        <Stack.Screen 
-          name="SalesHistory"
-          component={SalesHistoryScreen}
-          options={{
-            headerShown: true,
-            title: '판매이력',
-          }}
-        />
-        <Stack.Screen 
-          name="PurchaseHistory"
-          component={PurchaseHistoryScreen}
-          options={{
-            headerShown: true,
-            title: '구매이력',
-          }}
-        />
-        <Stack.Screen 
-          name="Notifications"
-          component={NotificationHistoryScreen}
-          options={{
-            headerShown: true,
-            title: '알림',
-            headerBackTitle: '뒤로',
-            gestureEnabled: true,
-          }}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator 
+            initialRouteName="Splash"
+            screenOptions={({ navigation }: { navigation: any }) => ({
+              headerShown: false,
+              headerLeft: () => (
+                navigation.canGoBack() ? (
+                  <TouchableOpacity 
+                    onPress={() => navigation.goBack()} 
+                    style={{ 
+                      marginLeft: Platform.OS === 'ios' ? 8 : 0,
+                      padding: 8,
+                      flexDirection: 'row',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <AntDesign 
+                      name={Platform.OS === 'ios' ? 'left' : 'arrowleft'} 
+                      size={Platform.OS === 'ios' ? 22 : 24} 
+                      color="#007bff" 
+                    />
+                    {Platform.OS === 'ios' && <Text style={{ marginLeft: 5, color: '#007bff', fontSize: 17 }}>뒤로</Text>}
+                  </TouchableOpacity>
+                ) : undefined
+              )
+            })}
+          >
+          <Stack.Screen name="Splash" component={SplashScreen} />
+          <Stack.Screen 
+            name="UserAgreement" 
+            component={UserAgreementScreen}
+            options={{ 
+              headerShown: true,
+              title: '이용약관',
+              headerLeft: undefined as any 
+            }} 
+          />
+          <Stack.Screen name="Home" component={HomeTabs} />
+          <Stack.Screen 
+            name="AuctionRegistration" 
+            component={AuctionRegistrationScreen}
+            options={{ 
+              headerShown: true,
+              title: '팔기'
+            }} 
+          />
+          <Stack.Screen 
+            name="AuctionSearch" 
+            component={AuctionSearchScreen}
+            options={{
+              headerShown: true,
+              title: '사기',
+              headerBackTitle: '뒤로',
+            }}
+          />
+          <Stack.Screen 
+            name="AuctionDetail" 
+            component={AuctionDetailScreen}
+            options={{
+              headerShown: true,
+              title: '경매 상세정보',
+              headerBackTitle: '뒤로',
+            }}
+          />
+          <Stack.Screen 
+            name="AuctionSelectBid" 
+            component={AuctionSelectBidScreen}
+            options={{
+              headerShown: true,
+              title: '낙찰하기',
+              headerBackTitle: '뒤로',
+            }}
+          />
+          <Stack.Screen 
+            name="AuctionBidAccept" 
+            component={AuctionBidAcceptScreen}
+            options={{
+              headerShown: true,
+              title: '낙찰하기',
+              headerBackTitle: '뒤로',
+            }}
+          />
+          <Stack.Screen 
+            name="RequestNotification" 
+            component={RequestNotificationScreen}
+            options={{
+              presentation: 'modal',
+              headerShown: false,
+            }}
+          />
+          <Stack.Screen 
+            name="DeviceDetail"
+            component={ProductDetailScreen}
+            options={{
+              headerShown: true,
+              title: '의료기기 상세',
+              headerBackTitle: '뒤로',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen 
+            name="AddProduct"
+            component={AddProductScreen}
+            options={{
+              headerShown: true,
+              title: '의료기 등록',
+              headerBackTitle: '뒤로',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen 
+            name="EditProduct"
+            component={EditProductScreen}
+            options={{
+              headerShown: true,
+              title: '의료기 수정',
+              headerBackTitle: '뒤로',
+              gestureEnabled: true,
+            }}
+          />
+          <Stack.Screen 
+            name="ConsultFeature"
+            component={ConsultFeatureScreen}
+            options={{
+              headerShown: true,
+              title: '기능 건의/문의하기',
+            }}
+          />
+          <Stack.Screen 
+            name="ConsultClosure"
+            component={ConsultClosureScreen}
+            options={{
+              headerShown: true,
+              title: '폐업 상담하기',
+            }}
+          />
+          <Stack.Screen 
+            name="ConsultOpening"
+            component={ConsultOpeningScreen}
+            options={{
+              headerShown: true,
+              title: '개업 상담하기',
+            }}
+          />
+          <Stack.Screen 
+            name="ConsultRepair"
+            component={ConsultRepairScreen}
+            options={{
+              headerShown: true,
+              title: '의료기 수리 상담하기',
+            }}
+          />
+          <Stack.Screen 
+            name="ConsultInspector"
+            component={ConsultInspectorScreen}
+            options={{
+              headerShown: true,
+              title: '검사원 온라인 신청',
+            }}
+          />
+          <Stack.Screen 
+            name="SalesHistory"
+            component={SalesHistoryScreen}
+            options={{
+              headerShown: true,
+              title: '판매이력',
+            }}
+          />
+          <Stack.Screen 
+            name="PurchaseHistory"
+            component={PurchaseHistoryScreen}
+            options={{
+              headerShown: true,
+              title: '구매이력',
+            }}
+          />
+          <Stack.Screen 
+            name="Notifications"
+            component={NotificationHistoryScreen}
+            options={{
+              headerShown: true,
+              title: '알림',
+              headerBackTitle: '뒤로',
+              gestureEnabled: true,
+            }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </SafeAreaProvider>
+    </GestureHandlerRootView>
   );
 };
 

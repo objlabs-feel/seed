@@ -6,12 +6,12 @@ import {
   FlatList,
   Text,
   ActivityIndicator,
-  SafeAreaView,
   Platform,
   Modal,
   ScrollView,
   Dimensions,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AuctionItemCard from '../components/auction/AuctionItemCard';
 import { searchSaleItem } from '../services/medidealer/api';
 import { AuctionItemResponseDto, SaleItemListDto } from '@repo/shared';
@@ -26,6 +26,7 @@ type NavigationProps = {
 
 const AuctionSearchScreen = () => {
   const navigation = useNavigation<NavigationProps>();
+  const insets = useSafeAreaInsets();
   const [searchResults, setSearchResults] = useState<SaleItemListDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
@@ -152,7 +153,7 @@ const AuctionSearchScreen = () => {
   const totalSelectedFilters = selectedDeviceTypes.length + selectedAreas.length + selectedDepartments.length;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { paddingBottom: insets.bottom }]}>
       <View style={styles.header}>
         <Text style={styles.resultCount}>
           검색 결과 {totalItems}건

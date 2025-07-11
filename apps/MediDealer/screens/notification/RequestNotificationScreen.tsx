@@ -274,15 +274,20 @@ const RequestNotificationScreen = () => {
         console.log('[RequestNotificationScreen] 토픽 구독 시작...');
         
         // 'all' 토픽 구독
-        await subscribeToTopic('all');
-        console.log('[RequestNotificationScreen] 기본 토픽(all) 구독 완료');
+        if (type === 'HOSPITAL') {
+          // await subscribeToTopic('all');
+          console.log('[RequestNotificationScreen] 기본 토픽(all) 구독 완료');
+        } else {
+          await subscribeToTopic('all');
+          console.log('[RequestNotificationScreen] 기본 토픽(company) 구독 완료');
+        }
         
         // 모든 토픽 구독
-        const allTopics = getAllTopics();
-        console.log('[RequestNotificationScreen] 모든 토픽 구독 시도:', allTopics);
+        // const allTopics = getAllTopics();
+        // console.log('[RequestNotificationScreen] 모든 토픽 구독 시도:', allTopics);
         
-        await subscribeToAllTopics(type);
-        console.log('[RequestNotificationScreen] 모든 토픽 구독 완료');
+        // await subscribeToAllTopics(type);
+        // console.log('[RequestNotificationScreen] 모든 토픽 구독 완료');
       } catch (topicError) {
         console.error('[RequestNotificationScreen] 토픽 구독 중 오류 발생:', topicError);
         // 토픽 구독 실패해도 계속 진행

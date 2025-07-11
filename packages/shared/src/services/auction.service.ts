@@ -37,7 +37,7 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
         device_id: BigInt(data.device_id),
         auction_code: data.auction_code,
         quantity: data.quantity || 0,
-        status: data.status || 0,
+        status: data.status || 1,
         start_timestamp: data.start_timestamp ? new Date(data.start_timestamp) : undefined,
         auction_timeout: data.auction_timeout ? new Date(data.auction_timeout) : undefined,
         visit_date: data.visit_date ? new Date(data.visit_date) : undefined,
@@ -73,14 +73,20 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
       },
     });
 
+    console.log('todayCount:', todayCount);
+    console.log('data:', data);
+
     const [department, deviceType] = await Promise.all([
       this.prisma.department.findUnique({
-        where: { id: Number(data.department_id) },
+        where: { id: Number(data.department_id ?? 1) },
       }),
       this.prisma.deviceType.findUnique({
-        where: { id: Number(data.device_type_id) },
+        where: { id: Number(data.device_type_id ?? 1) },
       }),
     ]);
+
+    console.log('department:', department);
+    console.log('deviceType:', deviceType);
 
     if (!department || !deviceType) {
       throw new Error('진료과 또는 기기 유형 정보를 찾을 수 없습니다.');
@@ -115,6 +121,7 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
             : undefined,
           description: data.description,
           images: data.images,
+          status: data.status ?? 1,
         },
       });
 
@@ -122,11 +129,18 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
         data: {
           device_id: usedDevice.id,
           auction_code,
-          status: 0,
+          status: data.status ?? 1,
           expired_count: 0,
         },
         include: {
-          device: true,
+          device: {
+            include: {
+              company: true,
+              department: true,
+              deviceType: true,
+              manufacturer: true,
+            }
+          },
         },
       });
 

@@ -22,6 +22,7 @@ import AntDesign from 'react-native-vector-icons/AntDesign';
 import { getMyDevices } from '../../services/medidealer/api';
 import { processImageUrl, createImageSource } from '../../utils/imageHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { PanGestureHandler, PinchGestureHandler, State } from 'react-native-gesture-handler';
 
 // 기본 이미지 추가
 const DEFAULT_IMAGE = require('../../assets/default.jpg');
@@ -72,11 +73,30 @@ const ProductDetailScreen = () => {
   const [selectedImage, setSelectedImage] = useState<DeviceImage | null>(null);
   const [viewingFullScreen, setViewingFullScreen] = useState(false);
 
+  // 줌 관련 상태 및 애니메이션 값
+  const scale = useRef(new Animated.Value(1)).current;
+  const translateX = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(0)).current;
+  const lastScale = useRef(1);
+  const lastTranslateX = useRef(0);
+  const lastTranslateY = useRef(0);
+  const lastTap = useRef(0);
+  const currentScale = useRef(1);
+  const currentTranslateX = useRef(0);
+  const currentTranslateY = useRef(0);
+
   // 이미지 확대 모드 토글
   const toggleFullScreenMode = useCallback((image: DeviceImage) => {
     setSelectedImage(image);
     setViewingFullScreen(true);
-  }, []);
+    // 줌 상태 초기화
+    scale.setValue(1);
+    translateX.setValue(0);
+    translateY.setValue(0);
+    lastScale.current = 1;
+    lastTranslateX.current = 0;
+    lastTranslateY.current = 0;
+  }, [scale, translateX, translateY]);
 
   // 특정 이미지로 스크롤하는 함수
   const scrollToImage = useCallback((index: number) => {
@@ -396,6 +416,72 @@ const ProductDetailScreen = () => {
     );
   };
 
+  // 핀치 줌 제스처 핸들러
+  const onPinchGestureEvent = Animated.event(
+    [{ nativeEvent: { scale: scale } }],
+    { useNativeDriver: true }
+  );
+
+  // 팬 제스처 핸들러
+  const onPanGestureEvent = Animated.event(
+    [{ nativeEvent: { translationX: translateX, translationY: translateY } }],
+    { useNativeDriver: true }
+  );
+
+  // 핀치 제스처 상태 변경 핸들러
+  const onPinchHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      const newScale = currentScale.current * event.nativeEvent.scale;
+      // 줌 제한: 최소 0.5배, 최대 3배
+      currentScale.current = Math.min(Math.max(newScale, 0.5), 3);
+      scale.setValue(1);
+    }
+  };
+
+  // 팬 제스처 상태 변경 핸들러
+  const onPanHandlerStateChange = (event: any) => {
+    if (event.nativeEvent.oldState === State.ACTIVE) {
+      currentTranslateX.current += event.nativeEvent.translationX;
+      currentTranslateY.current += event.nativeEvent.translationY;
+      translateX.setValue(0);
+      translateY.setValue(0);
+    }
+  };
+
+  // 더블 탭으로 줌 리셋
+  const handleDoubleTap = () => {
+    const now = Date.now();
+    const DOUBLE_TAP_DELAY = 300;
+    
+    if (lastTap.current && (now - lastTap.current) < DOUBLE_TAP_DELAY) {
+      // 더블 탭 감지
+      Animated.parallel([
+        Animated.timing(scale, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateX, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+        Animated.timing(translateY, {
+          toValue: 0,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        currentScale.current = 1;
+        currentTranslateX.current = 0;
+        currentTranslateY.current = 0;
+      });
+      lastTap.current = 0;
+    } else {
+      lastTap.current = now;
+    }
+  };
+
   // 전체 화면 이미지 뷰어 렌더링
   const renderFullScreenImageViewer = () => {
     if (!viewingFullScreen || !selectedImage) return null;
@@ -416,19 +502,57 @@ const ProductDetailScreen = () => {
           </TouchableOpacity>
           
           <View style={styles.fullScreenImageContainer}>
-            {selectedImage.url ? (
-              <Image
-                source={createImageSource(selectedImage.url)}
-                style={styles.fullScreenImage}
-                resizeMode="contain"
-              />
-            ) : (
-              <Image
-                source={DEFAULT_IMAGE}
-                style={styles.fullScreenImage}
-                resizeMode="contain"
-              />
-            )}
+            <PinchGestureHandler
+              onGestureEvent={onPinchGestureEvent}
+              onHandlerStateChange={onPinchHandlerStateChange}
+            >
+              <Animated.View>
+                <PanGestureHandler
+                  onGestureEvent={onPanGestureEvent}
+                  onHandlerStateChange={onPanHandlerStateChange}
+                >
+                  <Animated.View>
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      onPress={handleDoubleTap}
+                      style={styles.fullScreenImageTouchable}
+                    >
+                      {selectedImage.url ? (
+                        <Animated.Image
+                          source={createImageSource(selectedImage.url)}
+                          style={[
+                            styles.fullScreenImage,
+                            {
+                              transform: [
+                                { scale: currentScale.current },
+                                { translateX: currentTranslateX.current },
+                                { translateY: currentTranslateY.current },
+                              ],
+                            },
+                          ]}
+                          resizeMode="contain"
+                        />
+                      ) : (
+                        <Animated.Image
+                          source={DEFAULT_IMAGE}
+                          style={[
+                            styles.fullScreenImage,
+                            {
+                              transform: [
+                                { scale: currentScale.current },
+                                { translateX: currentTranslateX.current },
+                                { translateY: currentTranslateY.current },
+                              ],
+                            },
+                          ]}
+                          resizeMode="contain"
+                        />
+                      )}
+                    </TouchableOpacity>
+                  </Animated.View>
+                </PanGestureHandler>
+              </Animated.View>
+            </PinchGestureHandler>
           </View>
           
           {selectedImage.description && (
@@ -436,7 +560,7 @@ const ProductDetailScreen = () => {
               <Text style={styles.imageDescriptionText}>
                 {selectedImage.description}
               </Text>
-            </View>
+              </View>
           )}
         </View>
       </Modal>
@@ -834,6 +958,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain', // 전체 화면에서는 이미지를 확대해서 보기 위해 contain 사용
+  },
+  fullScreenImageTouchable: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   imageDescriptionContainer: {
     position: 'absolute',

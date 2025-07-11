@@ -235,7 +235,7 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
             <View style={styles.bidInfoContainer}>
               <Text style={styles.bidLabel}>현재 최고 입찰가</Text>
               <Text style={styles.bidAmount}>
-                {highestBid.toLocaleString()}원
+                {Math.floor(highestBid / 1.18).toLocaleString()}원
               </Text>
             </View>
 
