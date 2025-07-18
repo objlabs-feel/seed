@@ -1,4 +1,5 @@
 import { getConstants } from '../services/medidealer/api';
+import { Department, DeviceType } from '@repo/shared';
 
 // 데이터 타입 정의
 export interface SelectionItem {
@@ -8,8 +9,8 @@ export interface SelectionItem {
 }
 
 // 초기 빈 배열로 설정
-export let departments: SelectionItem[] = [];
-export let deviceTypes: SelectionItem[] = [];
+export let departments: Department[] = [];
+export let deviceTypes: DeviceType[] = [];
 export let manufacturers: SelectionItem[] = [];
 
 // 데이터 초기화 여부를 추적
@@ -28,21 +29,11 @@ export const initConstants = async (): Promise<boolean> => {
     const constants = await getConstants();
 
     // id를 string으로 변환하여 일관성 유지
-    departments = constants.departments?.map((dept: any) => ({
-      id: String(dept.id),
-      name: dept.name
-    })) || [];
+    departments = constants.departments || [];
 
-    deviceTypes = constants.deviceTypes?.map((type: any) => ({
-      id: String(type.id),
-      name: type.name,
-      code: type.code
-    })) || [];
+    deviceTypes = constants.deviceTypes || [];
 
-    manufacturers = constants.manufacturers?.map((mfr: any) => ({
-      id: String(mfr.id),
-      name: mfr.name
-    })) || [];
+    manufacturers = constants.manufacturers || [];
 
     isConstantsInitialized = true;
     console.log('상수 데이터 초기화 완료:', {
@@ -50,6 +41,9 @@ export const initConstants = async (): Promise<boolean> => {
       deviceTypes: deviceTypes.length,
       manufacturers: manufacturers.length
     });
+    console.log('departments', departments);
+    console.log('deviceTypes', deviceTypes);
+    console.log('manufacturers', manufacturers);
 
     return true;
   } catch (error) {

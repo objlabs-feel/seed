@@ -13,11 +13,12 @@ interface SelectionModalProps {
   visible: boolean;
   onClose: () => void;
   onSelect: (item: any) => void;
-  items: Array<{ id: string; name: string }>;
+  items: Array<{ id: string; name: string, device_type_id?: string}>;
   title: string;
 }
 
 const SelectionModal = ({ visible, onClose, onSelect, items, title }: SelectionModalProps) => {
+  console.log('items', items);
   return (
     <Modal
       visible={visible}
@@ -34,7 +35,7 @@ const SelectionModal = ({ visible, onClose, onSelect, items, title }: SelectionM
           </View>
           <FlatList
             data={items}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.device_type_id ? item.device_type_id : item.id}
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.itemContainer}

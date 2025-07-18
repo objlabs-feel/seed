@@ -41,6 +41,7 @@ export class CompanyService extends BaseService<Company, CreateCompanyRequestDto
         const company = await tx.company.create({
           data: {
             owner_id: data.owner_id ? BigInt(data.owner_id) : null,
+            area: data.area,
             status: data.status || 1,
           },
           include: {

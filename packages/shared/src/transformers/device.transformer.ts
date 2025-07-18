@@ -20,6 +20,7 @@ import type {
   DepartmentToDeviceTypeResponseDto
 } from '../types/dto';
 import { bigintToString, dateToString, transformIfExists } from './common.transformer';
+import { toCompanyResponseDto } from './company.transformer';
 
 /**
  * DeviceType 모델을 DeviceTypeResponseDto로 변환
@@ -176,6 +177,7 @@ export function toUsedDeviceResponseDto(usedDevice: UsedDevice): UsedDeviceRespo
     company: usedDevice.company ? {
       id: bigintToString(usedDevice.company.id)!,
       name: usedDevice.company.name,
+      area: usedDevice.company.area,
     } : undefined,
     department: transformIfExists(usedDevice.department, toDepartmentResponseDto),
     deviceType: transformIfExists(usedDevice.deviceType, toDeviceTypeResponseDto),
@@ -198,6 +200,10 @@ export function toUsedDeviceListDto(usedDevice: UsedDevice): UsedDeviceListDto {
     status: usedDevice.status ?? 1,
     created_at: dateToString(usedDevice.created_at),
     updated_at: dateToString(usedDevice.updated_at),
+    company: transformIfExists(usedDevice.company, toCompanyResponseDto),
+    department: transformIfExists(usedDevice.department, toDepartmentResponseDto),
+    deviceType: transformIfExists(usedDevice.deviceType, toDeviceTypeResponseDto),
+    manufacturer: transformIfExists(usedDevice.manufacturer, toManufacturerResponseDto),
   };
 }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { PageLayout } from '@/components/ui/PageLayout';
 import { Card } from '@/components/ui/Card';
@@ -90,6 +90,8 @@ export default function SaleItemTestPage() {
   const [pageSize, setPageSize] = useState(10);
   const [selectedSalesType, setSelectedSalesType] = useState<number | undefined>();
   const [selectedStatus, setSelectedStatus] = useState<number | undefined>();
+
+
 
   // localStorage에서 토큰 가져오기
   useEffect(() => {

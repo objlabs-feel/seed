@@ -4,7 +4,7 @@ import { BaseRequestDto, BaseResponseDto, SearchRequestDto, PaginationResponseDt
  * 알림 정보 생성 요청 DTO
  */
 export interface CreateNotificationInfoRequestDto extends BaseRequestDto {
-  user_id: number;
+  profile_type: number;
   device_type: string;
   device_os: string;
   device_token: string;
@@ -15,13 +15,14 @@ export interface CreateNotificationInfoRequestDto extends BaseRequestDto {
   noti_email: boolean;
   noti_auction: boolean;
   noti_favorite: boolean;
-  noti_set: boolean;
+  noti_set: any;
 }
 
 /**
  * 알림 정보 업데이트 요청 DTO
  */
 export interface UpdateNotificationInfoRequestDto extends BaseRequestDto {
+  profile_type?: number;
   device_type?: string;
   device_os?: string;
   device_token?: string;
@@ -32,7 +33,7 @@ export interface UpdateNotificationInfoRequestDto extends BaseRequestDto {
   noti_email?: boolean;
   noti_auction?: boolean;
   noti_favorite?: boolean;
-  noti_set?: boolean;
+  noti_set?: any;
   status?: number;
 }
 
@@ -45,12 +46,12 @@ export interface NotificationInfoResponseDto extends BaseResponseDto {
   device_os: number;
   device_token: string;
   permission_status?: number | null;
-  noti_notice?: number | null;
-  noti_event?: number | null;
-  noti_sms?: number | null;
-  noti_email?: number | null;
-  noti_auction?: number | null;
-  noti_favorite?: number | null;
+  noti_notice?: boolean | null;
+  noti_event?: boolean | null;
+  noti_sms?: boolean | null;
+  noti_email?: boolean | null;
+  noti_auction?: boolean | null;
+  noti_favorite?: boolean | null;
   noti_set?: any | null;
 }
 
@@ -70,7 +71,7 @@ export interface NotificationInfoListDto {
   noti_email: boolean;
   noti_auction: boolean;
   noti_favorite: boolean;
-  noti_set: boolean;
+  noti_set: any;
   status: number | null;
   created_at: string | null;
   updated_at: string | null;

@@ -88,6 +88,13 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
   };
 
   const handleInputChange = (name: string, value: string) => {
+    if (name === 'ownerEmail') {
+      if (!value.includes('@') || !value.includes('.') || value.includes(' ')) {
+        setErrors({ ...errors, ownerEmail: '이메일 형식이 올바르지 않습니다' });
+      } else {
+        setErrors({ ...errors, ownerEmail: '' });
+      }
+    }
     setFormData({ ...formData, [name]: value });
   };
 

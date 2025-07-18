@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { locations, departments, deviceTypes, manufacturers, initConstants, isConstantsInitialized } from '../../constants/data';
 import ImageUploader from '../../components/common/ImageUploader';
 import SelectionModal from '../../components/auction/SelectionModal';
-import { updateProduct, getMyDevices } from '../../services/medidealer/api';
+import { updateMyDevice, getMyDevices } from '../../services/medidealer/api';
 
 // 날짜 포맷팅 함수
 const formatDate = (date: Date) => {
@@ -13,7 +13,7 @@ const formatDate = (date: Date) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-const EditProductScreen = ({ navigation, route }: { navigation: any, route: any }) => {
+const EditMyDeviceScreen = ({ navigation, route }: { navigation: any, route: any }) => {
   const { id } = route.params;
   
   const [formData, setFormData] = useState({
@@ -135,7 +135,7 @@ const EditProductScreen = ({ navigation, route }: { navigation: any, route: any 
 
     try {
       setSubmitting(true);
-      const response = await updateProduct(id, formData);
+      const response = await updateMyDevice(id, formData);
       console.log('의료기 수정 성공:', response);
       Alert.alert('성공', '의료기 정보가 수정되었습니다.', [
         {
@@ -262,22 +262,22 @@ const EditProductScreen = ({ navigation, route }: { navigation: any, route: any 
                   style={[
                     styles.statusOption,
                     formData.status === 0 && styles.statusSelected,
-                    { backgroundColor: formData.status === 0 ? '#28a745' : '#f8f9fa' }
+                    { backgroundColor: formData.status === 0 ? '#ffc107' : '#f8f9fa' }
                   ]}
                   onPress={() => setFormData(prev => ({ ...prev, status: 0 }))}
                 >
-                  <Text style={[styles.statusText, formData.status === 0 && styles.statusTextSelected]}>정상</Text>
+                  <Text style={[styles.statusText, formData.status === 0 && styles.statusTextSelected]}>수리중</Text>
                 </TouchableOpacity>
-                
+
                 <TouchableOpacity
                   style={[
                     styles.statusOption,
                     formData.status === 1 && styles.statusSelected,
-                    { backgroundColor: formData.status === 1 ? '#ffc107' : '#f8f9fa' }
+                    { backgroundColor: formData.status === 1 ? '#28a745' : '#f8f9fa' }
                   ]}
                   onPress={() => setFormData(prev => ({ ...prev, status: 1 }))}
                 >
-                  <Text style={[styles.statusText, formData.status === 1 && styles.statusTextSelected]}>수리중</Text>
+                  <Text style={[styles.statusText, formData.status === 1 && styles.statusTextSelected]}>정상</Text>
                 </TouchableOpacity>
                 
                 <TouchableOpacity
@@ -606,4 +606,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditProductScreen;
+export default EditMyDeviceScreen;

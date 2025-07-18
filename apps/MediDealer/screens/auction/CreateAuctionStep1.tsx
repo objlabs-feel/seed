@@ -5,6 +5,7 @@ import SelectionModal from '../../components/auction/SelectionModal';
 import { locations, departments, deviceTypes, manufacturers, initConstants, isConstantsInitialized } from '../../constants/data';
 import ImageUploader from '../../components/common/ImageUploader';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { Department } from '@repo/shared/models';
 
 const formatDate = (date: Date) => {
   if (!date) return '';
@@ -18,6 +19,22 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [datePickerDate, setDatePickerDate] = useState(new Date());
   const [loading, setLoading] = useState(!isConstantsInitialized);
+  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
+  const [hashtags, setHashtags] = useState<string[]>([]);
+
+  // 해시태그 추출 함수
+  const extractHashtags = (text: string) => {
+    const hashtagRegex = /#(\w+)/g;
+    const matches = text.match(hashtagRegex);
+    return matches ? matches.map(tag => tag.slice(1)) : [];
+  };
+
+  // 텍스트 변경 시 해시태그 추출
+  const handleDescriptionChange = (text: string) => {
+    const extractedHashtags = extractHashtags(text);
+    setHashtags(extractedHashtags);
+    setFormData((prev: any) => ({ ...prev, description: text }));
+  };
 
   // 컴포넌트 마운트 시 상수 데이터 초기화
   useEffect(() => {
@@ -97,14 +114,14 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
     <ScrollView style={styles.container}>
       <View style={styles.row}>
         <View style={styles.fieldHalf}>
-          <Text style={styles.label}>지역 선택 *</Text>
+          <Text style={styles.label}>지역 *</Text>
           <TouchableOpacity 
             style={[styles.selectButton, errors.location && styles.inputError]}
             onPress={() => setShowLocationModal(true)}
           >
-            <Text style={formData.location ? styles.selectText : styles.placeholderText}>
-              {formData.location ? 
-                locations.find(item => item.id === formData.location)?.name : 
+            <Text style={formData.area ? styles.selectText : styles.placeholderText}>
+              {formData.area ? 
+                locations.find(item => item.name === formData.area)?.name : 
                 '지역을 선택해주세요'}
             </Text>
           </TouchableOpacity>
@@ -124,7 +141,7 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
             </Text>
           </TouchableOpacity>
           {errors.department && <Text style={styles.errorText}>{errors.department}</Text>}
-        </View>
+        </View>        
       </View>
 
       <View style={styles.row}>
@@ -136,37 +153,11 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
           >
             <Text style={formData.equipmentType ? styles.selectText : styles.placeholderText}>
               {formData.equipmentType ? 
-                deviceTypes.find(item => item.id === formData.equipmentType)?.name : 
+                deviceTypes.find(item => item.id.toString() === formData.equipmentType)?.name : 
                 '유형을 선택해주세요'}
             </Text>
           </TouchableOpacity>
           {errors.equipmentType && <Text style={styles.errorText}>{errors.equipmentType}</Text>}
-        </View>
-        <View style={styles.fieldHalf}>
-          <Text style={styles.label}>양도 가능일자 *</Text>
-          <TouchableOpacity 
-            style={[styles.selectButton, errors.transferDate && styles.inputError]}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={formData.transferDate ? styles.selectText : styles.placeholderText}>
-              {formData.transferDate ? formatDate(formData.transferDate) : '양도 가능일자를 선택해주세요'}
-            </Text>
-          </TouchableOpacity>
-          {errors.transferDate && <Text style={styles.errorText}>{errors.transferDate}</Text>}
-        </View>
-      </View>
-
-      <View style={styles.row}>        
-        <View style={styles.fieldHalf}>
-          <Text style={styles.label}>수량 *</Text>
-          <TextInput
-            style={[styles.input, errors.quantity && styles.inputError]}
-            placeholder="수량을 입력해주세요"
-            keyboardType="number-pad"
-            value={formData.quantity}
-            onChangeText={(text) => setFormData((prev: any) => ({ ...prev, quantity: text }))}
-          />
-          {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
         </View>
         <View style={styles.fieldHalf}>
           <Text style={styles.label}>장비 제조년 *</Text>
@@ -180,18 +171,45 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
           {errors.manufacturingYear && <Text style={styles.errorText}>{errors.manufacturingYear}</Text>}
         </View>
       </View>
+
+      {/* <View style={styles.row}>        
+        <View style={styles.fieldHalf}>
+          <Text style={styles.label}>수량 *</Text>
+          <TextInput
+            style={[styles.input, errors.quantity && styles.inputError]}
+            placeholder="수량을 입력해주세요"
+            keyboardType="number-pad"
+            value={formData.quantity}
+            onChangeText={(text) => setFormData((prev: any) => ({ ...prev, quantity: text }))}
+          />
+          {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
+        </View>
+        
+      </View> */}
       <View style={styles.inputGroup}>
         <Text style={styles.label}>설명 *</Text>
         <TextInput
           style={[styles.input, styles.multilineInput, errors.description && styles.inputError]}
-          placeholder="특이사항 또는 설명을 입력해주세요"
+          placeholder="#제조사 #모델명 #특이사항(또는 설명)을 양식에 맞게 입력해주세요"
           value={formData.description}
-          onChangeText={(text) => setFormData((prev: any) => ({ ...prev, description: text }))}
+          onChangeText={handleDescriptionChange}
           multiline={true}
           numberOfLines={3}
           maxLength={1000}
           textAlignVertical="top"
         />
+        {hashtags.length > 0 && (
+          <View style={styles.hashtagContainer}>
+            <Text style={styles.hashtagLabel}>추출된 태그:</Text>
+            <View style={styles.hashtagList}>
+              {hashtags.map((tag, index) => (
+                <View key={index} style={styles.hashtagItem}>
+                  <Text style={styles.hashtagText}>#{tag}</Text>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
       </View>
 
       <View style={styles.inputGroup}>
@@ -209,7 +227,7 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
         visible={showLocationModal}
         onClose={() => setShowLocationModal(false)}
         onSelect={(item) => {
-          setFormData((prev: any) => ({ ...prev, location: item.id }));
+          setFormData((prev: any) => ({ ...prev, area: item.id }));
         }}
         items={locations}
         title="지역 선택"
@@ -220,6 +238,8 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
         onClose={() => setShowDepartmentModal(false)}
         onSelect={(item) => {
           setFormData((prev: any) => ({ ...prev, department: item.id }));
+          setFormData((prev: any) => ({ ...prev, equipmentType: item.deviceTypes?.[0]?.device_type_id || '' }));
+          setSelectedDepartment(item);
         }}
         items={departments}
         title="진료과 선택"
@@ -231,7 +251,7 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
         onSelect={(item) => {
           setFormData((prev: any) => ({ ...prev, equipmentType: item.id }));
         }}
-        items={deviceTypes}
+        items={selectedDepartment?.deviceTypes?.map(item => ({ id: item.device_type_id.toString(), name: item.deviceType?.name })) || []}
         title="장비 유형 선택"
       />
 
@@ -384,6 +404,12 @@ const styles = StyleSheet.create({
   fieldHalf: {
     flex: 1,
   },
+  fieldRatio2: {
+    flex: 2,
+  },
+  fieldRatio4: {
+    flex: 4,
+  },
   loadingContainer: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -399,6 +425,33 @@ const styles = StyleSheet.create({
     textAlignVertical: 'top',
     paddingTop: 10,
     paddingBottom: 10,
+  },
+  hashtagContainer: {
+    marginTop: 10,
+    padding: 10,
+    backgroundColor: '#f8f9fa',
+    borderRadius: 8,
+  },
+  hashtagLabel: {
+    fontSize: 14,
+    color: '#6c757d',
+    marginBottom: 8,
+  },
+  hashtagList: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  hashtagItem: {
+    backgroundColor: '#007bff',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  hashtagText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: '500',
   },
 });
 

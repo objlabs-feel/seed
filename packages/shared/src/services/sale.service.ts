@@ -5,6 +5,7 @@ import type {
   SaleItemCart,
   SalesAdmin
 } from '../types/models';
+import { AuctionStatus } from '../types/models';
 import type {
   CreateSalesTypeRequestDto,
   UpdateSalesTypeRequestDto,
@@ -334,7 +335,35 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
     });
   }
 
+  /**
+   * 판매 아이템 페이지네이션 조회 (성능 최적화)
+   * item 검색 조건이 있으면 Raw Query 사용, 없으면 기존 방식 사용
+   */
   async findWithPagination(options?: SearchOptions): Promise<PaginationResult<SaleItem>> {
+    const { page, limit, skip, take } = this.getDefaultPagination(options);
+    const query = this.buildQuery(options);
+
+    // item 검색 조건이 있는지 확인
+    const hasItemSearchConditions = options?.where?.item &&
+      (options.where.item.OR ||
+        options.where.item.department_id !== undefined ||
+        options.where.item.device_type_id !== undefined ||
+        options.where.item.manufacturer_id !== undefined ||
+        options.where.item.status !== undefined);
+
+    if (hasItemSearchConditions) {
+      // item 검색 조건이 있으면 Raw Query 사용 (성능 최적화)
+      return await this.findWithPaginationWithRawQuery(options);
+    } else {
+      // item 검색 조건이 없으면 기존 방식 사용
+      return await this.findWithPaginationStandard(options);
+    }
+  }
+
+  /**
+   * 일반적인 페이지네이션 조회 (item.status 필터링 없음)
+   */
+  private async findWithPaginationStandard(options?: SearchOptions): Promise<PaginationResult<SaleItem>> {
     const { page, limit, skip, take } = this.getDefaultPagination(options);
     const query = this.buildQuery(options);
 
@@ -386,6 +415,322 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
     }));
 
     return this.createPaginationResult(items as any, total, page, limit);
+  }
+
+  /**
+   * Raw Query를 사용한 성능 최적화된 페이지네이션 조회
+   * saleItem과 item(auctionItem, product)을 join해서 한 번의 쿼리로 모든 데이터 조회
+   */
+  private async findWithPaginationWithRawQuery(options?: SearchOptions): Promise<PaginationResult<SaleItem>> {
+    const { page, limit } = this.getDefaultPagination(options);
+    const query = this.buildQuery(options);
+    const statusCond = options?.where?.item?.status;
+    const itemSearchCond = options?.where?.item;
+
+    // WHERE 조건 구성
+    const whereConditions: string[] = [];
+    const params: any[] = [];
+    let paramIndex = 1;
+
+    // saleItem 조건들
+    if (query.where) {
+      if (query.where.sales_type !== undefined) {
+        whereConditions.push(`si.sales_type = $${paramIndex++}`);
+        params.push(query.where.sales_type);
+      }
+      if (query.where.status !== undefined) {
+        whereConditions.push(`si.status = $${paramIndex++}`);
+        params.push(query.where.status);
+      }
+      if (query.where.owner_id !== undefined) {
+        whereConditions.push(`si.owner_id = $${paramIndex++}`);
+        params.push(query.where.owner_id);
+      }
+    }
+
+    // item 검색 조건들
+    if (itemSearchCond) {
+      // keyword 검색 (name, description)
+      if (itemSearchCond.OR) {
+        const orConditions: string[] = [];
+        itemSearchCond.OR.forEach((orCond: any) => {
+          if (orCond.name?.contains) {
+            orConditions.push(`(ai.name ILIKE $${paramIndex} OR p.name ILIKE $${paramIndex++})`);
+            params.push(`%${orCond.name.contains}%`);
+          }
+          if (orCond.description?.contains) {
+            orConditions.push(`(ud.description ILIKE $${paramIndex} OR d.description ILIKE $${paramIndex} OR p.description ILIKE $${paramIndex++})`);
+            params.push(`%${orCond.description.contains}%`);
+          }
+        });
+        if (orConditions.length > 0) {
+          whereConditions.push(`(${orConditions.join(' OR ')})`);
+        }
+      }
+
+      // 단일 필드 검색
+      if (itemSearchCond.department_id !== undefined) {
+        whereConditions.push(`ud.department_id in ($${paramIndex++})`);
+        params.push(itemSearchCond.department_id);
+      }
+      if (itemSearchCond.device_type_id !== undefined) {
+        whereConditions.push(`(ud.device_type_id in ($${paramIndex}) OR d.device_type in ($${paramIndex++}))`);
+        params.push(itemSearchCond.device_type_id);
+      }
+      if (itemSearchCond.manufacturer_id !== undefined) {
+        whereConditions.push(`(ud.manufacturer_id in ($${paramIndex}) OR d.manufacturer_id in ($${paramIndex++}))`);
+        params.push(itemSearchCond.manufacturer_id);
+      }
+      // company.area 검색
+      if (itemSearchCond.area !== undefined) {
+        whereConditions.push(`c.area = $${paramIndex++}`);
+        params.push(itemSearchCond.area);
+      }
+
+      // item.status 필터링 (AUCTION 타입일 때만)
+      if (statusCond && query.where?.sales_type === 1) {
+        if (typeof statusCond === 'object') {
+          if (statusCond.gt !== undefined) {
+            whereConditions.push(`ai.status > $${paramIndex++}`);
+            params.push(statusCond.gt);
+          }
+          if (statusCond.lt !== undefined) {
+            whereConditions.push(`ai.status < $${paramIndex++}`);
+            params.push(statusCond.lt);
+          }
+          if (statusCond.gte !== undefined) {
+            whereConditions.push(`ai.status >= $${paramIndex++}`);
+            params.push(statusCond.gte);
+          }
+          if (statusCond.lte !== undefined) {
+            whereConditions.push(`ai.status <= $${paramIndex++}`);
+            params.push(statusCond.lte);
+          }
+          if (statusCond.eq !== undefined) {
+            whereConditions.push(`ai.status = $${paramIndex++}`);
+            params.push(statusCond.eq);
+          }
+        } else {
+          whereConditions.push(`ai.status = $${paramIndex++}`);
+          params.push(statusCond);
+        }
+      }
+    }
+
+    const whereClause = whereConditions.length > 0 ? `WHERE ${whereConditions.join(' AND ')}` : '';
+
+    // ORDER BY 조건
+    const orderByClause = query.orderBy ?
+      Object.entries(query.orderBy).map(([key, value]) => `si.${key} ${value}`).join(', ') :
+      'si.updated_at DESC';
+
+    // Raw Query 실행 - 단순한 버전
+    const rawQuery = `
+      SELECT 
+        si.id,
+        si.owner_id,
+        si.sales_type,
+        si.item_id,
+        si.status,
+        si.created_at,
+        si.updated_at,
+        st.code as sales_type_code,
+        st.name as sales_type_name,
+        st.service_name,
+        st.model,
+        -- auctionItem 관련 컬럼들
+        ai.id as auction_item_id,
+        ai.auction_code,
+        ai.quantity as auction_quantity,
+        ai.status as auction_status,
+        ai.accept_id,
+        ai.seller_steps,
+        ai.buyer_steps,
+        ai.seller_timeout,
+        ai.buyer_timeout,
+        ai.start_timestamp,
+        ai.expired_count,
+        ai.auction_timeout,
+        ai.visit_date,
+        ai.visit_time,
+        -- product 관련 컬럼들
+        p.id as product_id,
+        p.available_quantity,
+        p.origin_price,
+        p.sale_price,
+        p.discount_type,
+        p.discount_value,
+        p.description as product_description,
+        -- usedDevice 관련 컬럼들 (auctionItem에서만 사용)
+        ud.id as used_device_id,
+        ud.company_id,
+        ud.department_id,
+        ud.device_type_id,
+        ud.manufacturer_id,
+        ud.manufacture_date,
+        ud.images,
+        ud.description as used_device_description,
+        -- device 관련 컬럼들 (product에서만 사용)
+        d.id as device_id,
+        d.manufacturer_id as device_manufacturer_id,
+        d.device_type as device_device_type,
+        d.media,
+        d.info,
+        d.version,
+        d.description as device_description,
+        -- company 관련 컬럼들
+        c.id as company_id,
+        c.name as company_name,
+        c.area as company_area,
+        c.owner_id as company_owner_id,
+        c.created_at as company_created_at,
+        c.updated_at as company_updated_at,
+        d2.name as department_name,
+        dt.name as device_type_name,
+        m.name as manufacturer_name        
+      FROM sale_item si
+      JOIN sales_type st ON si.sales_type = st.id
+      LEFT JOIN auction_item ai ON si.item_id = ai.id AND st.service_name = 'auctionItemService'
+      LEFT JOIN product p ON si.item_id = p.id AND st.service_name = 'productService'
+      LEFT JOIN used_device ud ON ai.device_id = ud.id
+      LEFT JOIN device d ON (p.device_id = d.id)
+      LEFT JOIN company c ON ud.company_id = c.id
+      LEFT JOIN department d2 ON ud.department_id = d2.id
+      LEFT JOIN device_type dt ON ud.device_type_id = dt.id
+      LEFT JOIN manufacturer m ON ud.manufacturer_id = m.id
+      ${whereClause}
+      ORDER BY ${orderByClause}
+      LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+    `;
+
+    const countQuery = `
+      SELECT COUNT(*) as total
+      FROM sale_item si
+      JOIN sales_type st ON si.sales_type = st.id
+      LEFT JOIN auction_item ai ON si.item_id = ai.id AND st.service_name = 'auctionItemService'
+      LEFT JOIN product p ON si.item_id = p.id AND st.service_name = 'productService'
+      LEFT JOIN used_device ud ON ai.device_id = ud.id
+      LEFT JOIN device d ON (p.device_id = d.id)
+      LEFT JOIN company c ON ud.company_id = c.id
+      LEFT JOIN department d2 ON ud.department_id = d2.id
+      LEFT JOIN device_type dt ON ud.device_type_id = dt.id
+      LEFT JOIN manufacturer m ON ud.manufacturer_id = m.id
+      ${whereClause}
+    `;
+
+    // 쿼리 실행
+    const [data, countResult] = await Promise.all([
+      this.prisma.$queryRawUnsafe(rawQuery, ...params, limit, (page - 1) * limit) as Promise<SaleItem[]>,
+      this.prisma.$queryRawUnsafe(countQuery, ...params)
+    ]);
+
+    const total = Number((countResult as any)[0]?.total || 0);
+
+    // 결과 변환 - 최대한 단순하게
+    const transformedData = (data as any[]).map(row => ({
+      id: row.id,
+      owner_id: row.owner_id,
+      sales_type: row.sales_type,
+      item_id: row.item_id,
+      status: row.status,
+      created_at: row.created_at,
+      updated_at: row.updated_at,
+      salesType: {
+        id: row.sales_type,
+        code: row.sales_type_code,
+        name: row.sales_type_name,
+        service_name: row.service_name,
+        model: row.model
+      },
+      item: row.service_name === 'auctionItemService' && row.auction_item_id ? {
+        id: row.auction_item_id,
+        device_id: row.used_device_id,
+        auction_code: row.auction_code,
+        quantity: row.auction_quantity,
+        status: row.auction_status,
+        accept_id: row.accept_id,
+        seller_steps: row.seller_steps,
+        buyer_steps: row.buyer_steps,
+        seller_timeout: row.seller_timeout,
+        buyer_timeout: row.buyer_timeout,
+        start_timestamp: row.start_timestamp,
+        expired_count: row.expired_count,
+        auction_timeout: row.auction_timeout,
+        visit_date: row.visit_date,
+        visit_time: row.visit_time,
+        device: row.used_device_id ? {
+          id: row.used_device_id,
+          company_id: row.company_id,
+          department_id: row.department_id,
+          device_type_id: row.device_type_id,
+          manufacturer_id: row.manufacturer_id,
+          manufacture_date: row.manufacture_date,
+          images: row.images,
+          description: row.used_device_description,
+          company: row.company_id ? {
+            id: row.company_id,
+            name: row.company_name,
+            area: row.company_area,
+            owner_id: row.company_owner_id,
+            created_at: row.company_created_at,
+            updated_at: row.company_updated_at
+          } : null,
+          department: row.department_id ? {
+            id: row.department_id,
+            name: row.department_name,
+          } : null,
+          deviceType: row.device_type_id ? {
+            id: row.device_type_id,
+            name: row.device_type_name,
+          } : null,
+          manufacturer: row.manufacturer_id ? {
+            id: row.manufacturer_id,
+            name: row.manufacturer_name,
+          } : null
+        } : null
+      } : row.service_name === 'productService' && row.product_id ? {
+        id: row.product_id,
+        owner_id: row.owner_id,
+        device_id: row.device_id,
+        available_quantity: row.available_quantity,
+        origin_price: row.origin_price,
+        sale_price: row.sale_price,
+        discount_type: row.discount_type,
+        discount_value: row.discount_value,
+        description: row.product_description,
+        device: row.device_id ? {
+          id: row.device_id,
+          manufacturer_id: row.device_manufacturer_id,
+          device_type: row.device_device_type,
+          media: row.media,
+          info: row.info,
+          version: row.version,
+          description: row.device_description,
+          company: row.company_id ? {
+            id: row.company_id,
+            name: row.company_name,
+            area: row.company_area,
+            owner_id: row.company_owner_id,
+            created_at: row.company_created_at,
+            updated_at: row.company_updated_at
+          } : null,
+          department: row.department_id ? {
+            id: row.department_id,
+            name: row.department_name,
+          } : null,
+          deviceType: row.device_type_id ? {
+            id: row.device_type_id,
+            name: row.device_type_name,
+          } : null,
+          manufacturer: row.manufacturer_id ? {
+            id: row.manufacturer_id,
+            name: row.manufacturer_name,
+          } : null
+        } : null
+      } : null
+    }));
+
+    return this.createPaginationResult(transformedData as SaleItem[], total, page, limit);
   }
 
   async findWithPaginationAndItems(options?: SearchOptions): Promise<PaginationResult<SaleItem>> {

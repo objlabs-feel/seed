@@ -128,7 +128,7 @@ export interface CreateSaleItemRequestDto extends BaseRequestDto {
   name?: string;
   phone?: string;
   hospitalName?: string;
-  location?: string;
+  area?: string;
   manufacturer_id?: string;
   manufacture_date?: string;
   description?: string;
@@ -141,6 +141,7 @@ export interface CreateSaleItemRequestDto extends BaseRequestDto {
 export interface UpdateSaleItemRequestDto extends BaseRequestDto {
   owner_id?: string;
   sales_type?: number;
+  area?: string;
   item_id?: string;
 }
 

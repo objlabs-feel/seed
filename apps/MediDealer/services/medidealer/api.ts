@@ -3,10 +3,10 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ENDPOINTS } from './endpoint';
 import '../network';  // 인터셉터가 설정된 axios import
 import { AuctionItem, PaginationResponseDto, SaleItemResponseDto, SaleItemListDto } from '@repo/shared';
-// const API_URL = 'http://192.168.45.2:3000/api/v1'; // 개발용 API
+const API_URL = 'http://192.168.45.2:3000/api/v1'; // 개발용 API
 // const API_URL = 'http://172.30.1.78:3000/api/v1'; // 개발용 API
 // const API_URL = 'http://192.168.219.5:3000/api/v1'; // 개발용 API
-const API_URL = 'https://www.medidealer.co.kr/api/v1'; // 실제 API URL로 변경 필요
+// const API_URL = 'https://www.medidealer.co.kr/api/v1'; // 실제 API URL로 변경 필요
 // const API_URL = 'http://16.184.8.234:3000/api/v1'; // 테스트용 API
 
 export interface AuthResponse {
@@ -96,6 +96,7 @@ interface SearchSaleItemParams {
   device_type_id?: string;
   manufacturer_id?: string;
   department_id?: string;
+  area?: string;
   sales_type?: string;
   status?: string;
   keyword?: string;
@@ -119,6 +120,7 @@ export const searchSaleItem = async (params: SearchSaleItemParams = {}): Promise
     if (params.department_id) queryParams.append('department_id', params.department_id); // department_id 리스트로 검색
     if (params.device_type_id) queryParams.append('device_type_id', params.device_type_id); // device_type_id 리스트로 검색
     if (params.sales_type) queryParams.append('sales_type', params.sales_type); // sales_type 리스트로 검색
+    if (params.area) queryParams.append('area', params.area); // area 리스트로 검색
     if (params.status) queryParams.append('status', params.status);
     if (params.keyword) queryParams.append('keyword', params.keyword);
     if (params.page) queryParams.append('page', params.page.toString());
@@ -258,7 +260,17 @@ export const getAuctionCount = async () => {
 };
 
 export const getMyProfile = async () => {
-  const response = await axios.get(`${API_URL}${ENDPOINTS.USER}`);
+  const response = await axios.get(`${API_URL}${ENDPOINTS.USER}/me`);
+  return response.data;
+};
+
+export const setMyProfile = async (profileData: any) => {
+  const response = await axios.put(`${API_URL}${ENDPOINTS.USER}/me`, profileData);
+  return response.data;
+};
+
+export const setMyCompany = async (companyData: any) => {
+  const response = await axios.put(`${API_URL}${ENDPOINTS.USER}/me/company`, companyData);
   return response.data;
 };
 
@@ -268,13 +280,13 @@ export const deleteMyProfile = async () => {
 };
 
 // 의료기 등록 API
-export const setProduct = async (productData: any) => {
+export const setMyDevice = async (productData: any) => {
   const response = await axios.post(`${API_URL}${ENDPOINTS.MY_DEVICES}`, productData);
   return response.data;
 };
 
 // 의료기 수정 API
-export const updateProduct = async (id: string, productData: any) => {
+export const updateMyDevice = async (id: string, productData: any) => {
   const response = await axios.put(`${API_URL}${ENDPOINTS.MY_DEVICES}/${id}`, productData);
   return response.data;
 };

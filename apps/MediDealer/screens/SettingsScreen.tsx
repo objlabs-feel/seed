@@ -43,7 +43,7 @@ const SettingsScreen = () => {
     try {
       const userProfile = await getMyProfile();
       console.log('userProfile', userProfile);
-      setProfile(userProfile);
+      setProfile(userProfile.data.profile);
     } catch (error) {
       console.error('프로필 조회 중 오류:', error);
       Alert.alert('오류', '프로필 정보를 불러오는데 실패했습니다.');
@@ -142,7 +142,7 @@ const SettingsScreen = () => {
           <View style={styles.profileContainer}>
             <View style={styles.profileHeader}>              
               <View style={styles.profileMainInfo}>
-                <Text style={styles.profileName}>사용자명: {profile?.profile?.name}</Text>
+              <Text style={styles.profileName}>사용자명: {profile?.name || '익명사용자' + profile?.id}</Text>
                 <Text style={styles.profileType}>
                   유형구분 : {profile?.company?.company_type === 0 ? '병원' : '업체'}
                 </Text>
@@ -152,27 +152,27 @@ const SettingsScreen = () => {
             <View style={styles.profileDetails}>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>이메일</Text>
-                <Text style={styles.detailValue}>{profile?.profile?.email}</Text>
+                <Text style={styles.detailValue}>{profile?.email}</Text>
               </View>
               <View style={styles.detailItem}>
                 <Text style={styles.detailLabel}>전화번호</Text>
-                <Text style={styles.detailValue}>{profile?.profile?.mobile}</Text>
+                <Text style={styles.detailValue}>{profile?.mobile}</Text>
               </View>
 
-              
-              {profile?.profile?.secret_info && (
-                <>
+              <View style={styles.profileHeader}></View>
+              {profile?.company?.secret_info && (
+                <>                
+                  <View style={styles.detailItem}>
+                    <Text style={styles.detailLabel}>업체명</Text>
+                    <Text style={styles.detailValue}>{profile.company?.name}</Text>
+                  </View>
                   <View style={styles.detailItem}>
                     <Text style={styles.detailLabel}>사업자번호</Text>
-                    <Text style={styles.detailValue}>{profile.profile.secret_info?.business_number}</Text>
-                  </View>
-                  <View style={styles.detailItem}>
-                    <Text style={styles.detailLabel}>대표자명</Text>
-                    <Text style={styles.detailValue}>{profile.profile.secret_info?.representative_name}</Text>
-                  </View>
+                    <Text style={styles.detailValue}>{profile.company?.secret_info?.business_number}</Text>
+                  </View>                  
                   <View style={styles.detailItem}>
                     <Text style={styles.detailLabel}>주소</Text>
-                    <Text style={styles.detailValue}>{profile.profile.secret_info?.address}</Text>
+                    <Text style={styles.detailValue}>{profile.company?.secret_info?.address}</Text>
                   </View>
                 </>
               )}
@@ -561,8 +561,8 @@ const styles = StyleSheet.create({
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 20,
-    paddingBottom: 16,
+    marginBottom: 10,
+    paddingBottom: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#e9ecef',
   },
@@ -607,10 +607,12 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   detailLabel: {
-    width: 100,
+    width: 80,
     fontSize: 14,
     color: '#6c757d',
     fontWeight: '500',
+    textAlign: 'right',
+    paddingRight: 10,
   },
   detailValue: {
     flex: 1,

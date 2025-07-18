@@ -547,7 +547,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           </View>
           
           <Text style={styles.deviceModel}>
-            판매자 정보: {auctionItem.device?.company?.area}
+            지역: {auctionItem.device?.company?.area}
           </Text>
           
           <View style={styles.divider} />
@@ -564,13 +564,13 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
               <Text style={styles.specLabel}>진료과</Text>
               <Text style={styles.specValue}>{device.department?.name || '정보 없음'}</Text>
             </View>
-            <View style={styles.specItem}>
+            {/* <View style={styles.specItem}>
               <Text style={styles.specLabel}>제조사</Text>
               <Text style={styles.specValue}>{device.manufacturer?.name || '정보 없음'}</Text>
-            </View>
+            </View> */}
             <View style={styles.specItem}>
               <Text style={styles.specLabel}>제조연도</Text>
-              <Text style={styles.specValue}>{device.manufacture_date ? `${device.manufacture_date}년` : '정보 없음'}</Text>
+              <Text style={styles.specValue}>{device.manufacture_date ? `${device.manufacture_date.split('-')[0]}년` : '정보 없음'}</Text>
             </View>
           </View>
           

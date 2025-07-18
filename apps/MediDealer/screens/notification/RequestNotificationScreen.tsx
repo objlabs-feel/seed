@@ -6,7 +6,7 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { requestPushNotificationPermission } from '../../utils/permission';
 import { subscribeToAllTopics, subscribeToTopic, unsubscribeFromTopic } from '../../services/notification';
 import { setNotification, updateNotification } from '../../services/medidealer/api';
-import { INotificationInfo } from '@repo/shared';
+import { CreateNotificationInfoRequestDto, NotificationInfo } from '@repo/shared';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDeviceType, getOSVersion } from '../../utils/device';
 import { eventEmitter } from '../../utils/eventEmitter';
@@ -17,22 +17,19 @@ import notifee from '@notifee/react-native';
 const RequestNotificationScreen = () => {
   const navigation = useNavigation();
   const [hasPermission, setHasPermission] = useState<boolean | null>(null);
-  const [notificationInfo, setNotificationInfo] = useState<INotificationInfo>({
-    id: 0,
-    user_id: 0,
-    noti_set: createNotificationSet(getAllTopics(), 'HOSPITAL'),
-    device_type: getDeviceType(),
-    device_os: getOSVersion(),
+  const [notificationInfo, setNotificationInfo] = useState<CreateNotificationInfoRequestDto>({
+    profile_type: 0,
+    noti_set: createNotificationSet(['all'], 'HOSPITAL'),
+    device_type: getDeviceType().toString(),
+    device_os: getOSVersion().toString(),
     device_token: '',
     permission_status: 0,
-    noti_notice: 0,
-    noti_event: 0,
-    noti_sms: 0,
-    noti_email: 0,
-    noti_auction: 0,
-    noti_favorite: 0,
-    created_at: '',
-    updated_at: '',
+    noti_notice: false,
+    noti_event: false,
+    noti_sms: false,
+    noti_email: false,
+    noti_auction: false,
+    noti_favorite: false,
   });
   const [isLoading, setIsLoading] = useState(true);
   const [showCustomAlert, setShowCustomAlert] = useState(false);
@@ -206,16 +203,16 @@ const RequestNotificationScreen = () => {
       
       const updatedNotificationInfo = {
         ...notificationInfo,
-        device_type: getDeviceType(),
-        device_os: getOSVersion(),
+        device_type: getDeviceType().toString(),
+        device_os: getOSVersion().toString(),
         device_token: token,
         permission_status: 1,
-        noti_notice: 1,
-        noti_event: 1,
-        noti_sms: 1,
-        noti_email: 1,
-        noti_auction: 1,
-        noti_favorite: 1,
+        noti_notice: true,
+        noti_event: true,
+        noti_sms: true,
+        noti_email: true,
+        noti_auction: true,
+        noti_favorite: true,
       };
       
       setNotificationInfo(updatedNotificationInfo);
@@ -260,6 +257,7 @@ const RequestNotificationScreen = () => {
       // 1. 선택된 디바이스 타입으로 noti_set 업데이트
       const updatedInfo = {
         ...notificationInfo,
+        profile_type: type === 'HOSPITAL' ? 0 : 1,
         noti_set: createNotificationSet(getAllTopics(), type),
       };
       setNotificationInfo(updatedInfo);
@@ -272,35 +270,17 @@ const RequestNotificationScreen = () => {
       // 3. 토픽 구독 처리 - 설정 기반으로 구독
       try {
         console.log('[RequestNotificationScreen] 토픽 구독 시작...');
+        await subscribeToTopic('all');
         
-        // 'all' 토픽 구독
-        if (type === 'HOSPITAL') {
-          // await subscribeToTopic('all');
-          console.log('[RequestNotificationScreen] 기본 토픽(all) 구독 완료');
-        } else {
-          await subscribeToTopic('all');
-          console.log('[RequestNotificationScreen] 기본 토픽(company) 구독 완료');
+        // 타입별 토픽 구독
+        if (type === 'HOSPITAL') {        
+          await subscribeToTopic('hospital');          
+        } else {          
+          await subscribeToTopic('company');          
         }
-        
-        // 모든 토픽 구독
-        // const allTopics = getAllTopics();
-        // console.log('[RequestNotificationScreen] 모든 토픽 구독 시도:', allTopics);
-        
-        // await subscribeToAllTopics(type);
-        // console.log('[RequestNotificationScreen] 모든 토픽 구독 완료');
       } catch (topicError) {
         console.error('[RequestNotificationScreen] 토픽 구독 중 오류 발생:', topicError);
         // 토픽 구독 실패해도 계속 진행
-      }
-
-      // 4. 서버에 알림 설정 저장 시도
-      const infoToSend = { ...updatedInfo, permission_status: 0 };
-      
-      try {
-        await setNotification(infoToSend);
-        console.log('[RequestNotificationScreen] 서버에 타입 정보 등 설정 저장 시도 완료');
-      } catch (apiError) {
-        console.error('[RequestNotificationScreen] 서버에 설정 저장 오류:', apiError);
       }
 
       // 5. 이전 화면으로 돌아가기 (불필요한 알림 대화상자 제거)

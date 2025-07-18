@@ -364,6 +364,7 @@ model AuctionItem {
   visit_time       String?            @db.VarChar(5)
   created_at       DateTime?          @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   updated_at       DateTime?          @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
+  deposit_confirm  Int?               @default(0) @db.SmallInt
   
   device           UsedDevice?        @relation("AuctionItemDevice", fields: [device_id], references: [id])
 

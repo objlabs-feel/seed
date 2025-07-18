@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -41,6 +41,10 @@ const HomeScreen = () => {
   const [buyItems, setBuyItems] = useState<any[]>([]);
   const [isLoadingSell, setIsLoadingSell] = useState(false);
   const [isLoadingBuy, setIsLoadingBuy] = useState(false);
+  
+  // 중복 API 호출 방지를 위한 ref들
+  const sellItemsLoadingRef = useRef(false);
+  const buyItemsLoadingRef = useRef(false);
 
   useEffect(() => {
     console.log('[HomeScreen] 마운트됨');
@@ -367,6 +371,14 @@ const HomeScreen = () => {
 
   // 판매 상품 목록 로드 함수
   const loadSellingItems = async () => {
+    // 중복 호출 방지
+    if (sellItemsLoadingRef.current) {
+      console.log('Selling items loading already in progress, skipping...');
+      return;
+    }
+    
+    sellItemsLoadingRef.current = true;
+    
     try {
       setIsLoadingSell(true);
       
@@ -393,11 +405,21 @@ const HomeScreen = () => {
     } catch (error) {
       console.error('판매 상품 로드 오류:', error);
       setIsLoadingSell(false);
+    } finally {
+      sellItemsLoadingRef.current = false;
     }
   };
 
   // 구매/입찰 상품 목록 로드 함수
   const loadBuyingItems = async () => {
+    // 중복 호출 방지
+    if (buyItemsLoadingRef.current) {
+      console.log('Buying items loading already in progress, skipping...');
+      return;
+    }
+    
+    buyItemsLoadingRef.current = true;
+    
     try {
       setIsLoadingBuy(true);
       
@@ -423,6 +445,8 @@ const HomeScreen = () => {
     } catch (error) {
       console.error('구매 상품 로드 오류:', error);
       setIsLoadingBuy(false);
+    } finally {
+      buyItemsLoadingRef.current = false;
     }
   };
 

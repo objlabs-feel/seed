@@ -31,6 +31,7 @@ export function toAuctionItemResponseDto(auctionItem: AuctionItem): AuctionItemR
     auction_timeout: dateToString(auctionItem.auction_timeout),
     visit_date: dateToString(auctionItem.visit_date),
     visit_time: auctionItem.visit_time,
+    deposit_confirm: auctionItem.deposit_confirm ?? 0,
     device: auctionItem.device ? {
       id: bigintToString(auctionItem.device.id)!,
       company_id: bigintToString(auctionItem.device.company_id),
@@ -43,6 +44,7 @@ export function toAuctionItemResponseDto(auctionItem: AuctionItem): AuctionItemR
       company: auctionItem.device.company ? {
         id: bigintToString(auctionItem.device.company.id)!,
         name: auctionItem.device.company.name,
+        area: auctionItem.device.company.area,
       } : undefined,
       department: auctionItem.device.department ? {
         id: auctionItem.device.department.id.toString(),

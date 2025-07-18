@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { 
   View, 
   StyleSheet, 
@@ -17,6 +17,7 @@ import { searchSaleItem } from '../services/medidealer/api';
 import { AuctionItemResponseDto, SaleItemListDto } from '@repo/shared';
 import { useNavigation } from '@react-navigation/native';
 import { deviceTypes, locations, departments, SelectionItem, initConstants } from '../constants/data';
+import { DeviceType } from '@repo/shared';
 
 const ITEMS_PER_PAGE = 10;
 
@@ -30,6 +31,7 @@ const AuctionSearchScreen = () => {
   const [searchResults, setSearchResults] = useState<SaleItemListDto[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
+  const [availableDeviceTypes, setAvailableDeviceTypes] = useState<DeviceType[]>([]);
   const [selectedDeviceTypes, setSelectedDeviceTypes] = useState<string[]>([]);
   const [selectedAreas, setSelectedAreas] = useState<string[]>([]);
   const [selectedDepartments, setSelectedDepartments] = useState<string[]>([]);
@@ -37,8 +39,19 @@ const AuctionSearchScreen = () => {
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [totalItems, setTotalItems] = useState(0);
+  
+  // 중복 API 호출 방지를 위한 ref
+  const searchInProgressRef = useRef(false);
 
   const handleSearch = async (page: number = 1) => {
+    // 중복 호출 방지
+    if (searchInProgressRef.current) {
+      console.log('Search already in progress, skipping...');
+      return;
+    }
+    
+    searchInProgressRef.current = true;
+    
     if (page === 1) {
       setIsLoading(true);
     } else {
@@ -48,8 +61,9 @@ const AuctionSearchScreen = () => {
     try {
       const response = await searchSaleItem({
         device_type_id: selectedDeviceTypes.length > 0 ? selectedDeviceTypes.join(',') : undefined,
-        manufacturer_id: selectedAreas.length > 0 ? selectedAreas.join(',') : undefined,
+        // manufacturer_id: .length > 0 ? selectedAreas.join(',') : undefined,
         department_id: selectedDepartments.length > 0 ? selectedDepartments.join(',') : undefined,
+        area: selectedAreas.length > 0 ? selectedAreas.join(',') : undefined,
         sales_type: '1',
         status: '1',
         page,
@@ -80,11 +94,13 @@ const AuctionSearchScreen = () => {
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
+      searchInProgressRef.current = false;
     }
   };
 
   // 초기 검색 실행
   useEffect(() => {
+    setAvailableDeviceTypes(deviceTypes);
     handleSearch(1);
   }, []);
 
@@ -113,9 +129,34 @@ const AuctionSearchScreen = () => {
     } else {
       setter(prev => [...prev, type]);
     }
+
+    // 필터가 적용되면 장비 유형 필터를 새로 적용
+    if (setter === setSelectedDepartments) {
+      // 변경된 진료과에 해당하는 장비 유형 필터 적용
+      console.log('selectedDepartments', selectedDepartments);
+      console.log('departments', departments);
+      const changedSet = departments.filter(dept => 
+        !isSelected ? [...selectedDepartments, type].includes(dept.id.toString()) : selectedDepartments.filter(id => id !== type).includes(dept.id.toString()));
+      console.log('changedSet', changedSet);
+      if (changedSet.length > 0) {
+        // 변경된 진료과에 해당하는 장비 유형 필터 적용
+        const changedDeviceTypes = changedSet.reduce((acc, dept) => {
+          acc.push(...dept.deviceTypes?.map(type => type.device_type_id.toString()) || []);
+          return acc;
+        }, [] as string[]);
+        console.log('changedDeviceTypes', changedDeviceTypes);
+        setSelectedDeviceTypes(changedDeviceTypes || []);
+        console.log('changedDeviceTypes', changedDeviceTypes);
+      } else {
+        console.log('reset device types');
+        setSelectedDeviceTypes([]);
+        // setAvailableDeviceTypes(deviceTypes);
+      }
+    }
   };
 
   const renderItem = ({ item }: { item: SaleItemListDto }) => (
+    console.log(item),
     item.salesType?.code === 'AUCTION' ? (
     <View style={styles.listItem}>
       <AuctionItemCard
@@ -240,7 +281,7 @@ const AuctionSearchScreen = () => {
               <Text style={styles.filterSectionTitle}>진료과</Text>
               <View style={styles.filterOptionsList}>
                 {departments.map(dept => {
-                  const isSelected = selectedDepartments.includes(dept.name);
+                  const isSelected = selectedDepartments.includes(dept.id.toString());
                   return (
                     <TouchableOpacity
                       key={`dept-${dept.id}`}
@@ -248,7 +289,7 @@ const AuctionSearchScreen = () => {
                         styles.filterOption,
                         isSelected && styles.filterOptionSelected
                       ]}
-                      onPress={() => handleFilterToggle(dept.name, isSelected, setSelectedDepartments)}
+                      onPress={() => handleFilterToggle(dept.id.toString(), isSelected, setSelectedDepartments)}
                     >
                       <Text style={[
                         styles.filterOptionText,
@@ -263,11 +304,11 @@ const AuctionSearchScreen = () => {
 
               <Text style={styles.filterSectionTitle}>장비 유형</Text>
               <View style={styles.filterOptionsList}>
-                {deviceTypes.length === 0 ? (
+                {availableDeviceTypes.length === 0 ? (
                   <Text style={styles.emptyText}>장비 유형 정보를 불러오는 중입니다...</Text>
                 ) : (
-                  deviceTypes.map(type => {
-                    const isSelected = selectedDeviceTypes.includes(type.name);
+                  availableDeviceTypes.map(type => {
+                    const isSelected = selectedDeviceTypes.includes(type.id.toString());
                     return (
                       <TouchableOpacity
                         key={`type-${type.id}`}
@@ -275,7 +316,7 @@ const AuctionSearchScreen = () => {
                           styles.filterOption,
                           isSelected && styles.filterOptionSelected
                         ]}
-                        onPress={() => handleFilterToggle(type.name, isSelected, setSelectedDeviceTypes)}
+                        onPress={() => handleFilterToggle(type.id.toString(), isSelected, setSelectedDeviceTypes)}
                       >
                         <Text style={[
                           styles.filterOptionText,

@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getDeviceType, getOSVersion } from '../utils/device';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { eventEmitter } from '../utils/eventEmitter';
-import { INotificationInfo } from '@repo/shared';
+import { NotificationInfo } from '@repo/shared';
 import { deviceTypes, initConstants } from '../constants/data';
 import { getAllTopics, createNotificationSet } from '../utils/notification';
 import { subscribeToAllTopics, updateTopicSubscriptions } from '../services/notification';
@@ -33,7 +33,7 @@ const SettingNotificationScreen = () => {
   const insets = useSafeAreaInsets();
   const isFocused = useIsFocused(); // 화면 포커스 상태 감지 훅
   const [settings, setSettings] = useState<NotificationSettings | null>(null);
-  const [notiSet, setNotiSet] = useState<INotificationInfo['noti_set'] | null>(null);
+  const [notiSet, setNotiSet] = useState<NotificationInfo['noti_set'] | null>(null);
   const [userInfo, setUserInfo] = useState<'HOSPITAL' | 'COMPANY'>('HOSPITAL');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -88,21 +88,22 @@ const SettingNotificationScreen = () => {
       setLoading(true);
       console.log('[SettingNotificationScreen] 알림 설정 조회 시작');
       const response = await getNotification();
+      const { notification_info, user } = response;
       console.log('[SettingNotificationScreen] 알림 설정 조회 성공:', response);
 
-      setNotiSet(response.noti_set || { topics: [], user_type: 'HOSPITAL' });
+      setNotiSet(notification_info[0].noti_set || { topics: ['all'], user_type: 'HOSPITAL' });
       const newSettings: NotificationSettings = {
-        permission_status: response.permission_status || 0,
-        device_token: response.device_token,
-        noti_notice: response.noti_notice || 0,
-        noti_event: response.noti_event || 0,
-        noti_sms: response.noti_sms || 0,
-        noti_email: response.noti_email || 0
+        permission_status: notification_info[0].permission_status || 0,
+        device_token: notification_info[0].device_token,
+        noti_notice: notification_info[0].noti_notice || 0,
+        noti_event: notification_info[0].noti_event || 0,
+        noti_sms: notification_info[0].noti_sms || 0,
+        noti_email: notification_info[0].noti_email || 0
       };
       
       setSettings(newSettings);
 
-      setUserInfo(response.noti_set.user_type || 'HOSPITAL');
+      setUserInfo(notification_info[0].noti_set.user_type || 'HOSPITAL');
       
       // 설정을 가져온 후 실제 권한 상태 확인
       const authStatus = await messaging().hasPermission();
@@ -127,6 +128,10 @@ const SettingNotificationScreen = () => {
           ...updatedSettings,
           device_type: getDeviceType(),
           device_os: getOSVersion(),
+          noti_set: {
+            topics: notification_info[0].noti_set.topics,
+            user_type: notification_info[0].noti_set.user_type,
+          },
         });
         console.log('[SettingNotificationScreen] 서버 업데이트 완료');
       }

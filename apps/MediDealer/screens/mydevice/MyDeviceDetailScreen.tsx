@@ -53,7 +53,7 @@ type ParamList = {
   };
 };
 
-const ProductDetailScreen = () => {
+const MyDeviceDetailScreen = () => {
   const navigation = useNavigation<StackNavigationProp<any>>();
   const route = useRoute<RouteProp<ParamList, 'DeviceDetail'>>();
   const { id } = route.params;
@@ -278,8 +278,8 @@ const ProductDetailScreen = () => {
 
   const getStatusText = (status: number) => {
     switch (status) {
-      case 0: return '정상';
-      case 1: return '수리중';
+      case 0: return '고장';
+      case 1: return '정상';
       case 2: return '폐기';
       default: return '알 수 없음';
     }
@@ -287,8 +287,8 @@ const ProductDetailScreen = () => {
 
   const getStatusColor = (status: number) => {
     switch (status) {
-      case 0: return '#28a745'; // 초록
-      case 1: return '#ffc107'; // 노랑
+      case 0: return '#ffc107'; // 노랑
+      case 1: return '#28a745'; // 초록      
       case 2: return '#dc3545'; // 빨강
       default: return '#6c757d'; // 회색
     }
@@ -980,4 +980,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ProductDetailScreen;
+export default MyDeviceDetailScreen;

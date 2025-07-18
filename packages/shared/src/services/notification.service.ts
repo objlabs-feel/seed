@@ -126,7 +126,7 @@ export class NotificationService extends BaseService<
 
   async registerDevice(data: CreateNotificationInfoRequestDto): Promise<NotificationInfo> {
     const prismaData = this.toPrismaData(data);
-    const { user_id, device_type, device_os, device_token, permission_status } = prismaData;
+    const { user_id, device_type, device_os, device_token, permission_status, noti_set } = prismaData;
 
     return this.prisma.notificationInfo.upsert({
       where: {
@@ -153,7 +153,7 @@ export class NotificationService extends BaseService<
         noti_email: 1,
         noti_auction: 1,
         noti_favorite: 1,
-        noti_set: { topics: ['all'] },
+        noti_set,
       },
     });
   }
@@ -165,6 +165,7 @@ export class NotificationService extends BaseService<
     // 토픽이 비어있으면 'all'을 기본값으로 설정
     if (noti_set && Array.isArray(noti_set.topics) && noti_set.topics.length === 0) {
       noti_set.topics = ['all'];
+      noti_set.user_type = 'HOSPITAL';
     }
 
     return this.prisma.notificationInfo.upsert({
@@ -193,7 +194,7 @@ export class NotificationService extends BaseService<
         noti_email: 1,
         noti_auction: 1,
         noti_favorite: 1,
-        noti_set: noti_set || { topics: ['all'] },
+        noti_set: noti_set || { topics: ['all'], user_type: 'HOSPITAL' },
       },
     });
   }

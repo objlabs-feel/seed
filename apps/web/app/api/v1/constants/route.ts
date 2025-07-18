@@ -16,15 +16,35 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
 
     const [departments, deviceTypes, manufacturers] = await Promise.all([
       departmentService.findMany({
+        where: {
+          status: 1,
+          deviceTypes: {
+            some: {
+              status: 1,
+            },
+          },
+        },
         select: {
           id: true,
           name: true,
           code: true,
           sort_key: true,
-          deviceTypes: true,
+          deviceTypes: {
+            select: {
+              device_type_id: true,
+              sort_key: true,
+              status: true,
+              deviceType: {
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
+            },
+          },
         },
         orderBy: {
-          name: 'desc',
+          sort_key: 'asc',
         }
       }),
       deviceTypeService.findMany({
@@ -35,7 +55,7 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
           sort_key: true,
         },
         orderBy: {
-          name: 'desc',
+          sort_key: 'asc',
         },
       }),
       manufacturerService.findMany({
@@ -50,16 +70,22 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
     ]);
 
     // BigInt 또는 number를 string으로 변환
-    const stringifyId = (item: { id: bigint | number, [key: string]: any }) => ({
-      ...item,
-      id: item.id.toString(),
-    });
+    // const stringifyId = (item: { id: bigint | number, [key: string]: any }) => ({
+    //   ...item,
+    //   id: item.id.toString(),
+    // });
 
     // console.log('Response data:', {
     //   departments: departments.map(stringifyId),
     //   deviceTypes: deviceTypes.map(stringifyId),
     //   manufacturers: manufacturers.map(stringifyId),
     // });
+
+    console.log('Response data:', {
+      departments: departments,
+      deviceTypes: deviceTypes,
+      manufacturers: manufacturers,
+    });
 
     return {
       success: true,

@@ -19,6 +19,8 @@ export interface CreateAuctionItemRequestDto extends BaseRequestDto {
   manufacture_date?: string;
   description?: string;
   images?: string[];
+  area?: string;
+  deposit_confirm?: number;
 }
 
 /**
@@ -45,6 +47,8 @@ export interface UpdateAuctionItemRequestDto extends BaseRequestDto {
   manufacture_date?: string;
   description?: string;
   images?: string[];
+  area?: string;
+  deposit_confirm?: number;
 }
 
 /**
@@ -64,6 +68,7 @@ export interface AuctionItemResponseDto extends BaseResponseDto {
   auction_timeout?: string | null;
   visit_date?: string | null;
   visit_time?: string | null;
+  deposit_confirm?: number | null;
   device?: {
     id: string;
     company_id?: string | null;
@@ -71,7 +76,10 @@ export interface AuctionItemResponseDto extends BaseResponseDto {
     device_type_id?: number | null;
     manufacturer_id?: number | null;
     manufacture_date?: string | null;
-    images?: string[];
+    images?: {
+      id: string;
+      url: string;
+    }[];
     description?: string | null;
     department?: {
       id: string;
@@ -108,6 +116,7 @@ export interface AuctionItemListDto extends BaseDto {
   visit_date?: string | null;
   visit_time?: string | null;
   description?: string | null;
+  deposit_confirm?: number | null;
   device?: {
     id: string;
     company_id?: string | null;
@@ -115,7 +124,10 @@ export interface AuctionItemListDto extends BaseDto {
     device_type_id?: number | null;
     manufacturer_id?: number | null;
     manufacture_date?: string | null;
-    images?: string[];
+    images?: {
+      id: string;
+      url: string;
+    }[];
     description?: string | null;
     company?: {
       id: string;

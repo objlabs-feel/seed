@@ -5,7 +5,7 @@ import { authenticateUser } from '@/libs/auth';
 import { createApiResponse, withApiHandler } from '@/libs/api-utils';
 import { createSystemError } from '@/libs/errors';
 import type { ApiResponse } from '@/types/api';
-import { toSaleItemResponseDto, toSaleItemListDtoArray } from '@repo/shared';
+import { toSaleItemResponseDto, toSaleItemListDtoArray, AuctionStatus } from '@repo/shared';
 import { sendBroadcastNotification } from '@/libs/notification';
 
 // GET 요청 핸들러 (목록 조회 및 검색)
@@ -23,27 +23,38 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
     const page = parseInt(searchParams.get('page') || '1');
     const limit = parseInt(searchParams.get('limit') || '10');
     const keyword = searchParams.get('keyword') || '';
+    const area = searchParams.get('area') || '';
     const department_id = searchParams.get('department_id') ? parseInt(searchParams.get('department_id')!) : undefined;
     const device_type_id = searchParams.get('device_type_id') ? parseInt(searchParams.get('device_type_id')!) : undefined;
     const manufacturer_id = searchParams.get('manufacturer_id') ? parseInt(searchParams.get('manufacturer_id')!) : undefined;
     const sales_type = searchParams.get('sales_type') ? parseInt(searchParams.get('sales_type')!) : '1';
     const status = searchParams.get('status') ? parseInt(searchParams.get('status')!) : '1';
 
+    console.log('searchParams', searchParams);
+
     const result = await saleItemService.findWithPagination({
       page: Number(page),
       limit: Number(limit),
       where: {
-        ...(keyword && {
-          OR: [
-            { name: { contains: keyword } },
-            { description: { contains: keyword } },
-          ],
-        }),
-        ...(department_id && { department_id: Number(department_id) }),
-        ...(device_type_id && { device_type_id: Number(device_type_id) }),
-        ...(manufacturer_id && { manufacturer_id: Number(manufacturer_id) }),
         ...(sales_type && { sales_type: Number(sales_type) }),
         ...(status && { status: Number(status) }),
+        // item 검색 조건들 (Raw Query로 처리됨)
+        item: {
+          ...(keyword && {
+            OR: [
+              { name: { contains: keyword } },
+              { description: { contains: keyword } },
+            ],
+          }),
+          ...(department_id && { department_id: Number(department_id) }),
+          ...(device_type_id && { device_type_id: Number(device_type_id) }),
+          ...(manufacturer_id && { manufacturer_id: Number(manufacturer_id) }),
+          ...(area && { area: area }),
+          // item.status 필터링 (AUCTION 타입일 때만 적용)
+          ...(sales_type === 1 && {
+            status: { gt: AuctionStatus.INACTIVE, lt: AuctionStatus.COMPLETED }
+          })
+        }
       },
       orderBy: { updated_at: 'desc' },
     });
@@ -94,7 +105,7 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
     if (saleItem.salesType?.code === 'AUCTION') {
       // 이용자별 푸시발송 메세지 생성
       const title = `새로운 [${saleItem.item?.device?.deviceType?.name}]이 등록되었습니다.`;
-      const message = `[경매번호: ${saleItem.item?.auction_code}]`;
+      const message = `[경매번호: ${(saleItem.item as any)?.auction_code}]`;
       const data = {
         type: saleItem.salesType?.code as 'AUCTION',
         screen: 'AuctionDetail',

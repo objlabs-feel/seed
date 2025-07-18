@@ -24,17 +24,18 @@ const formatDate = (date: Date) => {
 const AuctionRegistrationScreen = ({ navigation }: { navigation: any }) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    location: locations[0]?.id || '',  // 첫 번째 지역
+    // location: locations[0]?.id || '',  // 첫 번째 지역
     hospitalName: '',
     name: '',
     phone: '',
     department: departments[0]?.id || '',  // 첫 번째 진료과
-    equipmentType: deviceTypes[0]?.id || '',  // 첫 번째 장비 유형
+    equipmentType: departments[0]?.deviceTypes?.[0]?.device_type_id || '',  // 첫 번째 장비 유형
     manufacturer: manufacturers[0]?.id || '',  // 첫 번째 제조사
     manufacturingYear: '',
     quantity: '1',  // 수량 기본값 1
     transferDate: new Date(),  // 오늘 날짜로 기본값 설정
     sales_type: 1,
+    area: locations[0]?.name || '',
     status: 1,
     description: '',
     images: []
@@ -46,7 +47,7 @@ const AuctionRegistrationScreen = ({ navigation }: { navigation: any }) => {
 
     switch (step) {
       case 1:
-        if (!formData.location) newErrors.location = '지역을 선택해주세요';
+        if (!formData.area) newErrors.area = '지역을 선택해주세요';
         if (!formData.department) newErrors.department = '진료과를 선택해주세요';
         if (!formData.equipmentType) newErrors.equipmentType = '장비 유형을 선택해주세요';
         if (!formData.quantity) newErrors.quantity = '수량을 입력해주세요';
@@ -81,14 +82,14 @@ const AuctionRegistrationScreen = ({ navigation }: { navigation: any }) => {
         status: formData.status,
         name: formData.name,
         phone: formData.phone,
-        hospitalName: formData.hospitalName,
-        location: formData.location,
+        hospitalName: formData.hospitalName,        
         department_id: formData.department,
         device_type_id: formData.equipmentType,
         manufacturer_id: formData.manufacturer,
         manufacture_date: formData.manufacturingYear,
         description: formData.description,
         images: formData.images,
+        area: formData.area,
       });
       console.log(response);
       Alert.alert('성공', '경매가 등록되었습니다.', [

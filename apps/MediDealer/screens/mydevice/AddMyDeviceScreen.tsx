@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { locations, departments, deviceTypes, manufacturers, initConstants, isConstantsInitialized } from '../../constants/data';
 import ImageUploader from '../../components/common/ImageUploader';
 import SelectionModal from '../../components/auction/SelectionModal';
-import { setProduct } from '../../services/medidealer/api';
+import { setMyDevice } from '../../services/medidealer/api';
 
 // 날짜 포맷팅 함수
 const formatDate = (date: Date) => {
@@ -13,7 +13,7 @@ const formatDate = (date: Date) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
-const AddProductScreen = ({ navigation }: { navigation: any }) => {
+const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
   const [formData, setFormData] = useState({
     // 병원/업체 정보
     location: locations[0]?.id || '',
@@ -153,7 +153,7 @@ const AddProductScreen = ({ navigation }: { navigation: any }) => {
 
     try {
       setSubmitting(true);
-      const response = await setProduct(formData);
+      const response = await setMyDevice(formData);
       console.log('의료기 등록 성공:', response);
       Alert.alert('성공', '의료기가 등록되었습니다.', [
         {
@@ -624,4 +624,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default AddProductScreen;
+export default AddMyDeviceScreen;

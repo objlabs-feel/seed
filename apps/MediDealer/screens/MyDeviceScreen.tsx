@@ -4,23 +4,23 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useNavigation, ParamListBase, useFocusEffect } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { getMyDevices, getConstants } from '../services/medidealer/api';
-import { IMedicalDevice } from '@repo/shared';
+import { UsedDevice } from '@repo/shared';
 import { processImageUrl, createImageSource } from '../utils/imageHelper';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 
 // MyDevice 인터페이스를 IMedicalDevice 기반으로 정의
-interface MyDevice extends IMedicalDevice {
+interface MyDevice extends UsedDevice {
   // 필요한 추가 필드가 있으면 여기에 정의
 }
 
 interface Pagination {
   page: number;
   limit: number;
-  totalCount: number;
+  total: number;
   totalPages: number;
-  hasNextPage: boolean;
-  hasPrevPage: boolean;
+  hasNext: boolean;
+  hasPrev: boolean;
 }
 
 interface FilterOption {
@@ -179,10 +179,10 @@ const MyDeviceScreen = () => {
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 10,
-    totalCount: 0,
+    total: 0,
     totalPages: 0,
-    hasNextPage: false,
-    hasPrevPage: false,
+    hasNext: false,
+    hasPrev: false,
   });
 
   // 마지막 데이터 업데이트 시간
@@ -314,10 +314,10 @@ const MyDeviceScreen = () => {
   // 상수 데이터(필터 옵션) 가져오기
   const fetchConstants = async () => {
     try {
-      const response = await getConstants();
-      setDeviceTypes(response.deviceTypes || []);
-      setDepartments(response.departments || []);
-      setManufacturers(response.manufacturers || []);
+      // const response = await getConstants();
+      setDeviceTypes(deviceTypes || []);
+      setDepartments(departments || []);
+      setManufacturers(manufacturers || []);
     } catch (err) {
       console.error('상수 데이터 조회 오류:', err);
     }
@@ -377,13 +377,13 @@ const MyDeviceScreen = () => {
         setDevices(processedData || []);
       }
       
-      setPagination(response.pagination || {
+      setPagination(response.meta?.pagination || {
         page: page,
         limit: pagination.limit,
-        totalCount: 0,
+        total: 0,
         totalPages: 0,
-        hasNextPage: false,
-        hasPrevPage: false,
+        hasNext: false,
+        hasPrev: false,
       });
       
       // 마지막 업데이트 시간 설정
@@ -421,15 +421,15 @@ const MyDeviceScreen = () => {
 
   // 다음 페이지 로드
   const loadNextPage = () => {
-    if (pagination.hasNextPage && !loading) {
+    if (pagination.hasNext && !loading) {
       fetchMyDevices(pagination.page + 1, true);
     }
   };
 
   const getStatusText = (status: number) => {
     switch (status) {
-      case 0: return '정상';
-      case 1: return '수리중';
+      case 0: return '고장';
+      case 1: return '정상';
       case 2: return '폐기';
       default: return '알 수 없음';
     }
@@ -437,8 +437,8 @@ const MyDeviceScreen = () => {
 
   const getStatusColor = (status: number) => {
     switch (status) {
-      case 0: return '#28a745'; // 초록
-      case 1: return '#ffc107'; // 노랑
+      case 0: return '#ffc107'; // 초록
+      case 1: return '#28a745'; // 노랑
       case 2: return '#dc3545'; // 빨강
       default: return '#6c757d'; // 회색
     }
@@ -449,6 +449,7 @@ const MyDeviceScreen = () => {
 
   // renderDevice 함수 메모이제이션
   const renderDevice = useCallback(({ item }: { item: any }) => {
+    console.log(item);
     return (
       <TouchableOpacity 
         style={styles.deviceItem}
@@ -462,16 +463,16 @@ const MyDeviceScreen = () => {
         </View>
         
         <View style={styles.deviceInfo}>
-          <Text style={styles.deviceName} numberOfLines={1} ellipsizeMode="tail">{item.name}</Text>
-          <Text style={styles.deviceModel} numberOfLines={1} ellipsizeMode="tail">
-            {item.manufacturer?.name} {item.model}
-          </Text>
+          <Text style={styles.deviceName} numberOfLines={1} ellipsizeMode="tail">{item.department?.name}</Text>          
           <Text style={styles.deviceCategory} numberOfLines={1} ellipsizeMode="tail">
-            {item.deviceType?.name} • {item.department?.name}
+            {item.deviceType?.name}
           </Text>
-          <Text style={styles.devicePurchaseDate}>구입일: {item.purchase_date}</Text>
+          <Text style={styles.deviceModel} numberOfLines={1} ellipsizeMode="tail">
+            {item.manufacturer?.name}
+          </Text>
+          {/* <Text style={styles.devicePurchaseDate}>구입일: {item.purchase_date} • </Text> */}
           
-          {__DEV__ && <DebugInfo item={item} />}
+          {/* {__DEV__ && <DebugInfo item={item} />} */}
         </View>
       </TouchableOpacity>
     );
@@ -501,7 +502,7 @@ const MyDeviceScreen = () => {
       );
     } 
     
-    if (pagination.hasNextPage) {
+    if (pagination.hasNext) {
       return (
         <TouchableOpacity 
           style={styles.loadMoreButton}
@@ -517,7 +518,7 @@ const MyDeviceScreen = () => {
     }
     
     return null;
-  }, [loading, devices.length, pagination.hasNextPage, loadNextPage]);
+  }, [loading, devices.length, pagination.hasNext, loadNextPage]);
 
   // 필터 모달
   const renderFilterModal = () => (
@@ -532,30 +533,7 @@ const MyDeviceScreen = () => {
           <Text style={styles.modalTitle}>필터 선택</Text>
           
           <ScrollView style={styles.filterOptions}>
-            <Text style={styles.filterSectionTitle}>장비 유형</Text>
-            <View style={styles.filterOptionsList}>
-              {deviceTypes.map(type => (
-                <TouchableOpacity
-                  key={`type-${type.id}`}
-                  style={[
-                    styles.filterOption,
-                    selectedDeviceTypeId === type.id && styles.filterOptionSelected
-                  ]}
-                  onPress={() => setSelectedDeviceTypeId(
-                    selectedDeviceTypeId === type.id ? undefined : type.id
-                  )}
-                >
-                  <Text style={[
-                    styles.filterOptionText,
-                    selectedDeviceTypeId === type.id && styles.filterOptionTextSelected
-                  ]}>
-                    {type.name}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-            
-            <Text style={styles.filterSectionTitle}>부서</Text>
+            <Text style={styles.filterSectionTitle}>진료과</Text>
             <View style={styles.filterOptionsList}>
               {departments.map(dept => (
                 <TouchableOpacity
@@ -577,6 +555,29 @@ const MyDeviceScreen = () => {
                 </TouchableOpacity>
               ))}
             </View>
+
+            <Text style={styles.filterSectionTitle}>장비 유형</Text>
+            <View style={styles.filterOptionsList}>
+              {deviceTypes.map(type => (
+                <TouchableOpacity
+                  key={`type-${type.id}`}
+                  style={[
+                    styles.filterOption,
+                    selectedDeviceTypeId === type.id && styles.filterOptionSelected
+                  ]}
+                  onPress={() => setSelectedDeviceTypeId(
+                    selectedDeviceTypeId === type.id ? undefined : type.id
+                  )}
+                >
+                  <Text style={[
+                    styles.filterOptionText,
+                    selectedDeviceTypeId === type.id && styles.filterOptionTextSelected
+                  ]}>
+                    {type.name}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>            
             
             <Text style={styles.filterSectionTitle}>제조사</Text>
             <View style={styles.filterOptionsList}>
@@ -638,9 +639,9 @@ const MyDeviceScreen = () => {
         
         {/* 총 아이템 수 표시 */}
         {devices.length > 0 && (
-          <Text style={styles.totalCountText}>
-            총 {pagination.totalCount}개 중 {devices.length}개 표시 중
-          </Text>
+                      <Text style={styles.totalCountText}>
+              총 {pagination.total}개 중 {devices.length}개 표시 중
+            </Text>
         )}
       </View>
       

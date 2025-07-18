@@ -22,6 +22,8 @@ export interface CreateUserRequestDto extends BaseRequestDto {
 export interface UpdateUserRequestDto extends BaseRequestDto {
   device_token?: string;
   profile_id?: string;
+  profile_type?: number;
+  company_id?: string;
   status?: number;
 }
 

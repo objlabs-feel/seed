@@ -152,6 +152,8 @@ export class UsedDeviceService extends BaseService<UsedDevice, CreateUsedDeviceR
       this.prisma.usedDevice.count({ where }),
     ]);
 
+    console.log(data);
+
     return this.createPaginationResult(data, total, page, limit);
   }
 } 

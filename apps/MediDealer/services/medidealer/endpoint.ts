@@ -10,6 +10,6 @@ export const ENDPOINTS = {
   SALES_ITEM: '/saleitems',
   COMPANY_LIST: '/companies',
   NOTIFICATION: '/notifications',
-  MY_DEVICES: '/products',
+  MY_DEVICES: '/users/me/devices',
   USER: '/users',
 };

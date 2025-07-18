@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 import { authenticateUser } from '@/libs/auth';
-import { notificationService } from '@repo/shared/services';
-import { toNotificationInfoResponseDto, toNotificationInfoListDtoArray } from '@repo/shared/transformers';
+import { notificationService, userService } from '@repo/shared/services';
+import { toNotificationInfoResponseDto, toNotificationInfoListDtoArray, toUserResponseDto } from '@repo/shared/transformers';
 import { CreateNotificationInfoRequestDto, UpdateNotificationInfoRequestDto } from '@repo/shared/dto';
 import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-utils';
 import type { ApiResponse } from '@/types/api';
+import { createBusinessError } from '@/libs/errors';
 
 // GET: 사용자의 모든 알림 설정 조회
 export async function GET(request: Request) {
@@ -19,7 +20,20 @@ export async function GET(request: Request) {
       where: { user_id: BigInt(userId) }, // findMany는 toPrismaData를 안 거치므로 BigInt 변환 필요
     });
 
-    return NextResponse.json(toNotificationInfoListDtoArray(notificationInfos));
+    const user = await userService.findById(userId);
+
+    if (!user) {
+      throw createBusinessError('NOT_FOUND', 'User not found');
+    }
+
+    const result = {
+      notification_info: toNotificationInfoListDtoArray(notificationInfos),
+      user: toUserResponseDto(user),
+    };
+
+    console.log(result);
+
+    return NextResponse.json(result);
   } catch (error) {
     console.error('Error fetching notification info:', error);
     return NextResponse.json({ error: '알림 설정 조회 중 오류가 발생했습니다.' }, { status: 500 });
@@ -41,8 +55,14 @@ export async function POST(request: Request) {
       user_id: userId,
     };
     const notificationInfo = await notificationService.registerDevice(createData);
+    const user = await userService.update(userId, {
+      profile_type: body.profile_type,
+    });
 
-    return NextResponse.json(toNotificationInfoResponseDto(notificationInfo));
+    return NextResponse.json({
+      notification_info: toNotificationInfoResponseDto(notificationInfo),
+      user: toUserResponseDto(user),
+    });
   } catch (error) {
     console.error('Error updating notification info:', error);
     return NextResponse.json({ error: '알림 설정 업데이트 중 오류가 발생했습니다.' }, { status: 500 });
@@ -64,8 +84,14 @@ export async function PUT(request: Request) {
       user_id: userId,
     };
     const notificationInfo = await notificationService.updateSettings(updateData);
+    const user = await userService.update(userId, {
+      profile_type: body.profile_type,
+    });
 
-    return NextResponse.json(toNotificationInfoResponseDto(notificationInfo));
+    return NextResponse.json({
+      notification_info: toNotificationInfoResponseDto(notificationInfo),
+      user: toUserResponseDto(user),
+    });
   } catch (error) {
     console.error('Error updating notification settings:', error);
     return NextResponse.json({ error: '알림 설정 업데이트 중 오류가 발생했습니다.' }, { status: 500 });

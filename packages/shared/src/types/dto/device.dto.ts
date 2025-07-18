@@ -1,4 +1,5 @@
 import { BaseRequestDto, BaseResponseDto, SearchRequestDto } from './common.dto';
+import { CompanyResponseDto } from './company.dto';
 
 /**
  * 기기 타입 생성 요청 DTO
@@ -220,6 +221,7 @@ export interface UsedDeviceResponseDto extends BaseResponseDto {
   company?: {
     id: string;
     name?: string | null;
+    area?: string | null;
   };
   department?: DepartmentResponseDto;
   deviceType?: DeviceTypeResponseDto;
@@ -240,6 +242,10 @@ export interface UsedDeviceListDto {
   status: number;
   created_at?: string | null;
   updated_at?: string | null;
+  company?: CompanyResponseDto;
+  department?: DepartmentResponseDto;
+  deviceType?: DeviceTypeResponseDto;
+  manufacturer?: ManufacturerResponseDto;
 }
 
 /**

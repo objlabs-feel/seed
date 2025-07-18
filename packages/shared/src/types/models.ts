@@ -314,6 +314,8 @@ export interface AuctionItem extends BaseModel {
   visit_date?: Date | null;
   visit_time?: string | null;
   description?: string | null;
+  // 입금확인 여부 ( 0: 미확인, 1: 확인 )
+  deposit_confirm?: number | null;
 
   // 관계형 필드
   device?: UsedDevice;

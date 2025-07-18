@@ -108,6 +108,20 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
     console.log('data.manufacturer_id', data.manufacturer_id);
     console.log('data.manufacture_date', data.manufacture_date);
     console.log('data.description', data.description);
+    console.log('data.area', data.area);
+    console.log('data.images', data.images);
+    console.log('data.status', data.status);
+    console.log('data.start_timestamp', data.start_timestamp);
+    console.log('data.auction_timeout', data.auction_timeout);
+    console.log('data.visit_date', data.visit_date);
+    console.log('data.visit_time', data.visit_time);
+
+    if (data.area && data.area !== '' && data.area !== company.area) {
+      const companyUpdate = await getServices().companyService.update(company.id.toString(), {
+        area: data.area,
+      });
+      console.log('companyUpdate', companyUpdate);
+    }
 
     return this.prisma.$transaction(async (tx: any) => {
       const usedDevice = await tx.usedDevice.create({

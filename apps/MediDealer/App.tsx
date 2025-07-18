@@ -55,9 +55,9 @@ import MyDeviceScreen from './screens/MyDeviceScreen';
 import MyConsultScreen from './screens/MyConsultScreen';
 import SettingNotificationScreen from './screens/SettingNotificationScreen';
 import SettingsScreen from './screens/SettingsScreen';
-import ProductDetailScreen from './screens/product/ProductDetailScreen';
-import AddProductScreen from './screens/product/AddProductScreen';
-import EditProductScreen from './screens/product/EditProductScreen';
+import ProductDetailScreen from './screens/mydevice/MyDeviceDetailScreen';
+import AddProductScreen from './screens/mydevice/AddMyDeviceScreen';
+import EditProductScreen from './screens/mydevice/EditMyDeviceScreen';
 import ConsultFeatureScreen from './screens/consult/ConsultFeatureScreen';
 import ConsultClosureScreen from './screens/consult/ConsultClosureScreen';
 import ConsultOpeningScreen from './screens/consult/ConsultOpeningScreen';
@@ -385,7 +385,8 @@ const App = () => {
             component={AuctionRegistrationScreen}
             options={{ 
               headerShown: true,
-              title: '팔기'
+              title: '판매하기',
+              headerBackTitle: '뒤로',
             }} 
           />
           <Stack.Screen 
@@ -393,7 +394,7 @@ const App = () => {
             component={AuctionSearchScreen}
             options={{
               headerShown: true,
-              title: '사기',
+              title: '구매하기',
               headerBackTitle: '뒤로',
             }}
           />
