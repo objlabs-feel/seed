@@ -28,6 +28,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { enableScreens } from 'react-native-screens';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { WebView } from 'react-native-webview';
 import AuctionRegistrationScreen from './screens/AuctionRegistrationScreen';
 import AntDesign from 'react-native-vector-icons/AntDesign';
 import IconTestScreen from './screens/IconTestScreen';
@@ -206,17 +207,35 @@ const UserAgreementScreen = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ flex: 1, padding: 20 }}>
-        <Text style={{ fontSize: 20, fontWeight: 'bold' }}>이용자 약관</Text>
-        <Text style={{ marginTop: 20 }}>
-          여기에 약관 내용이 들어갑니다...
-        </Text>
+    <SafeAreaView style={{ flex: 1 }}>
+      <View style={{ flex: 1 }}>
+        <WebView 
+          source={{ uri: 'https://medidealer.co.kr/agreement/privacy' }}
+          style={{ flex: 1 }}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+          startInLoadingState={true}
+          scalesPageToFit={true}
+        />      
       </View>
-      <View style={{ padding: 20, alignItems: 'center' }}>
-        <Button title="동의하기" onPress={handleAgree} />
+      <View style={{ height: 80, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
+        <TouchableOpacity 
+          style={{ 
+            backgroundColor: '#007bff', 
+            paddingVertical: 12, 
+            paddingHorizontal: 20, 
+            borderRadius: 6,
+            width: '90%',
+            alignItems: 'center'
+          }}
+          onPress={handleAgree}
+        >
+          <Text style={{ color: 'white', fontSize: 16, fontWeight: '500' }}>
+            개인정보이용 약관 및 서비스 이용약관 동의하기
+          </Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </SafeAreaView>    
   );
 };
 

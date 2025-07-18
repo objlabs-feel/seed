@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
-import { getAuctionCompleteForBuyer, getAuctionConfirmForBuyer, getAuctionDetail, setAuctionBidAcceptForBuyer, setAuctionContactForBuyer } from '../services/medidealer/api';
+import { getAuctionCompleteForBuyer, getAuctionConfirmForBuyer, getAuctionDetail, getMyProfile, setAuctionBidAcceptForBuyer, setAuctionContactForBuyer } from '../services/medidealer/api';
 import StepIndicator from '../components/auction/StepIndicator';
 import NavigationButtons from '../components/auction/NavigationButtons';
 import { WebView } from 'react-native-webview';
@@ -111,7 +111,7 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
         console.log('step2', scheduleData);
         const data = await setAuctionContactForBuyer(auctionId, scheduleData);
         setStep(prev => prev + 1);
-      } else if (step === 3) {        
+      } else if (step === 4) {        
         const data = await getAuctionConfirmForBuyer(auctionId);
         setStep(prev => prev + 1);
       }
@@ -126,8 +126,8 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
 
   const handleComplete = async () => {
     try {
-      const data = await getAuctionCompleteForBuyer(auctionId);
-      console.log('data', data);
+      // const data = await getAuctionCompleteForBuyer(auctionId);
+      // console.log('data', data);
       navigation.goBack();
     } catch (error) {
       console.error('양도 완료 처리 중 오류:', error);
@@ -158,7 +158,21 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
     const fetchAuctionDetail = async () => {
       try {
         const { data } = await getAuctionDetail(auctionId);
+        const { data: profile } = await getMyProfile();
         console.log('data', data);
+        console.log('profile', profile);
+
+        setFormData({
+          companyName: profile?.profile?.company?.name || '',
+          address: profile?.profile?.company?.address || '',
+          addressDetail: profile?.profile?.company?.address_detail || '',
+          zipCode: profile?.profile?.company?.zipcode || '',
+          ownerName: profile?.profile?.name || '',
+          ownerEmail: profile?.profile?.email || '',
+          ownerMobile: profile?.profile?.mobile || '',
+          businessNo: profile?.profile?.company?.business_no || '',
+        });
+
         const bidAccept = data.item.auction_item_history.filter((bid: AuctionItemHistoryResponseDto) => bid.id === data.item.accept_id);
         setCurrentUserId(data.item.device.company.owner_id);
         setAuctionDetail(data.item);
@@ -192,9 +206,9 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>입금 정보</Text>
               <Text style={styles.infoText}>입금액: {bidAmount.toLocaleString()}원</Text>
-              <Text style={styles.infoText}>입금은행: 하나은행</Text>
-              <Text style={styles.infoText}>계좌번호: 000-0000000-00000</Text>
-              <Text style={styles.infoText}>예금주: 주식회사 메디딜러</Text>
+              <Text style={styles.infoText}>입금은행: 국민은행</Text>
+              <Text style={styles.infoText}>계좌번호: 944-2357-3742</Text>
+              <Text style={styles.infoText}>예금주: 주)메디딜러</Text>
             </View>
             <View style={styles.inputGroup}>
               <TextInput
@@ -296,9 +310,9 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>입금 정보</Text>
               <Text style={styles.infoText}>입금액: {bidAmount.toLocaleString()}원</Text>
-              <Text style={styles.infoText}>입금은행: 하나은행</Text>
-              <Text style={styles.infoText}>계좌번호: 000-0000000-00000</Text>
-              <Text style={styles.infoText}>예금주: 주식회사 메디딜러</Text>
+              <Text style={styles.infoText}>입금은행: 국민은행</Text>
+              <Text style={styles.infoText}>계좌번호: 944-2357-3742</Text>
+              <Text style={styles.infoText}>예금주: 주)메디딜러</Text>
             </View>
             <View style={styles.inputGroup}>
               <TouchableOpacity
@@ -343,7 +357,21 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
       case 3:
         return (
           <View style={styles.stepContent}>
-            <Text style={styles.stepTitle}>Step 3: 확정대기</Text>
+            <Text style={styles.stepTitle}>Step 3: 입금확인 대기</Text>
+            <Text style={styles.infoText}>입금 확인 대기 중입니다...</Text>
+            <View style={styles.infoContainer}>
+              <Text style={styles.infoLabel}>입금 정보</Text>
+              <Text style={styles.infoText}>입금액: {bidAmount.toLocaleString()}원</Text>
+              <Text style={styles.infoText}>입금은행: 국민은행</Text>
+              <Text style={styles.infoText}>계좌번호: 944-2357-3742</Text>
+              <Text style={styles.infoText}>예금주: 주)메디딜러</Text>
+            </View>
+          </View>
+        );
+      case 4:
+        return (
+          <View style={styles.stepContent}>
+            <Text style={styles.stepTitle}>Step 4: 양도진행</Text>
             {auctionDetail?.seller_steps === 2 && (
             <View style={styles.infoContainer}>
               <Text style={styles.infoLabel}>판매자 방문일정 확인</Text>
@@ -374,7 +402,7 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
             </View>            
           </View>
         );
-      case 4:
+      case 5:
         return (
           <View style={styles.stepContent}>
             <Text style={styles.stepTitle}>Step 4: 인도완료</Text>
@@ -392,19 +420,19 @@ const AuctionBidAcceptScreen: React.FC<AuctionBidAcceptScreenProps> = ({ route, 
 
   return (
     <View style={styles.container}>
-      <StepIndicator currentStep={step} totalSteps={4} />
+      <StepIndicator currentStep={step} totalSteps={5} />
       <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollViewContent}>
         {renderStep()}
       </ScrollView>
-      {(step !== 3 || auctionDetail?.seller_steps !== 2) && (
+      {(step !== 3) && (
       <NavigationButtons
         currentStep={step}
-        totalSteps={4}
+        totalSteps={5}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onSubmit={handleComplete}
         prevText="이전"
-        nextText={step !== 3 ? "다음" : "양수 완료"}
+        nextText={step !== 4 ? "다음" : "양수 완료"}
         submitText="완료"
         canReverse={false}
       />)}

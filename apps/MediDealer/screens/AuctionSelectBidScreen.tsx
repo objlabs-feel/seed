@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, Button, ActivityIndicator, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { getAuctionCompleteForSeller, getAuctionDetail, setAuctionSelectBidForSeller, setAuctionContactForSeller } from '../services/medidealer/api';
+import { getAuctionCompleteForSeller, getAuctionDetail, setAuctionSelectBidForSeller, setAuctionContactForSeller, getMyProfile } from '../services/medidealer/api';
 import StepIndicator from '../components/auction/StepIndicator';
 import NavigationButtons from '../components/auction/NavigationButtons';
 import SelectionModal from '../components/auction/SelectionModal';
@@ -47,6 +47,10 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
     { id: '023', name: 'SC제일은행' },
     { id: '089', name: '케이뱅크' },
     { id: '090', name: '카카오뱅크' },
+    { id: '003', name: 'IBK기업은행' },
+    { id: '007', name: 'NH농협은행' },
+    { id: '004', name: 'KB국민은행' },
+    { id: '005', name: 'MG새마을금고' },
     // ... 필요한 은행 추가
   ]);
   const [highestBid, setHighestBid] = useState(0);
@@ -155,23 +159,25 @@ const AuctionSelectBidScreen: React.FC<AuctionSelectBidScreenProps> = ({ route, 
     const fetchAuctionDetail = async () => {
       try {
         const { data } = await getAuctionDetail(auctionId);
+        const { data: profile } = await getMyProfile();
         console.log('data', data.data);
+        console.log('profile', profile.profile);
         setCurrentUserId(data.item.device.company.owner_id);
         setAuctionItem(data.item);
         setAuctionHistory(data.item.auction_item_history);
         setFormData({
           ...formData,
-          companyName: data.item.device.company.name || '',
-          address: data.item.device.company.address || '',
-          addressDetail: data.item.device.company.address_detail || '',
-          zipCode: data.item.device.company.zipcode || '',
-          ownerName: data.item.device.company.profile?.name || '',
-          ownerEmail: data.item.device.company.profile?.email || '',
-          ownerMobile: data.item.device.company.business_mobile || '',
-          businessNo: data.item.device.company.business_no || '',
-          bankHolder: data.item.device.company.secret_info?.bankHolder || '',
-          bankAccount: data.item.device.company.secret_info?.bankAccount || '',
-          bankCode: data.item.device.company.secret_info?.bankCode || '',
+          companyName: profile?.profile?.company?.name || '',
+          address: profile?.profile?.company?.address || '',
+          addressDetail: profile?.profile?.company?.address_detail || '',
+          zipCode: profile?.profile?.company?.zipcode || '',
+          ownerName: profile?.profile?.name || '',
+          ownerEmail: profile?.profile?.email || '',
+          ownerMobile: profile?.profile?.mobile || '',
+          businessNo: profile?.profile?.company?.business_no || '',
+          bankHolder: profile?.profile?.company?.secret_info?.bankHolder || '',
+          bankAccount: profile?.profile?.company?.secret_info?.bankAccount || '',
+          bankCode: profile?.profile?.company?.secret_info?.bankCode || '',
         });
         setStep(data.item.seller_steps || 1);        
       } catch (error) {

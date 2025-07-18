@@ -17,6 +17,7 @@ export async function POST(
     if ('error' in auth) {
       return NextResponse.json({ error: auth.error }, { status: auth.status });
     }
+    console.log('auth', auth);
 
     // 2. 현재 상태 확인
     const auctionItem = await auctionItemService.findById(params.id);
@@ -28,7 +29,7 @@ export async function POST(
       return NextResponse.json({ error: '경매 상품이 낙찰 상태가 아닙니다.' }, { status: 400 });
     }
 
-    if (auctionItem.buyer_steps !== 3 || auctionItem.seller_steps !== 3) {
+    if (auctionItem.buyer_steps !== 4 || auctionItem.seller_steps !== 3) {
       return NextResponse.json({ error: '경매 상품이 입금확인 상태가 아닙니다.' }, { status: 400 });
     }
 
@@ -42,7 +43,7 @@ export async function POST(
     const updatedAuctionItem = await auctionItemService.update(params.id, {
       status: AuctionStatus.COMPLETED,
       seller_steps: 4,
-      buyer_steps: 4,
+      buyer_steps: 5,
     });
 
     // 4. 알림 발송

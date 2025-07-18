@@ -16,7 +16,7 @@ export const POST = withApiHandler(async (
   try {
     const auctionItem = await auctionItemService.update(params.id, {
       status: AuctionStatus.SUCCESS_BID,
-      buyer_steps: 3,
+      buyer_steps: 4,
       seller_steps: 3,
     });
 

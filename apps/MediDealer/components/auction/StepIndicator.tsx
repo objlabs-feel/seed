@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   stepLine: {
-    width: 50,
+    width: 25,
     height: 2,
     backgroundColor: '#e9ecef',
     marginHorizontal: 5,
