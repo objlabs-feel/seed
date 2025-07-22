@@ -53,4 +53,4 @@ export function SellerDetail({ saleItem }: SellerDetailProps) {
       </div>
     </div>
   );
-} 
+}

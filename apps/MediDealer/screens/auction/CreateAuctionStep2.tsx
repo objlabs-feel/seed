@@ -19,7 +19,7 @@ const PreviewSection = ({ title, content }: { title: string, content: string }) 
 );
 
 const CreateAuctionStep2 = ({ formData }: { formData: any }) => {
-  const location = locations.find(item => item.id === formData.location)?.name || '';
+  const location = locations.find(item => item.id === formData.area)?.name || '';
   const department = departments.find(item => item.id === formData.department)?.name || '';
   const equipmentType = deviceTypes.find(item => item.id === formData.equipmentType)?.name || '';
 

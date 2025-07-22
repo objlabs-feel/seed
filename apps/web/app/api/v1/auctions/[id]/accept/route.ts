@@ -71,7 +71,7 @@ export async function POST(
         targetId: auctionItem.id.toString(),
         title: title,
         body: messageBody,
-      }
+      };
 
       const notificationMessageList = await notificationMessageService.createMany(targetMemberList.map(info => ({
         user_id: Number(info.user_id),

@@ -33,7 +33,7 @@ export default function TestIndexPage() {
   return (
     <div className="container mx-auto p-8">
       <h1 className="text-3xl font-bold mb-8 text-center text-gray-900 dark:text-white">API 테스트 페이지 목록</h1>
-      
+
       <div className="space-y-10">
         <div>
           <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-gray-800 dark:text-gray-200 dark:border-gray-700">Client APIs</h2>
@@ -43,7 +43,7 @@ export default function TestIndexPage() {
             ))}
           </div>
         </div>
-        
+
         <div>
           <h2 className="text-2xl font-semibold mb-4 border-b pb-2 text-gray-800 dark:text-gray-200 dark:border-gray-700">Admin APIs</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -55,4 +55,4 @@ export default function TestIndexPage() {
       </div>
     </div>
   );
-} 
+}

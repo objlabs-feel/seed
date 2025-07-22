@@ -12,7 +12,7 @@ import type { ApiResponse } from '@/types/api';
  * GET /admin/api/v1/sales-types
  * 판매 유형 목록을 조회합니다.
  */
-export const GET = withApiHandler(async (request: Request): Promise<ApiResponse> => { 
+export const GET = withApiHandler(async (request: Request): Promise<ApiResponse> => {
   try {
     const salesTypes = await salesTypeService.findMany({
       orderBy: { sort_key: 'asc' },

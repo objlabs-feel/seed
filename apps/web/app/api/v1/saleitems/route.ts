@@ -27,8 +27,8 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
     const department_id = searchParams.get('department_id') ? parseInt(searchParams.get('department_id')!) : undefined;
     const device_type_id = searchParams.get('device_type_id') ? parseInt(searchParams.get('device_type_id')!) : undefined;
     const manufacturer_id = searchParams.get('manufacturer_id') ? parseInt(searchParams.get('manufacturer_id')!) : undefined;
-    const sales_type = searchParams.get('sales_type') ? parseInt(searchParams.get('sales_type')!) : '1';
-    const status = searchParams.get('status') ? parseInt(searchParams.get('status')!) : '1';
+    const sales_type = searchParams.get('sales_type') ? parseInt(searchParams.get('sales_type')!) : 1;
+    const status = searchParams.get('status') ? parseInt(searchParams.get('status')!) : 1;
 
     console.log('searchParams', searchParams);
 
@@ -112,7 +112,7 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
         targetId: saleItem.id.toString(),
         title: title,
         body: message,
-      }
+      };
 
       const notificationInfoList = await notificationService.findMany({
         where: {

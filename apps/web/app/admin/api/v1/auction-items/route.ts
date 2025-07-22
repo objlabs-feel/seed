@@ -24,6 +24,8 @@ export async function GET(request: Request) {
       user_id: searchParams.get('user_id') || undefined,
       device_type_id: deviceTypeId ? parseInt(deviceTypeId, 10) : undefined,
       manufacturer_id: manufacturerId ? parseInt(manufacturerId, 10) : undefined,
+      seller_steps: searchParams.get('seller_steps') ? parseInt(searchParams.get('seller_steps')!) : undefined,
+      buyer_steps: searchParams.get('buyer_steps') ? parseInt(searchParams.get('buyer_steps')!) : undefined,
       company_id: searchParams.get('company_id') || undefined,
       start_date: searchParams.get('start_date') || undefined,
       end_date: searchParams.get('end_date') || undefined,

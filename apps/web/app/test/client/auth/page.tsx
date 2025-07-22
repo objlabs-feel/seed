@@ -48,14 +48,14 @@ export default function ClientAuthTestPage() {
     setDeviceToken(newUUID);
     localStorage.setItem('deviceToken', newUUID);
   };
-  
+
   const clearResults = () => {
-      setCheckinResult(null);
-      setCheckoutResult(null);
-      setVerifyResult(null);
-      setUser(null);
-      setJwtToken('');
-  }
+    setCheckinResult(null);
+    setCheckoutResult(null);
+    setVerifyResult(null);
+    setUser(null);
+    setJwtToken('');
+  };
 
   const handleCheckin = async () => {
     if (!deviceToken) {
@@ -73,7 +73,7 @@ export default function ClientAuthTestPage() {
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data.error || 'Check-in failed');
-      
+
       setCheckinResult(data);
       setUser(data.data.user);
       setJwtToken(data.data.token);
@@ -90,52 +90,52 @@ export default function ClientAuthTestPage() {
 
   const handleCheckout = async () => {
     if (!jwtToken) {
-        setCheckoutResult('Error: Not checked in or JWT token is missing.');
-        return;
+      setCheckoutResult('Error: Not checked in or JWT token is missing.');
+      return;
     }
     setLoading(true);
     setCheckoutResult(null);
     setVerifyResult(null);
 
     try {
-        const response = await fetch('/api/v1/auth/checkout', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${jwtToken}` },
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Checkout failed');
+      const response = await fetch('/api/v1/auth/checkout', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${jwtToken}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Checkout failed');
 
-        setCheckoutResult(data);
-        setUser(null);
-        setJwtToken('');
-        localStorage.removeItem('client_token');  // 체크아웃 시 토큰 삭제
+      setCheckoutResult(data);
+      setUser(null);
+      setJwtToken('');
+      localStorage.removeItem('client_token');  // 체크아웃 시 토큰 삭제
     } catch (error) {
-        setCheckoutResult(error instanceof Error ? error.message : 'Unknown error');
+      setCheckoutResult(error instanceof Error ? error.message : 'Unknown error');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
   const handleVerify = async () => {
     if (!jwtToken) {
-        setVerifyResult('Error: Not checked in or JWT token is missing.');
-        return;
+      setVerifyResult('Error: Not checked in or JWT token is missing.');
+      return;
     }
     setLoading(true);
     setVerifyResult(null);
 
     try {
-        const response = await fetch('/api/v1/auth/verify', {
-          headers: { 'Authorization': `Bearer ${jwtToken}` },
-        });
-        const data = await response.json();
-        if (!response.ok) throw new Error(data.error || 'Verify failed');
+      const response = await fetch('/api/v1/auth/verify', {
+        headers: { 'Authorization': `Bearer ${jwtToken}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Verify failed');
 
-        setVerifyResult(data);
+      setVerifyResult(data);
     } catch (error) {
-        setVerifyResult(error instanceof Error ? error.message : 'Unknown error');
+      setVerifyResult(error instanceof Error ? error.message : 'Unknown error');
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -173,7 +173,7 @@ export default function ClientAuthTestPage() {
               </button>
             </div>
           </div>
-          
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <button
               onClick={handleCheckin}
@@ -201,36 +201,36 @@ export default function ClientAuthTestPage() {
 
         {checkinResult && (
           <>
-            <ResultDisplay 
-              type={typeof checkinResult === 'string' ? 'error' : 'info'} 
-              title="Check-in Result:" 
-              data={checkinResult} 
+            <ResultDisplay
+              type={typeof checkinResult === 'string' ? 'error' : 'info'}
+              title="Check-in Result:"
+              data={checkinResult}
             />
             {typeof checkinResult !== 'string' && checkinResult?.data?.token && (
               <div className="flex justify-end -mt-4">
-                  <button
-                      onClick={handleCopyToken}
-                      className="bg-gray-200 text-gray-800 px-3 py-1 text-sm rounded hover:bg-gray-300 disabled:opacity-50"
-                      disabled={copyButtonText === 'Copied!'}
-                  >
-                      {copyButtonText}
-                  </button>
+                <button
+                  onClick={handleCopyToken}
+                  className="bg-gray-200 text-gray-800 px-3 py-1 text-sm rounded hover:bg-gray-300 disabled:opacity-50"
+                  disabled={copyButtonText === 'Copied!'}
+                >
+                  {copyButtonText}
+                </button>
               </div>
             )}
           </>
         )}
 
-        {checkoutResult && <ResultDisplay 
-          type={typeof checkoutResult === 'string' || (checkoutResult && (checkoutResult as any).error) ? 'error' : 'info'} 
-          title="Check-out Result:" 
-          data={checkoutResult} 
+        {checkoutResult && <ResultDisplay
+          type={typeof checkoutResult === 'string' || (checkoutResult && (checkoutResult as any).error) ? 'error' : 'info'}
+          title="Check-out Result:"
+          data={checkoutResult}
         />}
-        {verifyResult && <ResultDisplay 
-          type={typeof verifyResult === 'string' || (verifyResult && (verifyResult as any).error) ? 'error' : 'info'} 
-          title="Verify Result:" 
-          data={verifyResult} 
+        {verifyResult && <ResultDisplay
+          type={typeof verifyResult === 'string' || (verifyResult && (verifyResult as any).error) ? 'error' : 'info'}
+          title="Verify Result:"
+          data={verifyResult}
         />}
       </Card>
     </PageLayout>
   );
-} 
+}

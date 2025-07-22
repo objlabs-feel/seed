@@ -26,4 +26,4 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
     console.error('판매유형 목록 조회 중 오류:', error);
     throw createSystemError('INTERNAL_ERROR', 'Failed to fetch sales types');
   }
-}); 
+});

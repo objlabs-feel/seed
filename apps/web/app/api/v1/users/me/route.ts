@@ -71,4 +71,4 @@ export const DELETE = withApiHandler(async (request: Request): Promise<ApiRespon
     console.error('Error deactivating user:', error);
     throw createSystemError('INTERNAL_ERROR', 'Failed to deactivate user');
   }
-}); 
+});

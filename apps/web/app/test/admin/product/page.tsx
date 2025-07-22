@@ -91,23 +91,23 @@ export default function AdminProductTestPage() {
       setLoading(false);
     }
   };
-  
+
   const renderFormInputs = (state: object, setState: Function, isPost: boolean) => {
     return Object.keys(state).map((key) => (
-        <div key={key}>
-            <label htmlFor={`${isPost ? 'post' : 'get'}-${key}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}
-            </label>
-            <Input
-                id={`${isPost ? 'post' : 'get'}-${key}`}
-                type="text"
-                placeholder={key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}
-                value={state[key as keyof typeof state]}
-                onChange={(e) => setState({ ...state, [key]: e.target.value })}
-                className="mt-0"
-                required={isPost && ['owner_id', 'device_id'].includes(key)}
-            />
-        </div>
+      <div key={key}>
+        <label htmlFor={`${isPost ? 'post' : 'get'}-${key}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          {key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}
+        </label>
+        <Input
+          id={`${isPost ? 'post' : 'get'}-${key}`}
+          type="text"
+          placeholder={key.charAt(0).toUpperCase() + key.slice(1).replace(/_/g, ' ')}
+          value={state[key as keyof typeof state]}
+          onChange={(e) => setState({ ...state, [key]: e.target.value })}
+          className="mt-0"
+          required={isPost && ['owner_id', 'device_id'].includes(key)}
+        />
+      </div>
     ));
   };
 
@@ -149,4 +149,4 @@ export default function AdminProductTestPage() {
       </div>
     </div>
   );
-} 
+}

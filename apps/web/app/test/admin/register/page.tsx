@@ -107,4 +107,4 @@ const AdminRegisterPage = () => {
   );
 };
 
-export default AdminRegisterPage; 
+export default AdminRegisterPage;

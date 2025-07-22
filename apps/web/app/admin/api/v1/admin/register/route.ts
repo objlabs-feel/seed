@@ -42,4 +42,4 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
     console.error('Error registering admin:', error);
     throw createSystemError('INTERNAL_ERROR', 'Failed to register admin');
   }
-}); 
+});

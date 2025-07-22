@@ -29,9 +29,9 @@ export const DeviceTypeForm: React.FC<DeviceTypeFormProps> = ({ deviceType, onSa
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ 
-      ...deviceType, 
-      name, 
+    onSave({
+      ...deviceType,
+      name,
       description: description || null,
       code: code || null,
       img: img || null,
@@ -93,30 +93,30 @@ export const DeviceTypeForm: React.FC<DeviceTypeFormProps> = ({ deviceType, onSa
           />
         </div>
         <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="sortKey" className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+          <div>
+            <label htmlFor="sortKey" className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                 정렬 키 (sort_key)
-              </label>
-              <input
-                type="number"
-                id="sortKey"
-                value={sortKey}
-                onChange={(e) => setSortKey(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
-            </div>
-            <div>
-              <label htmlFor="status" className="block text-sm font-medium text-gray-900 dark:text-gray-100">
+            </label>
+            <input
+              type="number"
+              id="sortKey"
+              value={sortKey}
+              onChange={(e) => setSortKey(Number(e.target.value))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
+          <div>
+            <label htmlFor="status" className="block text-sm font-medium text-gray-900 dark:text-gray-100">
                 상태 (status)
-              </label>
-              <input
-                type="number"
-                id="status"
-                value={status}
-                onChange={(e) => setStatus(Number(e.target.value))}
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
-              />
-            </div>
+            </label>
+            <input
+              type="number"
+              id="status"
+              value={status}
+              onChange={(e) => setStatus(Number(e.target.value))}
+              className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+            />
+          </div>
         </div>
       </div>
       <div className="mt-6 flex justify-end space-x-2">
@@ -129,4 +129,4 @@ export const DeviceTypeForm: React.FC<DeviceTypeFormProps> = ({ deviceType, onSa
       </div>
     </form>
   );
-}; 
+};

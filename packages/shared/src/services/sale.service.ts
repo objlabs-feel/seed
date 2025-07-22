@@ -351,13 +351,7 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
         options.where.item.manufacturer_id !== undefined ||
         options.where.item.status !== undefined);
 
-    if (hasItemSearchConditions) {
-      // item 검색 조건이 있으면 Raw Query 사용 (성능 최적화)
-      return await this.findWithPaginationWithRawQuery(options);
-    } else {
-      // item 검색 조건이 없으면 기존 방식 사용
-      return await this.findWithPaginationStandard(options);
-    }
+    return await this.findWithPaginationWithRawQuery(options);
   }
 
   /**
@@ -617,6 +611,8 @@ export class SaleItemService extends BaseService<SaleItem, CreateSaleItemRequest
       LEFT JOIN manufacturer m ON ud.manufacturer_id = m.id
       ${whereClause}
     `;
+
+    console.log(params);
 
     // 쿼리 실행
     const [data, countResult] = await Promise.all([

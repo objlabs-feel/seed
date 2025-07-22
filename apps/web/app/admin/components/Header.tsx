@@ -6,7 +6,7 @@ interface HeaderProps {
 
 export default function Header({ onMenuClick }: HeaderProps) {
   return (
-    <header className="bg-white shadow-sm lg:static sticky top-0 z-10">
+    <header className="bg-white shadow-sm lg:static sticky top-0 z-10 text-gray-900">
       <div className="h-16 px-4 flex items-center justify-between">
         <button
           type="button"
@@ -17,7 +17,7 @@ export default function Header({ onMenuClick }: HeaderProps) {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
-        <h1 className="text-xl font-semibold">관리자 페이지</h1>
+        <h1 className="text-xl font-semibold text-gray-900">관리자 페이지</h1>
         <div className="flex items-center space-x-4">
           {/* 알림, 프로필 등 추가 가능 */}
         </div>

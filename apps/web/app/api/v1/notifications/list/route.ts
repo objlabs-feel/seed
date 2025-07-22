@@ -37,7 +37,7 @@ export async function GET(request: Request) {
       limit: paginationResult.limit,
       totalPages: Math.ceil(paginationResult.total / paginationResult.limit),
       unreadCount,
-    }
+    };
 
     return NextResponse.json(response);
   } catch (error) {

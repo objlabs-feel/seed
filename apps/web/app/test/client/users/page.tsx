@@ -263,10 +263,10 @@ export default function UsersPage() {
             value={userId}
             onChange={(e) => setUserId(e.target.value)}
             placeholder="사용자 ID를 입력하세요"
-          />          
+          />
         </div>
         {renderUserData()}
       </Card>
     </PageLayout>
   );
-} 
+}

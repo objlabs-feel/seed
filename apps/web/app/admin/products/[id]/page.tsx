@@ -76,7 +76,9 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
           'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
         },
         body: JSON.stringify({
-          status: 1, // 낙찰완료 상태
+          auction: {
+            status: 2,
+          },
         }),
       });
 
@@ -114,13 +116,16 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
     if (!confirm('경매를 취소하시겠습니까?')) return;
 
     try {
-      const response = await fetch(`/api/v1/auction-items/${params.id}`, {
+      const response = await fetch(`/admin/api/v1/auction-items/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
         },
         body: JSON.stringify({
-          status: 2, // 취소 상태
+          auction: {
+            status: 4,
+          },
         }),
       });
 
@@ -141,39 +146,44 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
     <div className="bg-white rounded-lg shadow p-6">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-lg font-semibold">경매 상품 상세정보</h2>
-        <div className="space-x-2">
-          {auctionItem.status === 2 && auctionItem.accept_id !== null && (            
+        <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <div className="flex flex-col sm:flex-row gap-2">
+            {auctionItem.status === 2 && auctionItem.accept_id !== null && (
+              <button
+                onClick={handleConfirm}
+                className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm sm:text-base"
+              >
+                입금확인
+              </button>
+            )}
             <button
-              onClick={handleConfirm}
-              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+              onClick={() => setIsBidModalOpen(true)}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm sm:text-base"
             >
-              입금확인
+              입찰하기
             </button>
-          )}
-          <button
-            onClick={() => setIsBidModalOpen(true)}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
-          >
-            입찰하기
-          </button>
-          <button
-            onClick={handleComplete}
-            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600"
-          >
-            낙찰처리
-          </button>
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-          >
-            경매취소
-          </button>
-          <button
-            onClick={() => router.push(`/admin/products/${params.id}/edit`)}
-            className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-          >
-            수정
-          </button>
+            <button
+              onClick={handleComplete}
+              className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 text-sm sm:text-base"
+            >
+              낙찰처리
+            </button>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row gap-2">
+            <button
+              onClick={handleCancel}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 text-sm sm:text-base"
+            >
+              경매취소
+            </button>
+            <button
+              onClick={() => router.push(`/admin/products/${params.id}/edit`)}
+              className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600 text-sm sm:text-base"
+            >
+              수정
+            </button>
+          </div>
         </div>
       </div>
 
@@ -239,9 +249,11 @@ export default function ProductDetail({ params }: { params: { id: string } }) {
 
 function getStatusText(status: number) {
   switch (status) {
-  case 0: return '진행중';
-  case 1: return '낙찰완료';
-  case 2: return '취소';
+  case 0: return '비활성';
+  case 1: return '진행중';
+  case 2: return '낙찰완료';
+  case 3: return '거래완료';
+  case 4: return '취소';
   default: return '알수없음';
   }
 }

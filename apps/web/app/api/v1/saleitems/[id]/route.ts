@@ -39,4 +39,4 @@ export const GET = withApiHandler(async (request: Request, context: { params: { 
     console.error('Error fetching sale item:', error);
     throw createSystemError('INTERNAL_ERROR', 'Failed to fetch sale item');
   }
-}); 
+});

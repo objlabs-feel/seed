@@ -500,6 +500,8 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
       company_id,
       device_type_id,
       manufacturer_id,
+      seller_steps,
+      buyer_steps,
       ...paginationOptions
     } = searchOptions;
 
@@ -540,9 +542,29 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
       }
     }
 
+    if (seller_steps) {
+      where.seller_steps = seller_steps;
+    }
+    if (buyer_steps) {
+      where.buyer_steps = buyer_steps;
+    }
+
     return await this.findWithPagination({
       ...paginationOptions,
       where,
+      include: {
+        device: {
+          include: {
+            company: true,
+            department: true,
+            deviceType: true,
+            manufacturer: true,
+          }
+        },
+        auction_item_history: {
+
+        },
+      },
       orderBy: { created_at: 'desc' },
     });
   }

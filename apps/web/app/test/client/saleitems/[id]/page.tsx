@@ -78,7 +78,7 @@ export default function SaleItemDetailPage() {
   if (!saleItem) {
     return <div className="text-white">판매 아이템을 찾을 수 없습니다.</div>;
   }
-  
+
   // console.log('currentUser:', JSON.stringify(currentUser, null, 2));
   // console.log('owner_id:', saleItem.owner_id);
 
@@ -286,148 +286,148 @@ export default function SaleItemDetailPage() {
 
       {/* 낙찰자 정보 작성 모달 status = 1 */}
       {saleItem.item?.status === 2 && saleItem.item?.buyer_steps === 1 && (
-      <Dialog open={isBuyerInfoModalOpen} onClose={() => setIsBuyerInfoModalOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>낙찰자 정보 작성</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 1 }}>
-            <Stack spacing={2}>
-              <Stack direction="row" spacing={2}>
+        <Dialog open={isBuyerInfoModalOpen} onClose={() => setIsBuyerInfoModalOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>낙찰자 정보 작성</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 1 }}>
+              <Stack spacing={2}>
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="회사명"
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="회사명을 입력하세요"
+                  />
+                  <TextField
+                    fullWidth
+                    label="사업자등록번호"
+                    value={businessNo}
+                    onChange={(e) => setBusinessNo(e.target.value)}
+                    placeholder="사업자등록번호를 입력하세요"
+                  />
+                </Stack>
+
                 <TextField
                   fullWidth
-                  label="회사명"
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="회사명을 입력하세요"
+                  label="주소"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="주소를 입력하세요"
                 />
+
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="상세주소"
+                    value={addressDetail}
+                    onChange={(e) => setAddressDetail(e.target.value)}
+                    placeholder="상세주소를 입력하세요"
+                  />
+                  <TextField
+                    fullWidth
+                    label="우편번호"
+                    value={zipCode}
+                    onChange={(e) => setZipCode(e.target.value)}
+                    placeholder="우편번호를 입력하세요"
+                  />
+                </Stack>
+
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="대표자명"
+                    value={ownerName}
+                    onChange={(e) => setOwnerName(e.target.value)}
+                    placeholder="대표자명을 입력하세요"
+                  />
+                  <TextField
+                    fullWidth
+                    label="이메일"
+                    type="email"
+                    value={ownerEmail}
+                    onChange={(e) => setOwnerEmail(e.target.value)}
+                    placeholder="이메일을 입력하세요"
+                  />
+                </Stack>
+
                 <TextField
                   fullWidth
-                  label="사업자등록번호"
-                  value={businessNo}
-                  onChange={(e) => setBusinessNo(e.target.value)}
-                  placeholder="사업자등록번호를 입력하세요"
+                  label="연락처"
+                  value={ownerMobile}
+                  onChange={(e) => setOwnerMobile(e.target.value)}
+                  placeholder="연락처를 입력하세요"
                 />
               </Stack>
-
-              <TextField
-                fullWidth
-                label="주소"
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder="주소를 입력하세요"
-              />
-
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  fullWidth
-                  label="상세주소"
-                  value={addressDetail}
-                  onChange={(e) => setAddressDetail(e.target.value)}
-                  placeholder="상세주소를 입력하세요"
-                />
-                <TextField
-                  fullWidth
-                  label="우편번호"
-                  value={zipCode}
-                  onChange={(e) => setZipCode(e.target.value)}
-                  placeholder="우편번호를 입력하세요"
-                />
-              </Stack>
-
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  fullWidth
-                  label="대표자명"
-                  value={ownerName}
-                  onChange={(e) => setOwnerName(e.target.value)}
-                  placeholder="대표자명을 입력하세요"
-                />
-                <TextField
-                  fullWidth
-                  label="이메일"
-                  type="email"
-                  value={ownerEmail}
-                  onChange={(e) => setOwnerEmail(e.target.value)}
-                  placeholder="이메일을 입력하세요"
-                />
-              </Stack>
-
-              <TextField
-                fullWidth
-                label="연락처"
-                value={ownerMobile}
-                onChange={(e) => setOwnerMobile(e.target.value)}
-                placeholder="연락처를 입력하세요"
-              />
-            </Stack>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsBuyerInfoModalOpen(false)}>취소</Button>
-          <Button 
-            onClick={handleBuyerInfoSubmit} 
-            className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded"
-            disabled={isLoading}
-          >
-            {isLoading ? '처리중...' : '저장'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsBuyerInfoModalOpen(false)}>취소</Button>
+            <Button
+              onClick={handleBuyerInfoSubmit}
+              className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded"
+              disabled={isLoading}
+            >
+              {isLoading ? '처리중...' : '저장'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
       {/* 입금확인 후 방문스케쥴 전달 모달 status = 2 && buyer_steps = 3 */}
       {saleItem.item?.status === 2 && saleItem.item?.buyer_steps === 3 && (
-      <Dialog open={isDepositConfirmModalOpen} onClose={() => setIsDepositConfirmModalOpen(false)} maxWidth="md" fullWidth>
-        <DialogTitle>입금확인 후 방문스케쥴 전달</DialogTitle>
-        <DialogContent>
-          <Box sx={{ mt: 1 }}>
-            <Stack spacing={2}>
-              <Typography variant="h6">입금확인 후 방문스케쥴 전달</Typography>
-              <Typography>
+        <Dialog open={isDepositConfirmModalOpen} onClose={() => setIsDepositConfirmModalOpen(false)} maxWidth="md" fullWidth>
+          <DialogTitle>입금확인 후 방문스케쥴 전달</DialogTitle>
+          <DialogContent>
+            <Box sx={{ mt: 1 }}>
+              <Stack spacing={2}>
+                <Typography variant="h6">입금확인 후 방문스케쥴 전달</Typography>
+                <Typography>
                 입금확인 후 방문스케쥴 전달 모달입니다.
-              </Typography>
-              
-              <Stack direction="row" spacing={2}>
-                <TextField
-                  fullWidth
-                  label="방문 날짜"
-                  type="date"
-                  value={visitDate}
-                  onChange={(e) => setVisitDate(e.target.value)}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    min: new Date().toISOString().split('T')[0], // 오늘 이후 날짜만 선택 가능
-                  }}
-                />
-                <TextField
-                  fullWidth
-                  label="방문 시간"
-                  type="time"
-                  value={visitTime}
-                  onChange={(e) => setVisitTime(e.target.value)}
-                  InputLabelProps={{
-                    shrink: true,
-                  }}
-                  inputProps={{
-                    step: 900, // 15분 단위
-                  }}
-                />
+                </Typography>
+
+                <Stack direction="row" spacing={2}>
+                  <TextField
+                    fullWidth
+                    label="방문 날짜"
+                    type="date"
+                    value={visitDate}
+                    onChange={(e) => setVisitDate(e.target.value)}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    inputProps={{
+                      min: new Date().toISOString().split('T')[0], // 오늘 이후 날짜만 선택 가능
+                    }}
+                  />
+                  <TextField
+                    fullWidth
+                    label="방문 시간"
+                    type="time"
+                    value={visitTime}
+                    onChange={(e) => setVisitTime(e.target.value)}
+                    InputLabelProps={{
+                      shrink: true,
+                    }}
+                    inputProps={{
+                      step: 900, // 15분 단위
+                    }}
+                  />
+                </Stack>
               </Stack>
-            </Stack>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDepositConfirmModalOpen(false)}>취소</Button>
-          <Button 
-            onClick={handleDepositConfirmSubmit} 
-            className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded"
-            disabled={isLoading}
-          >
-            {isLoading ? '처리중...' : '확인'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsDepositConfirmModalOpen(false)}>취소</Button>
+            <Button
+              onClick={handleDepositConfirmSubmit}
+              className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded"
+              disabled={isLoading}
+            >
+              {isLoading ? '처리중...' : '확인'}
+            </Button>
+          </DialogActions>
+        </Dialog>
       )}
     </div>
   );
-} 
+}

@@ -36,10 +36,10 @@ export default function AdminCompaniesTestPage() {
         >
           회사 목록 조회
         </button>
-        
+
         {data && <ResultDisplay type="info" title="Response:" data={data} />}
         {error && <ResultDisplay type="error" title="Error:" data={error} />}
       </Card>
     </PageLayout>
   );
-} 
+}

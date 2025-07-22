@@ -32,24 +32,24 @@ export default function ManagementPage() {
     }
 
     switch (selectedTab) {
-      case '진료과':
-        return <DepartmentsTab token={token} />;
-      case 'Device Types':
-        return <DeviceTypesTab token={token} />;
-      case 'Manufacturers':
-        return <ManufacturersTab token={token} />;
-      case 'Sales Types':
-        return <SalesTypesTab token={token} />;
+    case '진료과':
+      return <DepartmentsTab token={token} />;
+    case 'Device Types':
+      return <DeviceTypesTab token={token} />;
+    case 'Manufacturers':
+      return <ManufacturersTab token={token} />;
+    case 'Sales Types':
+      return <SalesTypesTab token={token} />;
       // 다른 탭들도 추후 이런 식으로 추가합니다.
       // case 'Sales Types':
       //   return <SalesTypesTab token={token} />;
-      default:
-        return (
-          <div className="mt-6 text-center text-gray-500 dark:text-gray-400">
-            <p>Selected: {selectedTab}</p>
-            <p>This section is under construction.</p>
-          </div>
-        );
+    default:
+      return (
+        <div className="mt-6 text-center text-gray-500 dark:text-gray-400">
+          <p>Selected: {selectedTab}</p>
+          <p>This section is under construction.</p>
+        </div>
+      );
     }
   };
 
@@ -57,7 +57,7 @@ export default function ManagementPage() {
     <div>
       <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Data Management</h1>
       <p className="mt-1 text-sm text-gray-600 dark:text-gray-300">Select a tab to view and manage different data types.</p>
-      
+
       <div className="mt-4">
         <Tabs tabs={[...TAB_NAMES]} selectedTab={selectedTab} setSelectedTab={handleTabChange} />
       </div>
@@ -67,4 +67,4 @@ export default function ManagementPage() {
       </div>
     </div>
   );
-} 
+}

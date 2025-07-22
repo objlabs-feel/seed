@@ -82,10 +82,10 @@ export default function UserManagement() {
 
   const getStatusText = (status: number) => {
     switch (status) {
-      case 0: return '정상';
-      case 1: return '정지';
-      case 2: return '탈퇴';
-      default: return '알수없음';
+    case 0: return '정상';
+    case 1: return '정지';
+    case 2: return '탈퇴';
+    default: return '알수없음';
     }
   };
 
@@ -172,8 +172,8 @@ export default function UserManagement() {
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
                     user.status === 0 ? 'bg-green-100 text-green-800' :
-                    user.status === 1 ? 'bg-yellow-100 text-yellow-800' :
-                    'bg-red-100 text-red-800'
+                      user.status === 1 ? 'bg-yellow-100 text-yellow-800' :
+                        'bg-red-100 text-red-800'
                   }`}>
                     {getStatusText(user.status)}
                   </span>

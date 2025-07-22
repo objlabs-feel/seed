@@ -7,8 +7,8 @@ import { Modal } from '@/components/ui/Modal';
 import { DepartmentForm } from './DepartmentForm';
 
 // 다크모드 호환 버튼 스타일 정의
-const editButtonClasses = "bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm py-1 px-2 rounded border border-gray-300 dark:border-gray-500";
-const deleteButtonClasses = "bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-800 dark:text-red-100 text-sm py-1 px-2 rounded border border-red-300 dark:border-red-600";
+const editButtonClasses = 'bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-200 text-sm py-1 px-2 rounded border border-gray-300 dark:border-gray-500';
+const deleteButtonClasses = 'bg-red-100 hover:bg-red-200 dark:bg-red-900 dark:hover:bg-red-800 text-red-800 dark:text-red-100 text-sm py-1 px-2 rounded border border-red-300 dark:border-red-600';
 
 interface DepartmentsTabProps {
   token: string | null;
@@ -20,7 +20,7 @@ export default function DepartmentsTab({ token }: DepartmentsTabProps) {
   const [departments, setDepartments] = useState<Department[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDepartment, setEditingDepartment] = useState<Partial<Department> | null>(null);
 
@@ -60,15 +60,15 @@ export default function DepartmentsTab({ token }: DepartmentsTabProps) {
     setEditingDepartment(department);
     setIsModalOpen(true);
   };
-  
+
   const handleCloseModal = () => {
     setEditingDepartment(null);
     setIsModalOpen(false);
   };
-  
+
   const handleSave = async (departmentData: Partial<Department>) => {
     if (!token) return;
-    
+
     const isCreating = !departmentData.id;
     const url = isCreating ? API_ENDPOINT : `${API_ENDPOINT}/${departmentData.id}`;
     const method = isCreating ? 'POST' : 'PUT';
@@ -116,7 +116,7 @@ export default function DepartmentsTab({ token }: DepartmentsTabProps) {
   return (
     <div>
       <div className="flex justify-end mb-4">
-        <Button 
+        <Button
           onClick={handleOpenCreateModal}
           className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
         >
@@ -158,13 +158,13 @@ export default function DepartmentsTab({ token }: DepartmentsTabProps) {
           ))}
         </tbody>
       </table>
-      
-      <Modal 
-        isOpen={isModalOpen} 
+
+      <Modal
+        isOpen={isModalOpen}
         onClose={handleCloseModal}
         title={editingDepartment?.id ? '진료과 수정' : '진료과 생성'}
       >
-        <DepartmentForm 
+        <DepartmentForm
           department={editingDepartment}
           onSave={handleSave}
           onCancel={handleCloseModal}
@@ -172,4 +172,4 @@ export default function DepartmentsTab({ token }: DepartmentsTabProps) {
       </Modal>
     </div>
   );
-} 
+}

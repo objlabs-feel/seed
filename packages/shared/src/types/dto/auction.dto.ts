@@ -226,6 +226,8 @@ export interface AuctionSearchRequestDto extends SearchRequestDto {
   device_type_id?: number;
   manufacturer_id?: number;
   user_id?: string;
+  seller_steps?: number;
+  buyer_steps?: number;
 }
 
 /**

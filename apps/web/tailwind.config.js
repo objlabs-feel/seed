@@ -7,7 +7,12 @@ module.exports = {
   ],
   darkMode: 'media', // 다크 모드 활성화 (OS 설정 기반)
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['var(--font-geist-sans)', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', 'sans-serif'],
+        mono: ['var(--font-geist-mono)', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', 'Source Code Pro', 'Monaco', 'Consolas', 'Liberation Mono', 'Menlo', 'monospace'],
+      },
+    },
   },
   plugins: [],
 }

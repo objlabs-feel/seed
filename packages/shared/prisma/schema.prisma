@@ -383,7 +383,7 @@ model AuctionItemHistory {
   updated_at      DateTime?   @default(dbgenerated("CURRENT_TIMESTAMP(6)")) @db.Timestamp(6)
   status          Int         @default(1)
 
-  auction_item    AuctionItem @relation("AuctionItemHistoryAuctionItem", fields: [auction_item_id], references: [id])
+  auction_item    AuctionItem @relation("AuctionItemHistoryAuctionItem", fields: [auction_item_id], references: [id]) 
 
   @@index([auction_item_id, user_id, value], map: "action_item_history_auction_id_user_id_value_index")
   @@map("auction_item_history")

@@ -36,9 +36,9 @@ export const ManufacturerForm: React.FC<ManufacturerFormProps> = ({ manufacturer
       alert('Device Types 필드의 JSON 형식이 올바르지 않습니다.');
       return;
     }
-    onSave({ 
-      ...manufacturer, 
-      name, 
+    onSave({
+      ...manufacturer,
+      name,
       description: description || null,
       device_types: parsedDeviceTypes,
       img: img || null,
@@ -122,4 +122,4 @@ export const ManufacturerForm: React.FC<ManufacturerFormProps> = ({ manufacturer
       </div>
     </form>
   );
-}; 
+};

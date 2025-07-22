@@ -45,7 +45,7 @@ export const POST = withApiHandler(async (
         targetId: auctionItem.id.toString(),
         title: title,
         body: body,
-      }
+      };
 
       const notificationMessageList = await notificationMessageService.createMany(notificationInfoList.map(info => ({
         user_id: Number(info.user_id),

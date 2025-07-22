@@ -51,4 +51,4 @@ export const POST = withApiHandler(async (request: Request): Promise<ApiResponse
     console.error('Error creating system environment:', error);
     throw createSystemError('INTERNAL_ERROR', '시스템 환경 변수 생성 중 오류가 발생했습니다.');
   }
-}); 
+});

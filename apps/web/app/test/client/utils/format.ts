@@ -11,4 +11,4 @@ export const formatCurrency = (amount: number): string => {
   const formattedDecimal = decimalPart ? `.${decimalPart.padEnd(3, '0')}` : '';
 
   return formattedInteger + formattedDecimal + '원';
-}; 
+};

@@ -28,7 +28,7 @@ export default function AdminLoginPage() {
       if (response.ok) {
         if (data.data?.token) {
           setToken(data.data.token);
-          setMessage(`Login successful! Token stored.`);
+          setMessage('Login successful! Token stored.');
         } else {
           setMessage('Login successful, but no token received.');
         }
@@ -61,4 +61,4 @@ export default function AdminLoginPage() {
       {message && <p className="mt-4 text-sm text-gray-600 dark:text-gray-300">{message}</p>}
     </div>
   );
-} 
+}

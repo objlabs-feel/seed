@@ -20,4 +20,4 @@ export const GET = withApiHandler(async (request: Request): Promise<ApiResponse>
     console.error('Error fetching system environments:', error);
     throw createSystemError('INTERNAL_ERROR', 'Failed to fetch system environments');
   }
-}); 
+});

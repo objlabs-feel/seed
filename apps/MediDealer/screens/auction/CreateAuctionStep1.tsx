@@ -74,6 +74,7 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
       // 진료과 기본값 설정 (아직 선택되지 않은 경우)
       if (!updatedFormData.department && departments.length > 0) {
         updatedFormData.department = departments[0].id;
+        updatedFormData.equipmentType = departments[0].deviceTypes?.[0]?.device_type_id || '';
         updated = true;
       }
 
@@ -169,6 +170,21 @@ const CreateAuctionStep1 = ({ formData, setFormData, errors }: { formData: any, 
             onChangeText={(text) => setFormData((prev: any) => ({ ...prev, manufacturingYear: text }))}
           />
           {errors.manufacturingYear && <Text style={styles.errorText}>{errors.manufacturingYear}</Text>}
+        </View>
+      </View>
+
+      <View style={styles.row}>
+        <View style={styles.fieldHalf}>
+          <Text style={styles.label}>양도 가능일자 *</Text>
+          <TouchableOpacity 
+            style={[styles.selectButton, errors.transferDate && styles.inputError]}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={formData.transferDate ? styles.selectText : styles.placeholderText}>
+              {formData.transferDate ? formatDate(formData.transferDate) : '양도 가능일자를 선택해주세요'}
+            </Text>
+          </TouchableOpacity>
+          {errors.transferDate && <Text style={styles.errorText}>{errors.transferDate}</Text>}
         </View>
       </View>
 

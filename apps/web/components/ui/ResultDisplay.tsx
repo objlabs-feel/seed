@@ -32,14 +32,14 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ type, title, data 
   if (!data) return null;
 
   const styles = typeStyles[type];
-  
+
   const handleItemClick = (itemId: string) => {
     router.push(`/test/client/saleitems/${itemId}`);
   };
 
   const renderData = () => {
     if (typeof data === 'string') return data;
-    
+
     const jsonData = data as any;
     if (jsonData.data?.items) {
       return (
@@ -70,7 +70,7 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ type, title, data 
         </div>
       );
     }
-    
+
     return <pre className="whitespace-pre-wrap break-words">{JSON.stringify(data, null, 2)}</pre>;
   };
 
@@ -82,4 +82,4 @@ export const ResultDisplay: React.FC<ResultDisplayProps> = ({ type, title, data 
       </div>
     </div>
   );
-}; 
+};

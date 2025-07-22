@@ -79,7 +79,7 @@ export default function SaleItemTestPage() {
   const [manufacturers, setManufacturers] = useState<Manufacturer[]>([]);
   const [salesTypes, setSalesTypes] = useState<SalesType[]>([]);
   const [authToken, setAuthToken] = useState('');
-  
+
   const [listResponse, setListResponse] = useState<SaleItemListResponse | null>(null);
   const [createResponse, setCreateResponse] = useState<object | null>(null);
   const [error, setError] = useState<ApiError | null>(null);
@@ -203,7 +203,7 @@ export default function SaleItemTestPage() {
           'Authorization': `Bearer ${authToken}`,
         },
         body: JSON.stringify({
-          sales_type: Number(formData.salesType),          
+          sales_type: Number(formData.salesType),
           status: formData.status,
           name: formData.name,
           phone: formData.phone,
@@ -253,7 +253,7 @@ export default function SaleItemTestPage() {
       });
 
       const data = await response.json();
-      
+
       if (!response.ok) {
         throw new Error(data.error || '판매 아이템 목록 조회 실패');
       }
@@ -275,12 +275,12 @@ export default function SaleItemTestPage() {
     setCurrentPage(1);
     handleListSaleItems();
   };
-  
+
   // 진료과에 따른 장비 타입 필터링
   const filteredDeviceTypes = formData.department
     ? departments
-        .find(d => d.id.toString() === formData.department)
-        ?.deviceTypes || []
+      .find(d => d.id.toString() === formData.department)
+      ?.deviceTypes || []
     : [];
 
   console.log('Current state:', {
@@ -352,10 +352,10 @@ export default function SaleItemTestPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">진료과</label>
-              <select 
-                name="department" 
-                value={formData.department} 
-                onChange={handleInputChange} 
+              <select
+                name="department"
+                value={formData.department}
+                onChange={handleInputChange}
                 className="w-full p-2 border rounded"
               >
                 <option value="">진료과 선택</option>
@@ -364,10 +364,10 @@ export default function SaleItemTestPage() {
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700">장비 타입</label>
-              <select 
-                name="equipmentType" 
-                value={formData.equipmentType} 
-                onChange={handleInputChange} 
+              <select
+                name="equipmentType"
+                value={formData.equipmentType}
+                onChange={handleInputChange}
                 className="w-full p-2 border rounded"
                 disabled={!formData.department}
               >
@@ -391,9 +391,9 @@ export default function SaleItemTestPage() {
               <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="특이사항 (설명)" className="w-full p-2 border rounded" />
             </div>
           </div>
-          <Button 
-            type="submit" 
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400" 
+          <Button
+            type="submit"
+            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded disabled:bg-gray-400"
             disabled={!authToken || loading}
           >
             {loading ? '처리 중...' : '판매 아이템 생성'}
@@ -434,7 +434,7 @@ export default function SaleItemTestPage() {
             </Button>
           </div>
         </div>
-        
+
         {listResponse && (
           <div className="mb-4">
             <div className="flex justify-between items-center mb-2">
@@ -459,7 +459,7 @@ export default function SaleItemTestPage() {
                 </Button>
               </div>
             </div>
-            
+
             {/* 판매 아이템 목록 테이블 */}
             <div className="overflow-x-auto">
               <table className="min-w-full bg-white border border-gray-300">
@@ -478,8 +478,8 @@ export default function SaleItemTestPage() {
                 </thead>
                 <tbody>
                   {listResponse.data.map((item: any) => (
-                    <tr 
-                      key={item.id} 
+                    <tr
+                      key={item.id}
                       className="hover:bg-gray-50 cursor-pointer transition-colors duration-200"
                       onClick={() => handleItemClick(item.id)}
                       title="클릭하여 상세정보 보기"
@@ -493,8 +493,8 @@ export default function SaleItemTestPage() {
                       <td className="px-4 py-2 border-b text-sm text-gray-900">{item.manufacturer?.name || '-'}</td>
                       <td className="px-4 py-2 border-b text-sm text-gray-900">
                         <span className={`px-2 py-1 rounded text-xs ${
-                          item.status === 1 
-                            ? 'bg-green-100 text-green-800' 
+                          item.status === 1
+                            ? 'bg-green-100 text-green-800'
                             : 'bg-red-100 text-red-800'
                         }`}>
                           {item.status === 1 ? '활성' : '비활성'}
@@ -525,4 +525,4 @@ export default function SaleItemTestPage() {
       )}
     </PageLayout>
   );
-} 
+}

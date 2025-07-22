@@ -133,11 +133,11 @@ export default function UserEdit({ params }: { params: { id: string } }) {
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-2xl mx-auto">
         <h1 className="text-2xl font-bold mb-6">이용자 정보 수정</h1>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="bg-white shadow rounded-lg p-6">
             <h2 className="text-lg font-semibold mb-4">기본 정보</h2>
-            
+
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700">상태</label>

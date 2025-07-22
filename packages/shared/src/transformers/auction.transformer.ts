@@ -45,6 +45,7 @@ export function toAuctionItemResponseDto(auctionItem: AuctionItem): AuctionItemR
         id: bigintToString(auctionItem.device.company.id)!,
         name: auctionItem.device.company.name,
         area: auctionItem.device.company.area,
+        status: auctionItem.device.company.status,
       } : undefined,
       department: auctionItem.device.department ? {
         id: auctionItem.device.department.id.toString(),
@@ -78,6 +79,12 @@ export function toAuctionItemListDto(auctionItem: AuctionItem): AuctionItemListD
     visit_time: auctionItem.visit_time,
     created_at: dateToString(auctionItem.created_at),
     updated_at: dateToString(auctionItem.updated_at),
+    accept_id: bigintToString(auctionItem.accept_id),
+    seller_steps: auctionItem.seller_steps,
+    buyer_steps: auctionItem.buyer_steps,
+    seller_timeout: dateToString(auctionItem.seller_timeout),
+    buyer_timeout: dateToString(auctionItem.buyer_timeout),
+    deposit_confirm: auctionItem.deposit_confirm ?? 0,
     device: auctionItem.device ? { ...toUsedDeviceResponseDto(auctionItem.device) } : undefined,
     auction_item_history: auctionItem.auction_item_history ? auctionItem.auction_item_history.map(toAuctionItemHistoryListDto) : [],
   };

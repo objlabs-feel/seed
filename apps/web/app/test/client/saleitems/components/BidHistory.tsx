@@ -91,4 +91,4 @@ export const BidHistory: React.FC<BidHistoryProps> = ({ saleItem, currentUser })
       </div>
     </div>
   );
-}; 
+};

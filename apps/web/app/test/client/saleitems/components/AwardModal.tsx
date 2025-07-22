@@ -67,7 +67,7 @@ export const AwardModal = ({
   useEffect(() => {
     // 최고 입찰가를 기본값으로 설정
     if (bids.length > 0) {
-      const highestBid = bids.reduce((prev, current) => 
+      const highestBid = bids.reduce((prev, current) =>
         (prev.value > current.value) ? prev : current
       );
       setSelectedBidId(highestBid.id);
@@ -232,8 +232,8 @@ export const AwardModal = ({
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>취소</Button>
-        <Button 
-          onClick={handleSubmit} 
+        <Button
+          onClick={handleSubmit}
           className="bg-indigo-600 text-white hover:bg-indigo-700 px-4 py-2 rounded"
           disabled={isLoading || !selectedBidId}
         >
@@ -242,4 +242,4 @@ export const AwardModal = ({
       </DialogActions>
     </Dialog>
   );
-}; 
+};

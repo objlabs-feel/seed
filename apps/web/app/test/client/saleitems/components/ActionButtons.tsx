@@ -183,7 +183,7 @@ export const ActionButtons = ({ saleItem, isOwner }: ActionButtonsProps) => {
       <AwardModal
         isOpen={isAwardModalOpen}
         onClose={() => setIsAwardModalOpen(false)}
-        bids={saleItem.item && 'auction_item_history' in saleItem.item 
+        bids={saleItem.item && 'auction_item_history' in saleItem.item
           ? (saleItem.item.auction_item_history || []).map(convertToBid)
           : []}
         auctionItemId={saleItem.item?.id?.toString() || ''}
@@ -191,4 +191,4 @@ export const ActionButtons = ({ saleItem, isOwner }: ActionButtonsProps) => {
       />
     </div>
   );
-}; 
+};

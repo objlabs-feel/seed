@@ -67,13 +67,13 @@ export default function AdminLayout({
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
-        <div className="text-gray-500">로딩 중...</div>
+        <div className="text-gray-900">로딩 중...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 flex">
+    <div className="min-h-screen bg-gray-100 flex text-gray-900">
       {/* 모바일 사이드바 오버레이 */}
       <div className={`
         fixed inset-0 bg-gray-600 bg-opacity-75 transition-opacity z-20

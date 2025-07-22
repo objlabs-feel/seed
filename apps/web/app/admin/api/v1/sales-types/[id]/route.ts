@@ -103,4 +103,4 @@ export const DELETE = withApiHandler(async (
     console.error(`Error deleting sales type ${params.id}:`, error);
     throw createSystemError('INTERNAL_ERROR', '판매 유형 삭제 중 오류가 발생했습니다.');
   }
-}); 
+});

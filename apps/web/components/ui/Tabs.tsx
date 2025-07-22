@@ -29,4 +29,4 @@ export const Tabs: React.FC<TabsProps> = ({ tabs, selectedTab, setSelectedTab })
       </nav>
     </div>
   );
-}; 
+};

@@ -12,4 +12,4 @@ export const Card: React.FC<CardProps> = ({ title, children }) => {
       <div>{children}</div>
     </div>
   );
-}; 
+};

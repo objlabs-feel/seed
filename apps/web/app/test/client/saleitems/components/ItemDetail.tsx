@@ -76,4 +76,4 @@ export function ItemDetail({ item }: ItemDetailProps) {
       </div>
     </div>
   );
-} 
+}
