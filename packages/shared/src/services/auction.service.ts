@@ -38,8 +38,8 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
         auction_code: data.auction_code,
         quantity: data.quantity || 0,
         status: data.status || 1,
-        start_timestamp: data.start_timestamp ? new Date(data.start_timestamp) : undefined,
-        auction_timeout: data.auction_timeout ? new Date(data.auction_timeout) : undefined,
+        start_timestamp: data.start_timestamp ? new Date(data.start_timestamp) : new Date(),
+        auction_timeout: data.auction_timeout ? new Date(data.auction_timeout) : new Date((new Date().getTime() + 1000 * 60 * 60 * 24)).toISOString(),
         visit_date: data.visit_date ? new Date(data.visit_date) : undefined,
         visit_time: data.visit_time,
       },
@@ -60,9 +60,9 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
   async createWithNewDevice(
     data: CreateAuctionItemRequestDto,
   ): Promise<AuctionItem> {
-    const today = new Date();
-    const startOfDay = new Date(today.setHours(0, 0, 0, 0));
-    const endOfDay = new Date(today.setHours(23, 59, 59, 999));
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
 
     const todayCount = await this.prisma.auctionItem.count({
       where: {
@@ -85,18 +85,33 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
       }),
     ]);
 
-    console.log('department:', department);
-    console.log('deviceType:', deviceType);
+    // console.log('department:', department);
+    // console.log('deviceType:', deviceType);
 
     if (!department || !deviceType) {
       throw new Error('진료과 또는 기기 유형 정보를 찾을 수 없습니다.');
     }
 
-    const year = today.getFullYear().toString().slice(-2);
-    const month = String(today.getMonth() + 1).padStart(2, '0');
-    const day = String(today.getDate()).padStart(2, '0');
+    const year = now.getFullYear().toString().slice(-2);
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
     const sequence = String(todayCount + 1).padStart(2, '0');
     const auction_code = `${department.code}${deviceType.code}${year}${month}${day}${sequence}`;
+    // 24시간 후의 로컬 시간을 계산 (로컬 시간 기준)
+    const tomorrow = new Date(now);
+    tomorrow.setHours(tomorrow.getHours() + 24);
+    const auction_timeout = tomorrow.toISOString();
+
+    // console.log('=== 시간 계산 디버깅 ===');
+    // console.log('now (원본):', now);
+    // console.log('now.toISOString():', now.toISOString());
+    // console.log('now.getTime():', now.getTime());
+    // console.log('tomorrow (수정 후):', tomorrow);
+    // console.log('tomorrow.toISOString():', tomorrow.toISOString());
+    // console.log('tomorrow.getTime():', tomorrow.getTime());
+    // console.log('시간 차이 (ms):', tomorrow.getTime() - now.getTime());
+    // console.log('시간 차이 (시간):', (tomorrow.getTime() - now.getTime()) / (1000 * 60 * 60));
+    // console.log('auction_timeout:', auction_timeout);
 
     const company = await getServices().companyService.create({
       ...data
@@ -145,6 +160,7 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
           auction_code,
           status: data.status ?? 1,
           expired_count: 0,
+          auction_timeout: auction_timeout,
         },
         include: {
           device: {
@@ -596,12 +612,12 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
 
     const expiredAuctions = await this.prisma.auctionItem.findMany({
       where: {
-        start_timestamp: {
+        auction_timeout: {
           lte: currentTime,
           gte: new Date(currentTime.getTime() - DAY_30),
         },
         expired_count: { lt: 3 },
-        status: 0,
+        status: 1,
         accept_id: null,
       },
     });
@@ -613,20 +629,24 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
       switch (auction.expired_count) {
         case 1:
           updateData = {
-            start_timestamp: new Date(startTimestamp.getTime() + DAY_30).toISOString(),
+            // start_timestamp: new Date(startTimestamp.getTime() + DAY_30).toISOString(),
+            auction_timeout: new Date(startTimestamp.getTime() + DAY_30).toISOString(),
             expired_count: 2,
+            status: 1,
           };
           break;
         case 2:
           updateData = {
             expired_count: 3,
-            status: 3,
+            status: 4,
           };
           break;
         default:
           updateData = {
-            start_timestamp: new Date(startTimestamp.getTime() + DAY_1).toISOString(),
+            // start_timestamp: new Date(startTimestamp.getTime() + DAY_1).toISOString(),
+            auction_timeout: new Date(startTimestamp.getTime() + DAY_1).toISOString(),
             expired_count: 1,
+            status: 1,
           };
           break;
       }
@@ -1095,8 +1115,8 @@ export class AuctionItemHistoryService extends BaseService<AuctionItemHistory, C
           accept_id: highestBid ? highestBid.user_id : null,
           seller_steps: 1,
           buyer_steps: 1,
-          seller_timeout: new Date(Date.now() + 300000),
-          buyer_timeout: new Date(Date.now() + 300000),
+          // seller_timeout: new Date(Date.now() + 300000),
+          // buyer_timeout: new Date(Date.now() + 300000),
         },
       });
 

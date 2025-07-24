@@ -157,6 +157,33 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
     }
   }, [currentImageIndex]);
 
+  const getFormattedTime = (remainingTime: string) => {
+    if (remainingTime) {
+      console.log('remainingTime', remainingTime);
+      const timeout = new Date(remainingTime);
+      const now = new Date();
+      const diff = timeout.getTime() - now.getTime();
+      
+      if (diff <= 0) return '만료됨';
+      
+      const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+
+      if (days > 0) {
+        return `${days}일 ${hours}시간`;
+      } else if (hours > 0) {
+        return `${hours}시간 ${minutes}분`;
+      } else if (minutes > 0) {
+        return `${minutes}분`;
+      } else if (seconds > 0) {
+        return '1분 미만';
+      }
+    }
+    return remainingTime || '시간 정보 없음';
+  };
+
   useEffect(() => {
     const fetchUserData = async () => {
       try {
@@ -542,7 +569,7 @@ const AuctionItemScreen: React.FC<AuctionItemProps> = ({ route, navigation }) =>
           <View style={styles.headerContainer}>
             <Text style={styles.deviceName}>경매번호: {auctionItem.auction_code}</Text>
             <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>남은 시간: 00:00</Text>
+              <Text style={styles.statusText}>남은 시간: {getFormattedTime(auctionItem.auction_timeout || '')}</Text>
             </View>
           </View>
           

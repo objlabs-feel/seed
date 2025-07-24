@@ -22,6 +22,7 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
   // 2. 경매 상품 정보 업데이트
   const updatedAuctionItem = await auctionItemService.update(context.params.id, {
     status: AuctionStatus.SUCCESS_BID,
+    seller_timeout: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
     buyer_steps: 1,
     seller_steps: 1,
   });

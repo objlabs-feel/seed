@@ -62,9 +62,8 @@ export const PUT = withApiHandler(async (request: Request, context: RouteContext
     visit_time: validatedData.visitTime,
     seller_steps: 2,
     buyer_steps: 3,
-    income_request: 1,
-    income_request_date: new Date().toISOString(),
-    income_confirm: 0,
+    deposit_confirm: 1,
+    // deposit_confirm_date: new Date().toISOString(),
   });
 
   // 5. 알림 발송
@@ -170,6 +169,7 @@ export const POST = withApiHandler(async (request: Request, context: RouteContex
 
   // 7. 데이터 업데이트
   const updatedAuctionItem = await auctionItemService.update(context.params.id, {
+    buyer_timeout: new Date(Date.now() + 1000 * 60 * 60 * 24).toISOString(),
     seller_steps: 2,
     buyer_steps: 2,
   });
