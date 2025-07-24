@@ -1,0 +1,27 @@
+{
+  "name": "@medidealer/auction-scheduler-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "build": "esbuild src/index.ts --bundle --platform=node --target=node18 --external:@prisma/client --external:prisma --outfile=dist/index.js",
+    "package": "npm run build && cd dist && zip -r ../function.zip *",
+    "cdk": "cdk",
+    "deploy": "npm run package && dotenv -e .env cdk deploy",
+    "deploy-auto-approval": "npm run package && dotenv -e .env cdk deploy --require-approval never"
+  },
+  "dependencies": {
+    "@aws-sdk/client-sqs": "^3.511.0",
+    "aws-cdk-lib": "^2.0.0",
+    "constructs": "^10.0.0",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {
+    "@types/aws-lambda": "^8.10.133",
+    "@types/node": "^18.0.0",
+    "@types/node-fetch": "^2.6.11",
+    "aws-cdk": "^2.0.0",
+    "esbuild": "^0.25.0",
+    "typescript": "^5.3.3",
+    "ts-node": "^10.9.2"
+  }
+} 

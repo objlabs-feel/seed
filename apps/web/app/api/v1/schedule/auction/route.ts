@@ -7,11 +7,13 @@ export async function GET(request: Request) {
   try {
     // API 키 확인
     const { searchParams } = new URL(request.url);
-    const apiKey = searchParams.get('apiKey');
+    const apiKey = searchParams.get('API_KEY');
 
     if (apiKey !== process.env.API_SECRET_KEY) {
       return NextResponse.json({ error: '인증 실패' }, { status: 401 });
     }
+
+    console.log('apiKey', apiKey);
 
     // 두 종류의 경매 상태 업데이트를 순차적으로 실행
     const [expiredResult, revertedResult] = await Promise.all([

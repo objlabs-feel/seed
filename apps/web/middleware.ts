@@ -22,6 +22,7 @@ const PUBLIC_API_PATHS = [
   '/api/v1/auth/checkin',
   '/api/v1/auth/checkout',
   '/api/v1/auth/verify',
+  '/api/v1/schedule/auction',
   // '/api/v1/notifications/broadcast', // TODO: 브로드캐스트 기능 테스트 시 활성화
   // ADMIN API PUBLIC LIST
   '/admin/api/v1/admin/auth',

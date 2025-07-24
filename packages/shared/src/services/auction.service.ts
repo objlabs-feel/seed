@@ -614,7 +614,6 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
       where: {
         auction_timeout: {
           lte: currentTime,
-          gte: new Date(currentTime.getTime() - DAY_30),
         },
         expired_count: { lt: 3 },
         status: 1,
@@ -659,18 +658,17 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
    * 스케줄러: 구매자가 확정하지 않아 유찰된 경매 처리
    */
   async revertUnconfirmedAuctions(): Promise<{ updatedCount: number }> {
-    const DAY_1 = 1000 * 60 * 60 * 24;
+    // const DAY_1 = 1000 * 60 * 60 * 24;
     const currentTime = new Date();
 
     const expiredAuctions = await this.prisma.auctionItem.findMany({
       where: {
         buyer_timeout: {
           lte: currentTime,
-          gte: new Date(currentTime.getTime() - DAY_1),
         },
-        buyer_steps: { lte: 2 },
-        seller_steps: 2,
-        status: 1,
+        buyer_steps: { lte: 3 },
+        seller_steps: 1,
+        status: 2,
         accept_id: { not: null },
       },
     });
