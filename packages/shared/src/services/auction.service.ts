@@ -643,7 +643,7 @@ export class AuctionItemService extends BaseService<AuctionItem, CreateAuctionIt
         default:
           updateData = {
             // start_timestamp: new Date(startTimestamp.getTime() + DAY_1).toISOString(),
-            auction_timeout: new Date(startTimestamp.getTime() + DAY_1).toISOString(),
+            auction_timeout: new Date(startTimestamp.getTime() + (DAY_1 * 3)).toISOString(),
             expired_count: 1,
             status: 1,
           };
