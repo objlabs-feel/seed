@@ -135,6 +135,57 @@ export class UserService extends BaseService<User, CreateUserRequestDto, UpdateU
   }
 
   /**
+   * 검색 옵션을 Prisma 쿼리로 변환 (UserService 전용)
+   */
+  protected buildQuery(options?: SearchOptions) {
+    const query: any = {};
+
+    // 기본 where 조건
+    if (options?.where) {
+      query.where = { ...options.where };
+    }
+
+    // Profile 관련 필터 처리
+    const profileFilters: any = {};
+    if (options?.where?.profile_name) {
+      profileFilters.name = { contains: options.where.profile_name };
+    }
+    if (options?.where?.email) {
+      profileFilters.email = { contains: options.where.email };
+    }
+    if (options?.where?.mobile) {
+      profileFilters.mobile = { contains: options.where.mobile };
+    }
+
+    // Profile 필터가 있으면 where 조건에 추가
+    if (Object.keys(profileFilters).length > 0) {
+      if (!query.where) query.where = {};
+      query.where.profile = profileFilters;
+    }
+
+    // Profile 관련 필터 제거 (User 테이블에 없는 필드들)
+    if (query.where) {
+      delete query.where.profile_name;
+      delete query.where.email;
+      delete query.where.mobile;
+    }
+
+    if (options?.include) {
+      query.include = options.include;
+    }
+
+    if (options?.select) {
+      query.select = options.select;
+    }
+
+    if (options?.orderBy) {
+      query.orderBy = options.orderBy;
+    }
+
+    return query;
+  }
+
+  /**
    * 페이지네이션과 함께 사용자 조회
    */
   async findWithPagination(options?: SearchOptions): Promise<PaginationResult<User>> {
@@ -250,7 +301,8 @@ export class UserService extends BaseService<User, CreateUserRequestDto, UpdateU
    * 사용자 개수 조회
    */
   async count(where?: any): Promise<number> {
-    return await this.prisma.user.count({ where });
+    const query = this.buildQuery({ where });
+    return await this.prisma.user.count({ where: query.where });
   }
 
   /**
