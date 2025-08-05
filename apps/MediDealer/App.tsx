@@ -5,7 +5,7 @@
  * @format
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import type {PropsWithChildren} from 'react';
 import {
   SafeAreaView,
@@ -197,6 +197,8 @@ const SplashScreen = ({ navigation }: { navigation: any }) => {
 
 // 이용자 약관동의 화면
 const UserAgreementScreen = ({ navigation }: { navigation: any }) => {
+  const [activeTab, setActiveTab] = useState<'privacy' | 'service'>('privacy');
+  
   const handleAgree = async () => {
     try {
       await AsyncStorage.setItem('userAgreement', 'true');
@@ -208,16 +210,73 @@ const UserAgreementScreen = ({ navigation }: { navigation: any }) => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      <View style={{ flex: 1 }}>
-        <WebView 
-          source={{ uri: 'https://medidealer.co.kr/agreement/privacy' }}
-          style={{ flex: 1 }}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          startInLoadingState={true}
-          scalesPageToFit={true}
-        />      
+      {/* 탭 헤더 */}
+      <View style={{ 
+        flexDirection: 'row', 
+        backgroundColor: 'white', 
+        borderBottomWidth: 1, 
+        borderBottomColor: '#eee' 
+      }}>
+        <TouchableOpacity 
+          style={{ 
+            flex: 1, 
+            paddingVertical: 15, 
+            alignItems: 'center',
+            borderBottomWidth: 2,
+            borderBottomColor: activeTab === 'service' ? '#007bff' : 'transparent'
+          }}
+          onPress={() => setActiveTab('service')}
+        >
+          <Text style={{ 
+            color: activeTab === 'service' ? '#007bff' : '#666',
+            fontWeight: activeTab === 'service' ? 'bold' : 'normal'
+          }}>
+            서비스 이용약관
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={{ 
+            flex: 1, 
+            paddingVertical: 15, 
+            alignItems: 'center',
+            borderBottomWidth: 2,
+            borderBottomColor: activeTab === 'privacy' ? '#007bff' : 'transparent'
+          }}
+          onPress={() => setActiveTab('privacy')}
+        >
+          <Text style={{ 
+            color: activeTab === 'privacy' ? '#007bff' : '#666',
+            fontWeight: activeTab === 'privacy' ? 'bold' : 'normal'
+          }}>
+            개인정보처리방침
+          </Text>
+        </TouchableOpacity>        
       </View>
+
+      {/* 웹뷰 컨테이너 */}
+      <View style={{ flex: 1 }}>
+        {activeTab === 'privacy' ? (
+          <WebView 
+            source={{ uri: 'https://medidealer.co.kr/agreement/privacy' }}
+            style={{ flex: 1 }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            scalesPageToFit={true}
+          />
+        ) : (
+          <WebView 
+            source={{ uri: 'https://medidealer.co.kr/agreement/service' }}
+            style={{ flex: 1 }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+            startInLoadingState={true}
+            scalesPageToFit={true}
+          />
+        )}
+      </View>
+
+      {/* 동의 버튼 */}
       <View style={{ height: 80, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' }}>
         <TouchableOpacity 
           style={{ 
@@ -235,7 +294,7 @@ const UserAgreementScreen = ({ navigation }: { navigation: any }) => {
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>    
+    </SafeAreaView>
   );
 };
 

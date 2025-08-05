@@ -42,7 +42,17 @@ export default function UserEdit({ params }: { params: { id: string } }) {
 
   const fetchUser = async () => {
     try {
-      const response = await fetch(`/api/v1/users/${params.id}`);
+      const response = await fetch(`/admin/api/v1/users/${params.id}`,
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${document.cookie.split('admin_token=')[1]}`,
+          },
+        }
+      );
+
+      console.log('response', response);
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error?.message || '사용자 정보를 불러오는데 실패했습니다.');
@@ -82,7 +92,7 @@ export default function UserEdit({ params }: { params: { id: string } }) {
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/v1/users/${params.id}`, {
+      const response = await fetch(`/admin/api/v1/users/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -149,8 +159,8 @@ export default function UserEdit({ params }: { params: { id: string } }) {
                   }))}
                   className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
                 >
-                  <option value="0">정상</option>
-                  <option value="1">정지</option>
+                  <option value="0">정지</option>
+                  <option value="1">정상</option>                  
                   <option value="2">탈퇴</option>
                 </select>
               </div>

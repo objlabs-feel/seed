@@ -6,6 +6,7 @@ import { createApiResponse, parseApiRequest, withApiHandler } from '@/libs/api-u
 import { createValidationError, createSystemError, createBusinessError } from '@/libs/errors';
 import type { ApiResponse } from '@/types/api';
 import type { UpdateUserRequestDto } from '@repo/shared/dto';
+import { convertBigIntToString } from '@/libs/utils';
 
 /**
  * GET /admin/api/v1/users/[id]
@@ -24,7 +25,7 @@ export const GET = withApiHandler(async (
 
     return {
       success: true,
-      data: user,
+      data: convertBigIntToString(user),
       message: '이용자 정보를 성공적으로 조회했습니다.',
       meta: {
         timestamp: Date.now(),

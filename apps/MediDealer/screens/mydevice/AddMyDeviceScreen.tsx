@@ -5,7 +5,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { locations, departments, deviceTypes, manufacturers, initConstants, isConstantsInitialized } from '../../constants/data';
 import ImageUploader from '../../components/common/ImageUploader';
 import SelectionModal from '../../components/auction/SelectionModal';
-import { setMyDevice } from '../../services/medidealer/api';
+import { getMyProfile, setMyDevice } from '../../services/medidealer/api';
 
 // 날짜 포맷팅 함수
 const formatDate = (date: Date) => {
@@ -16,7 +16,7 @@ const formatDate = (date: Date) => {
 const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
   const [formData, setFormData] = useState({
     // 병원/업체 정보
-    location: locations[0]?.id || '',
+    area: locations[0]?.id || '',
     hospitalName: '',
     name: '',
     phone: '',
@@ -30,7 +30,7 @@ const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
     purchaseDate: new Date(),
     description: '',
     images: [],
-    status: 0, // 0: 정상, 1: 수리중, 2: 폐기
+    status: 1, // 0: 수리중, 1: 정상, 2: 폐기
   });
   
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -60,6 +60,15 @@ const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
         setLoading(true);
         // 상수 데이터 초기화
         const success = await initConstants();
+        const { data: profile } = await getMyProfile();
+        console.log('profile', profile);
+
+        setFormData({
+          ...formData,
+          hospitalName: profile?.profile?.company?.name || '',
+          name: profile?.profile?.name || '',
+          phone: profile?.profile?.mobile || ''
+        });
         
         if (success) {
           console.log('상수 데이터 초기화 성공, 기본값 설정');
@@ -81,8 +90,8 @@ const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
       let updated = false;
 
       // 지역 기본값 설정 (아직 선택되지 않은 경우)
-      if (!updatedFormData.location && locations.length > 0) {
-        updatedFormData.location = locations[0].id;
+      if (!updatedFormData.area && locations.length > 0) {
+        updatedFormData.area = locations[0].id;
         updated = true;
       }
 
@@ -139,7 +148,7 @@ const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
     if (!formData.manufacturingYear) newErrors.manufacturingYear = '제조년도를 입력해주세요';
     if (!formData.purchaseDate) newErrors.purchaseDate = '구입일자를 선택해주세요';
     if (!formData.description) newErrors.description = '설명을 입력해주세요';
-    if (!formData.images || formData.images.length === 0) newErrors.images = '최소 1장 이상의 사진을 업로드해주세요';
+    // if (!formData.images || formData.images.length === 0) newErrors.images = '최소 1장 이상의 사진을 업로드해주세요';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -191,9 +200,9 @@ const AddMyDeviceScreen = ({ navigation }: { navigation: any }) => {
               style={[styles.selectButton, errors.location && styles.inputError]}
               onPress={() => setShowLocationModal(true)}
             >
-              <Text style={formData.location ? styles.selectText : styles.placeholderText}>
-                {formData.location ? 
-                  locations.find(item => item.id === formData.location)?.name : 
+              <Text style={formData.area ? styles.selectText : styles.placeholderText}>
+                {formData.area ? 
+                  locations.find(item => item.id === formData.area)?.name : 
                   '지역을 선택해주세요'}
               </Text>
             </TouchableOpacity>
